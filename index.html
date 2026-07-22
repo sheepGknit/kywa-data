@@ -3,26 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<<<<<<< HEAD
-    <title>청소년 업무 지원 통합 시스템</title>
-    <!-- Tailwind CSS (최신 CDN) -->
+    <title>청소년 데이터 웹앱 - 통합 지원 시스템</title>
+    
+    <!-- Tailwind CSS (디자인 전용) -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Pretendard 폰트 설정 -->
     <style>
-        /* Pretendard 폰트 및 기본 설정 */
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
         * {
             font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
         }
     </style>
-=======
-    <title>청소년 데이터 웹앱 </title>
 
-    <!-- ======================================================== -->
-    <!-- 디자인 파일 연결: style.css 파일이 여기서 자동으로 불려옵니다. -->
-    <!-- (이 줄은 수정하지 마세요!) -->
-    <!-- ======================================================== -->
+    <!-- 팀원 전용 스타일시트 연결 -->
     <link rel="stylesheet" href="style.css">
->>>>>>> 91c747c19980c8fe7d550a147124267914d00df8
 </head>
 <body class="bg-gray-100 flex h-screen overflow-hidden">
 
@@ -40,23 +35,13 @@
             </div>
         </div>
 
-<<<<<<< HEAD
         <!-- 네비게이션 메뉴 목록 -->
         <nav class="flex-1 p-4 space-y-1.5 overflow-y-auto">
             <div class="px-3 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 메인 메뉴
             </div>
-=======
-    <div id="app-container">
-<<<<<<< HEAD
-        <h1>청소년 데이터 대시보드(수정중)</h1>
-=======
-        <h1>청소년 데이터 대시보드입니다.</h1>
-        <p>여기에 AI가 만들어준 화면 코드를 덮어쓰기 하시면 됩니다.</p>
-    </div>
->>>>>>> 91c747c19980c8fe7d550a147124267914d00df8
 
-            <!-- ⭐ 사이드바 버튼 1: 통계를 볼 수 있는 대시보드 페이지 -->
+            <!-- ⭐ 사이드바 버튼 1: 청소년 통계 대시보드 -->
             <a 
                 href="youth_data.html" 
                 target="mainContentFrame"
@@ -69,7 +54,7 @@
                 📊 청소년 통계 대시보드
             </a>
 
-            <!-- ⭐ 사이드바 버튼 2: 내 AI 프로그램 기획 생성기 (기본 선택) -->
+            <!-- ⭐ 사이드바 버튼 2: AI 프로그램 기획 생성기 -->
             <a 
                 href="youth_program.html" 
                 target="mainContentFrame"
@@ -81,7 +66,7 @@
                 </svg>
                 💡 AI 프로그램 기획기
             </a>
-			
+
             <!-- ⭐ 사이드바 버튼 3: 팀원이 담당하는 페이지 B -->
             <a 
                 href="member_b.html" 
@@ -116,7 +101,7 @@
             <div class="flex items-center gap-2 text-sm text-gray-500">
                 <span>시스템 메인</span>
                 <span>&gt;</span>
-                <span id="currentPageTitle" class="font-bold text-gray-800">💡 AI 프로그램 기획기</span>
+                <span id="currentPageTitle" class="font-bold text-gray-800">📊 청소년 통계 대시보드</span>
             </div>
             <div class="flex items-center gap-3">
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -125,7 +110,7 @@
             </div>
         </header>
 
-        <!-- ⭐ 메인 iframe: 왼쪽 메뉴를 누르면 이 안에서 HTML 페이지가 변경됨 -->
+        <!-- ⭐ 메인 iframe: 사이드바 메뉴를 클릭하면 이 안에서 지정된 html 페이지가 뜸 -->
         <div class="flex-1 w-full h-full p-2 relative">
             <iframe 
                 name="mainContentFrame" 
@@ -137,7 +122,8 @@
         </div>
 
     </main>
-	
+
+    <!-- 외부 JS 연결 -->
     <script src="script.js"></script>
 
 </body>
