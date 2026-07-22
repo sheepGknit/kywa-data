@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>청소년 프로그램 기획 인사이트 보고서</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* A4 비율 및 인쇄 전용 스타일 */
+    .a4-page {
+      width: 210mm;
+      min-height: 297mm;
+    }
+    @media print {
+      body { background: white; }
+      .no-print { display: none !important; }
+      .a4-page {
+        box-shadow: none !important;
+        margin: 0 !important;
+        width: 100% !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col items-center p-6">
+
+  <!-- ================= 1. 검색/입력 영역 (Gemini/Google 스타일) ================= -->
+  <header class="w-full max-w-3xl my-8 text-center no-print">
+    <h1 class="text-3xl font-bold text-gray-900 mb-2">청소년 프로그램 기획 AI 파트너</h1>
+    <p class="text-gray-500 mb-6">국가통계(KOSIS) 실태조사 기반으로 기획 보고서를 자동 생성합니다.</p>
+
+    <!-- 검색창 (Gemini / ChatGPT 스타일) -->
+    <div class="relative w-full shadow-lg rounded-2xl bg-white border border-gray-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-200 transition-all">
+      <textarea 
+        rows="3" 
+        placeholder="어떤 청소년 프로그램을 기획하고 싶으신가요? (예: 중학생 대상 사이버 도박 예방 프로그램을 기획하려 해. 운영 시간이랑 전달 방식 추천해줘.)"
+        class="w-full p-4 pl-5 pr-14 rounded-2xl outline-none resize-none text-gray-700 placeholder-gray-400"
+      ></textarea>
+      
+      <!-- 전송 버튼 -->
+      <button class="absolute right-3 bottom-3 bg-blue-600 hover:bg-blue-700 text-white p-2.5 rounded-xl transition-all">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- 추천 태그 -->
+    <div class="flex flex-wrap justify-center gap-2 mt-4 text-sm text-gray-600">
+      <span class="text-gray-400">자주 찾는 주제:</span>
+      <button class="bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-full border border-gray-300">#중학생 도박예방</button>
+      <button class="bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-full border border-gray-300">#방과후 나홀로 청소년</button>
+      <button class="bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-full border border-gray-300">#초등 숏폼/미디어 중독</button>
+    </div>
+  </header>
+
+  <!-- ================= 2. 결과 출력 영역 (A4 1페이지 보고서) ================= -->
+  <main class="w-full max-w-4xl flex flex-col items-center">
+    
+    <!-- 상단 툴바 (인쇄/다운로드) -->
+    <div class="w-full flex justify-between items-center mb-4 max-w-[210mm] no-print">
+      <span class="text-sm font-semibold text-gray-500">📄 분석 결과 기획 보고서</span>
+      <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-medium shadow flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+        </svg>
+        보고서 인쇄 / PDF 저장
+      </button>
+    </div>
+
+    <!-- A4 용지 규격 카드 -->
+    <div class="a4-page bg-white p-10 shadow-2xl rounded-sm border border-gray-200 flex flex-col justify-between">
+      
+      <div>
+        <!-- 보고서 헤더 -->
+        <div class="border-b-2 border-gray-800 pb-4 mb-6">
+          <div class="text-xs font-bold text-blue-600 tracking-wider mb-1">PROGRAM PROPOSAL REPORT</div>
+          <h2 class="text-2xl font-bold text-gray-900">중학생 대상 사이버 도박 예방 및 참여형 대안활동 기획안</h2>
+          <div class="text-xs text-gray-400 mt-2 flex gap-4">
+            <span><strong>작성일:</strong> 2026.07.22</span>
+            <span><strong>타겟:</strong> 중등 1~3학년</span>
+            <span><strong>기반 데이터:</strong> 2024 청소년 미디어/방과후 실태조사</span>
+          </div>
+        </div>
+
+        <!-- 1. 기획 배경 및 근거 통계 -->
+        <section class="mb-6">
+          <h3 class="text-base font-bold text-gray-800 mb-2 border-l-4 border-blue-600 pl-2">1. 기획 배경 및 실태조사 데이터 분석</h3>
+          <div class="bg-blue-50/50 p-4 rounded-lg border border-blue-100 text-sm text-gray-700 space-y-2">
+            <p>• <strong>위험 요인:</strong> 2024년 청소년 실태조사 결과, 중학생의 게임 이용률은 <strong>34.3%</strong>, 미디어 시청은 <strong>28.3%</strong>로 초등 대비 스마트기기 의존도가 급증함.</p>
+            <p>• <strong>시간대 공백:</strong> 평일 <strong>16:00 ~ 18:00</strong> 사이 방과 후 보호자 미동행 및 자율 시간 비율이 <strong>48.2%</strong>로 가장 높게 나타남.</p>
+          </div>
+        </section>
+
+        <!-- 2. 핵심 추천 프로그램 방향 -->
+        <section class="mb-6">
+          <h3 class="text-base font-bold text-gray-800 mb-2 border-l-4 border-blue-600 pl-2">2. 맞춤형 프로그램 추천 구상</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="border p-3.5 rounded-lg">
+              <span class="text-xs font-bold text-blue-600">권장 운영 시간 및 장소</span>
+              <p class="font-bold text-sm text-gray-800 mt-1">평일 방과 후 (16시~18시)</p>
+              <p class="text-xs text-gray-500 mt-1">학교 근처 청소년 문화의집 또는 동부/읍면지역 거점 공간 활용 권장.</p>
+            </div>
+            <div class="border p-3.5 rounded-lg">
+              <span class="text-xs font-bold text-blue-600">추천 전달 및 모집 방식</span>
+              <p class="font-bold text-sm text-gray-800 mt-1">숏폼 제작 참여형 공모전</p>
+              <p class="text-xs text-gray-500 mt-1">중학생 SNS 이용률(11.0%) 증가에 맞춰 직접 도박 예방 숏폼을 제작하는 또래참여형 구조.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. 비추천 사유 (주의사항) -->
+        <section class="mb-6">
+          <h3 class="text-base font-bold text-gray-800 mb-2 border-l-4 border-red-500 pl-2">3. 기획 시 비추천 요소 (실태조사 기반)</h3>
+          <div class="bg-red-50/50 p-3.5 rounded-lg border border-red-100 text-sm text-gray-700">
+            <p>• <strong>단순 강당 집합식 시청각 교육 지양:</strong> 실태조사 내 주입식 안전/예방 교육에 대한 만족도는 최하위(12.4%) 수준이며, 실제 행동 변화 효과가 매우 미비함.</p>
+          </div>
+        </section>
+      </div>
+
+      <!-- 보고서 푸터 (출처 명시) -->
+      <div class="border-t pt-4 text-xs text-gray-400 flex justify-between items-center">
+        <span>출처: 국가통계포털(KOSIS) 청소년 관련 실태조사 연동</span>
+        <span>청소년지도사 전용 기획지원 시스템</span>
+      </div>
+
+    </div>
+  </main>
+
+</body>
+</html>
