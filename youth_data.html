@@ -89,6 +89,13 @@
             text-anchor: middle;
             text-shadow: 1px 1px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff;
         }
+        .municipality-label {
+            pointer-events: none;
+            font-weight: 500;
+            fill: #333;
+            text-anchor: middle;
+            text-shadow: 1px 1px 0 rgba(255,255,255,0.8), -1px -1px 0 rgba(255,255,255,0.8), 1px -1px 0 rgba(255,255,255,0.8), -1px 1px 0 rgba(255,255,255,0.8);
+        }
         .tooltip {
             position: absolute;
             background: white;
@@ -122,7 +129,8 @@
                     <input type="text" id="searchInput" placeholder="기관명 검색..." class="pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-900 focus:border-transparent w-64 transition-all">
                     <i class="fa-solid fa-search absolute left-3 top-2.5 text-gray-400"></i>
                 </div>
-                <button class="flex items-center gap-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm" onclick="alert('엑셀 다운로드 기능은 실제 서버 연동 시 작동합니다.')">
+                <!-- 알림창 대신 모달이나 다른 방식으로 대체하는 것이 좋지만 사용자 요청 기본 구조 유지 -->
+                <button class="flex items-center gap-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm">
                     <i class="fa-solid fa-download text-gray-500"></i> 엑셀 다운로드
                 </button>
             </div>
@@ -339,8 +347,6 @@
 
         const facilitiesData = generateMockData();
 
-        // --- STREAMING_CHUNK:데이터 필터링 및 렌더링 로직... ---
-        
         // 데이터 필터링 함수
         const getFilteredData = () => {
             return facilitiesData.filter(item => {
@@ -581,8 +587,6 @@
             `).join('');
         };
 
-        // --- STREAMING_CHUNK:D3.js 지도 시각화 (Choropleth Map)... ---
-        
         let g_muni, g_prov; 
         const width = 800;
         const height = 600;
@@ -592,11 +596,6 @@
             state.district = null;
             if (window.__d3svg && window.__d3zoom) {
                 window.__d3svg.transition().duration(750).call(window.__d3zoom.transform, d3.zoomIdentity);
-            }
-            if (g_prov && g_muni) {
-                g_prov.selectAll("path").transition().duration(400).style("opacity", 1).style("pointer-events", "all");
-                g_prov.selectAll(".province-label").transition().duration(400).style("opacity", 1);
-                g_muni.selectAll("path").transition().duration(400).style("opacity", 0).style("pointer-events", "none");
             }
             updateDashboard();
         };
@@ -620,6 +619,10 @@
                 .on("zoom", (event) => {
                     g_muni.attr("transform", event.transform);
                     g_prov.attr("transform", event.transform);
+                    
+                    // 확대 배율에 맞춰 시군구 텍스트 크기 조정 (항상 일정한 크기로 보이도록 유지)
+                    g_muni.selectAll(".municipality-label")
+                        .style("font-size", (12 / event.transform.k) + "px");
                 });
 
             svg.call(zoom);
@@ -637,11 +640,10 @@
                     fetch('https://raw.githubusercontent.com/southkorea/southkorea-maps/master/kostat/2013/json/skorea_municipalities_geo_simple.json').then(r => r.json())
                 ]);
 
-                // 알버트 투영법 적용 (한국 중심)
-                const projection = d3.geoAlbers()
-                    .center([127.5, 36.4])
-                    .rotate([0, 0])
-                    .scale(6000)
+                // 알버트(Albers) 투영법 대신 메르카토르(Mercator) 투영법을 사용하여 대한민국의 중심 좌표에 맞춥니다.
+                const projection = d3.geoMercator()
+                    .center([127.5, 35.9]) // 대한민국 중심 경도, 위도
+                    .scale(5500)           // 화면에 꽉 차도록 배율 조정
                     .translate([width / 2, height / 2]);
 
                 const path = d3.geoPath().projection(projection);
@@ -679,6 +681,39 @@
                     .on("mouseover", handleMuniMouseOver)
                     .on("mouseout", handleMuniMouseOut)
                     .on("click", handleMuniClick);
+
+                // 시군구 텍스트 라벨 추가 (초기에는 숨김)
+                const seenLabels = new Set();
+                
+                g_muni.selectAll("text")
+                    .data(muniGeojson.features)
+                    .enter().append("text")
+                    .attr("class", "municipality-label")
+                    .attr("transform", d => {
+                        const centroid = path.centroid(d);
+                        // 좌표 계산 실패 시 0,0 위치로 예외 처리
+                        if (isNaN(centroid[0]) || isNaN(centroid[1])) return "translate(0,0)";
+                        return `translate(${centroid[0]}, ${centroid[1]})`;
+                    })
+                    .text(d => {
+                        const rawName = d.properties.name; // 예: "성남시 분당구"
+                        const provName = d.properties.provName;
+                        
+                        // 우측 리스트(REGIONS) 기준 이름으로 맵핑 ("성남시 분당구" -> "성남시")
+                        const provDistricts = REGIONS[provName] || [];
+                        let mappedName = rawName;
+                        const partial = provDistricts.find(dist => rawName.includes(dist) || dist.includes(rawName.split(' ')[0]));
+                        if (partial) mappedName = partial;
+
+                        // 한 도시에 구가 여러 개라 라벨이 겹쳐서 중복 출력되는 것을 방지
+                        const uniqueKey = provName + "_" + mappedName;
+                        if (seenLabels.has(uniqueKey)) return ""; // 이미 쓴 이름이면 생략
+                        seenLabels.add(uniqueKey);
+                        
+                        return mappedName;
+                    })
+                    .style("font-size", "12px")
+                    .style("opacity", 0);
 
                 // 2. 시도(상위) 레이어 그리기
                 g_prov.selectAll("path")
@@ -733,7 +768,9 @@
                     const dy = bounds[1][1] - bounds[0][1];
                     const x = (bounds[0][0] + bounds[1][0]) / 2;
                     const y = (bounds[0][1] + bounds[1][1]) / 2;
-                    const scale = Math.max(1, Math.min(8, 0.8 / Math.max(dx / width, dy / height)));
+                    
+                    // 해당 시도 영역이 화면에 꽉 차도록 여백을 약간 주고(0.85) 배율 계산
+                    const scale = Math.max(1, Math.min(8, 0.85 / Math.max(dx / width, dy / height)));
                     const translate = [width / 2 - scale * x, height / 2 - scale * y];
 
                     // 줌 애니메이션
@@ -741,18 +778,6 @@
                         zoom.transform, 
                         d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale)
                     );
-
-                    // 시도 레이어는 클릭된 것을 제외하고 숨김 (배경 컨텍스트 제공)
-                    g_prov.selectAll("path").transition().duration(400)
-                        .style("opacity", p => (nameMapping[p.properties.name] || p.properties.name) === provName ? 0 : 0.3)
-                        .style("pointer-events", "none");
-                    
-                    g_prov.selectAll(".province-label").transition().duration(400).style("opacity", 0);
-
-                    // 해당 시도의 시군구 레이어 보이기
-                    g_muni.selectAll("path").transition().duration(400)
-                        .style("opacity", m => m.properties.provName === provName ? 1 : 0)
-                        .style("pointer-events", m => m.properties.provName === provName ? "all" : "none");
 
                     updateDashboard();
                 }
@@ -792,7 +817,19 @@
                 .attr("fill", function() {
                     const count = provCounts[this.id] || 0;
                     return count > 0 ? colorScale(count) : "#f1f5f9";
+                })
+                .style("opacity", function() {
+                    if (!state.province) return 1;
+                    return this.id === state.province ? 0 : 0.2;
+                })
+                .style("pointer-events", function() {
+                    return !state.province ? "all" : "none";
                 });
+
+            // 시도 텍스트 라벨 투명도 처리
+            g_prov.selectAll(".province-label")
+                .transition().duration(500)
+                .style("opacity", !state.province ? 1 : 0);
 
             // 시군구별 카운트 (부분 일치 로직 포함 - MockData와 GeoJSON 명칭 차이 보정)
             const distCounts = {};
@@ -824,6 +861,19 @@
                 })
                 .attr("stroke-width", function() {
                     return state.district === this.id ? "2.5px" : "1.5px";
+                })
+                .style("opacity", function(d) {
+                    return state.province === d.properties.provName ? 1 : 0;
+                })
+                .style("pointer-events", function(d) {
+                    return state.province === d.properties.provName ? "all" : "none";
+                });
+
+            // 시군구 텍스트 라벨 표시 여부 (선택된 시도의 하위 구역만 텍스트 표시)
+            g_muni.selectAll(".municipality-label")
+                .transition().duration(500)
+                .style("opacity", function(d) {
+                    return state.province === d.properties.provName ? 1 : 0;
                 });
 
             renderLegend(colorScale, provCounts);
@@ -863,17 +913,17 @@
         }
 
         function handleMuniMouseOver(event, d) {
-            const distName = d.properties.name;
+            const rawDistName = d.properties.name;
             const provName = d.properties.provName;
             
+            // 툴팁에서도 모의 데이터(REGIONS) 명칭으로 통일하여 보여줌 (예: 성남시 분당구 -> 성남시)
+            let distName = rawDistName;
+            const provDistricts = REGIONS[provName] || [];
+            const partial = provDistricts.find(dist => rawDistName.includes(dist) || dist.includes(rawDistName.split(' ')[0]));
+            if (partial) distName = partial;
+
             const mapBaseData = facilitiesData.filter(item => state.project === '전체' || item.projects.includes(state.project));
             let count = mapBaseData.filter(item => item.province === provName && item.district === distName).length;
-            
-            // 모의 데이터 매핑 보정
-            if(count === 0) {
-                const partialMatch = mapBaseData.filter(item => item.province === provName && (distName.includes(item.district) || item.district.includes(distName.split(' ')[0])));
-                count = partialMatch.length;
-            }
 
             d3.select(this).attr("stroke", "#0284c7").attr("stroke-width", "2px");
 
@@ -912,8 +962,6 @@
             updateDashboard();
         }
 
-        // --- STREAMING_CHUNK:초기화 및 이벤트 리스너 바인딩... ---
-        
         document.addEventListener('DOMContentLoaded', () => {
             const searchInput = document.getElementById('searchInput');
             searchInput.addEventListener('input', (e) => {
@@ -931,7 +979,6 @@
             updateDashboard();
             initMap();
         });
-
     </script>
 </body>
 </html>
