@@ -3,982 +3,751 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>전국 청소년 정책사업 운영기관 현황</title>
+    <title>청소년활동 데이터 플랫폼</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- 폰트 설정 (Pretendard) -->
-    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
-    
-    <!-- 아이콘 (FontAwesome) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- D3.js (지도 시각화용) -->
-    <script src="https://d3js.org/d3.v7.min.js"></script>
-
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['"Pretendard Variable"', 'Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'Roboto', 'sans-serif'],
-                    },
                     colors: {
-                        primary: {
-                            50: '#eef6fc',
-                            100: '#daecf8',
-                            200: '#bce0f2',
-                            300: '#8ecde9',
-                            400: '#5ab3de',
-                            500: '#389bd2',
-                            600: '#267fba',
-                            700: '#206597',
-                            800: '#1d557f',
-                            900: '#005BAC', // 메인 포인트 컬러
-                            950: '#123755',
-                        },
-                        surface: '#ffffff',
-                        background: '#f4f6f9',
-                    },
-                    boxShadow: {
-                        'card': '0 2px 10px rgba(0, 0, 0, 0.05)',
-                        'card-hover': '0 4px 20px rgba(0, 0, 0, 0.08)',
+                        brand: { dark: '#1e293b', light: '#334155', yellow: '#FDBA1A' },
+                        seoul: { red: '#E6192B', dark: '#222222' }
                     }
                 }
             }
         }
     </script>
+    
+    <!-- Leaflet CSS & JS (지도) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Phosphor Icons (아이콘) -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Turf.js (도형 병합용) -->
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+
+    <!-- Chart.js (통계 그래프용) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        body { background-color: #f4f6f9; color: #333; }
-        /* 스크롤바 커스텀 */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+        body { margin: 0; padding: 0; overflow-x: hidden; font-family: 'Pretendard', sans-serif; background-color: #1e293b; }
         
-        /* 지도 관련 스타일 */
-        .province-path {
-            stroke: #ffffff;
-            stroke-width: 3px;
-            stroke-linejoin: round;
-            stroke-linecap: round;
-            cursor: pointer;
-            transition: all 0.3s ease;
+        /* Leaflet Overrides */
+        .leaflet-container { background: transparent !important; }
+        .leaflet-control-zoom, .leaflet-control-attribution { display: none !important; }
+        path.leaflet-interactive { transition: fill 0.3s ease, stroke-width 0.3s ease; }
+
+        /* Donut Chart CSS */
+        .donut-chart {
+            position: relative; width: 140px; height: 140px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
         }
-        .province-path:hover {
-            filter: brightness(0.9);
+        .donut-inner {
+            width: 100px; height: 100px; background-color: #ffffff; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; flex-direction: column;
+            text-align: center; font-weight: 700; color: #333; box-shadow: 0 2px 5px rgba(0,0,0,0.05); z-index: 10;
         }
-        .municipality-path {
-            stroke: #ffffff;
-            stroke-width: 1.5px;
-            stroke-linejoin: round;
-            stroke-linecap: round;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        .municipality-path:hover {
-            filter: brightness(0.9);
-        }
-        .province-label {
-            pointer-events: none;
-            font-size: 11px;
-            font-weight: 600;
-            fill: #333;
-            text-anchor: middle;
-            text-shadow: 1px 1px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff;
-        }
-        .municipality-label {
-            pointer-events: none;
-            font-weight: 500;
-            fill: #333;
-            text-anchor: middle;
-            text-shadow: 1px 1px 0 rgba(255,255,255,0.8), -1px -1px 0 rgba(255,255,255,0.8), 1px -1px 0 rgba(255,255,255,0.8), -1px 1px 0 rgba(255,255,255,0.8);
-        }
-        .tooltip {
-            position: absolute;
-            background: white;
-            padding: 8px 12px;
-            border-radius: 6px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            pointer-events: none;
-            font-size: 13px;
-            opacity: 0;
-            transition: opacity 0.2s;
-            z-index: 50;
-            border-left: 4px solid #005BAC;
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+
+        /* Animations */
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
-        /* 테이블 헤더 고정 */
-        .sticky-header th { position: sticky; top: 0; background-color: #f8fafc; z-index: 10; }
+        .data-highlight { transition: all 0.2s ease-in-out; }
+
+        /* Accordion */
+        .accordion-content {
+            max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out;
+        }
+        .accordion-open { max-height: 800px; } /* 항목이 많으므로 늘림 */
     </style>
 </head>
-<body class="min-h-screen p-4 md:p-6 lg:p-8 flex justify-center">
+<body class="text-gray-800">
 
-    <div class="max-w-[1400px] w-full space-y-6">
-        
-        <!-- Header Section -->
-        <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-xl shadow-card">
-            <div>
-                <h1 class="text-2xl font-bold text-gray-800 tracking-tight">전국 청소년 정책사업 운영기관 현황</h1>
-                <p class="text-sm text-gray-500 mt-1">데이터 기준일: 2026. 07. 20</p>
-            </div>
-            <div class="flex items-center gap-3">
-                <div class="relative">
-                    <input type="text" id="searchInput" placeholder="기관명 검색..." class="pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-900 focus:border-transparent w-64 transition-all">
-                    <i class="fa-solid fa-search absolute left-3 top-2.5 text-gray-400"></i>
+    <!-- FLOATING GEMINI AI ASSISTANT TRIGGER -->
+    <div class="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+        <div id="aiChatWindow" class="hidden w-[90vw] sm:w-[380px] h-[520px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex-col overflow-hidden mb-4 fade-in">
+            <div class="bg-brand-dark text-white px-4 py-3 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-full bg-brand-yellow flex items-center justify-center text-brand-dark font-black"><i class="ph-bold ph-robot text-lg"></i></div>
+                    <div>
+                        <h3 class="font-bold text-sm">청소년활동 AI 도우미</h3>
+                        <p class="text-[10px] text-gray-300">Gemini 3 Flash 기반 맞춤형 상담</p>
+                    </div>
                 </div>
-                <!-- 알림창 대신 모달이나 다른 방식으로 대체하는 것이 좋지만 사용자 요청 기본 구조 유지 -->
-                <button class="flex items-center gap-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm">
-                    <i class="fa-solid fa-download text-gray-500"></i> 엑셀 다운로드
-                </button>
+                <button onclick="toggleAiChat()" class="text-gray-300 hover:text-white p-1"><i class="ph-bold ph-x text-lg"></i></button>
             </div>
-        </header>
-
-        <div class="flex flex-col gap-4">
-            <!-- Breadcrumbs / Current Filter -->
-            <div class="flex items-center text-sm text-gray-600 bg-white px-4 py-2.5 rounded-lg shadow-sm w-fit border border-gray-100">
-                <i class="fa-solid fa-filter text-primary-900 mr-2"></i>
-                <span id="breadcrumb" class="font-medium">전체</span>
-                <button id="resetFilterBtn" class="ml-3 text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-2 py-1 rounded transition-colors hidden">
-                    초기화
-                </button>
+            <div id="aiChatMessages" class="flex-1 p-4 overflow-y-auto space-y-3 bg-gray-50 text-sm">
+                <div class="flex items-start gap-2">
+                    <div class="w-7 h-7 rounded-full bg-brand-dark text-white flex items-center justify-center flex-shrink-0 text-xs font-bold">AI</div>
+                    <div class="bg-white p-3 rounded-2xl rounded-tl-none shadow-sm border border-gray-100 text-gray-700 max-w-[80%] leading-relaxed">
+                        안녕하세요! 대한민국 청소년활동 데이터 플랫폼 AI 도우미입니다. 봉사활동, 인증제 등 무엇이든 물어보세요!
+                    </div>
+                </div>
             </div>
-
-            <!-- Project Tabs -->
-            <div class="bg-white p-2 rounded-xl shadow-card flex flex-wrap gap-2" id="projectTabs">
-                <!-- Tabs will be generated by JS -->
+            <div class="px-3 py-2 bg-white border-t border-gray-100 flex gap-1.5 overflow-x-auto text-xs">
+                <button onclick="sendPresetPrompt('우리 지역 주말 봉사활동 추천해줘')" class="bg-gray-100 hover:bg-brand-yellow/20 px-2.5 py-1 rounded-full whitespace-nowrap">✨ 봉사 추천</button>
+                <button onclick="sendPresetPrompt('진로 역량을 키우기 좋은 활동은?')" class="bg-gray-100 hover:bg-brand-yellow/20 px-2.5 py-1 rounded-full whitespace-nowrap">🎯 진로 프로그램</button>
+            </div>
+            <div class="p-3 bg-white border-t border-gray-200 flex gap-2">
+                <input type="text" id="aiChatInput" onkeypress="if(event.key==='Enter') sendUserMessage()" placeholder="질문을 입력하세요..." class="flex-1 bg-gray-100 border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-brand-dark">
+                <button onclick="sendUserMessage()" class="bg-brand-dark text-white w-10 h-10 rounded-xl flex items-center justify-center shadow-md"><i class="ph-bold ph-paper-plane-right"></i></button>
             </div>
         </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="kpiCards">
-            <!-- KPI Cards will be generated by JS -->
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            <!-- Map Section (Left 2/3) -->
-            <div class="lg:col-span-2 bg-white rounded-xl shadow-card p-6 relative flex flex-col h-[600px]">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
-                        <i class="fa-solid fa-map-location-dot text-primary-900"></i>
-                        지역별 분포 현황
-                    </h2>
-                    <div class="flex gap-2">
-                        <button id="zoomInBtn" class="w-8 h-8 rounded bg-gray-50 border border-gray-200 hover:bg-gray-100 flex items-center justify-center text-gray-600"><i class="fa-solid fa-plus"></i></button>
-                        <button id="zoomOutBtn" class="w-8 h-8 rounded bg-gray-50 border border-gray-200 hover:bg-gray-100 flex items-center justify-center text-gray-600"><i class="fa-solid fa-minus"></i></button>
-                        <button id="zoomResetBtn" class="w-8 h-8 rounded bg-gray-50 border border-gray-200 hover:bg-gray-100 flex items-center justify-center text-gray-600"><i class="fa-solid fa-compress"></i></button>
-                    </div>
-                </div>
-                
-                <!-- Map Container -->
-                <div id="mapContainer" class="flex-1 bg-[#f8fbff] rounded-lg border border-blue-50 overflow-hidden relative">
-                    <!-- D3 Map will be injected here -->
-                    <div id="mapLoading" class="absolute inset-0 flex items-center justify-center bg-white/80 z-10">
-                        <div class="flex flex-col items-center">
-                            <i class="fa-solid fa-circle-notch fa-spin text-primary-900 text-3xl mb-2"></i>
-                            <span class="text-sm text-gray-500 font-medium">지도 데이터 불러오는 중...</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Legend -->
-                <div class="absolute bottom-8 right-8 bg-white/90 backdrop-blur p-3 rounded-lg shadow-sm border border-gray-100 text-xs">
-                    <div class="font-medium mb-2 text-gray-700">운영기관 수</div>
-                    <div class="flex items-center gap-1" id="mapLegend">
-                        <!-- Generated by JS -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Region Details Section (Right 1/3) -->
-            <div class="bg-white rounded-xl shadow-card flex flex-col h-[600px] overflow-hidden">
-                <div class="p-6 border-b border-gray-100 bg-gray-50/50">
-                    <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
-                        <i class="fa-solid fa-list-ul text-primary-900"></i>
-                        세부 지역 선택
-                    </h2>
-                    <div id="selectedRegionHeader" class="mt-4">
-                        <div class="text-2xl font-bold text-primary-900">전국</div>
-                        <div class="text-sm text-gray-500 mt-1">지도의 지역을 클릭하여 시군구별 현황을 확인하세요.</div>
-                    </div>
-                </div>
-                
-                <div class="flex-1 overflow-y-auto p-4 bg-white" id="districtList">
-                    <!-- District list will be generated by JS -->
-                    <div class="h-full flex flex-col items-center justify-center text-gray-400 space-y-3">
-                        <i class="fa-regular fa-hand-pointer text-4xl opacity-50"></i>
-                        <p class="text-sm">지도에서 시/도를 선택해주세요.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-white rounded-xl shadow-card overflow-hidden">
-            <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
-                    <i class="fa-solid fa-building text-primary-900"></i>
-                    운영기관 상세 목록
-                </h2>
-                <div class="text-sm text-gray-500">
-                    총 <span id="tableTotalCount" class="font-bold text-primary-900">0</span>개 기관
-                </div>
-            </div>
-            
-            <div class="overflow-x-auto max-h-[500px]">
-                <table class="w-full text-sm text-left sticky-header">
-                    <thead class="text-xs text-gray-600 uppercase bg-gray-50 border-b border-gray-200">
-                        <tr>
-                            <th scope="col" class="px-4 py-3 font-semibold w-24">시도</th>
-                            <th scope="col" class="px-4 py-3 font-semibold w-24">시군구</th>
-                            <th scope="col" class="px-4 py-3 font-semibold w-64">기관명</th>
-                            <th scope="col" class="px-4 py-3 font-semibold">운영사업 (태그)</th>
-                            <th scope="col" class="px-4 py-3 font-semibold w-36">연락처</th>
-                            <th scope="col" class="px-4 py-3 font-semibold text-center w-20">홈페이지</th>
-                        </tr>
-                    </thead>
-                    <tbody id="facilityTableBody" class="divide-y divide-gray-100">
-                        <!-- Table rows generated by JS -->
-                    </tbody>
-                </table>
-            </div>
-            
-            <!-- Pagination (Mock) -->
-            <div class="p-4 border-t border-gray-100 flex items-center justify-between bg-white">
-                <span class="text-sm text-gray-500">1-50 / 전체 데이터 표시중 (스크롤)</span>
-                <div class="flex gap-1">
-                    <button class="px-3 py-1 border border-gray-200 rounded text-gray-400 cursor-not-allowed bg-gray-50">&lt;</button>
-                    <button class="px-3 py-1 border border-primary-900 rounded bg-primary-900 text-white">1</button>
-                    <button class="px-3 py-1 border border-gray-200 rounded text-gray-600 hover:bg-gray-50">2</button>
-                    <button class="px-3 py-1 border border-gray-200 rounded text-gray-600 hover:bg-gray-50">3</button>
-                    <button class="px-3 py-1 border border-gray-200 rounded text-gray-600 hover:bg-gray-50">&gt;</button>
-                </div>
-            </div>
-        </div>
-        
+        <button onclick="toggleAiChat()" class="bg-brand-dark hover:bg-brand-light text-white p-4 rounded-full shadow-2xl flex items-center gap-3 transition-all transform hover:scale-105 border-2 border-brand-yellow">
+            <i class="ph-bold ph-sparkle text-2xl text-brand-yellow animate-bounce"></i>
+            <span class="font-bold text-sm hidden sm:inline">AI 상담</span>
+        </button>
     </div>
 
-    <!-- Tooltip Element -->
-    <div id="tooltip" class="tooltip"></div>
+    <!-- VIEW 1: Main Platform Dashboard -->
+    <main id="mainView" class="w-full min-h-screen flex flex-col lg:flex-row relative overflow-hidden transition-opacity duration-500">
+        
+        <!-- Left Panel: Title & Accordions -->
+        <div class="w-full lg:w-[35%] bg-brand-dark/95 backdrop-blur-md p-8 flex flex-col h-screen overflow-y-auto border-r border-gray-700 z-20 shadow-2xl">
+            <div class="mb-6">
+                <p class="text-gray-400 text-sm mb-1 tracking-wider">KYWA 전국 청소년 활동 통합 대시보드</p>
+                <h1 class="text-4xl font-black text-white leading-tight mb-4 whitespace-nowrap">
+                    청소년활동<br><span class="text-brand-yellow">데이터 플랫폼</span>
+                </h1>
+                <p class="text-gray-300 text-sm leading-relaxed border-l-2 border-brand-yellow pl-4">
+                    실시간 청소년활동 현황 통합 안내
+                    <span id="activeRegionNotice" class="block mt-2 text-brand-yellow font-bold text-xs">(현재 전국 통합 보기)</span>
+                </p>
+            </div>
 
-    <script>
-        // --- 1. 상태 관리 (State) ---
-        const state = {
-            project: '전체', // '전체', '청소년자기도전포상제', '국제성취포상제', '자원봉사', '청소년수련활동인증'
-            province: null,  // '서울특별시', '경기도' 등
-            district: null,  // '수원시', '강남구' 등
-            searchQuery: ''
-        };
+            <!-- AI Button -->
+            <button onclick="openAiRecommenderModal()" class="w-full py-4 mb-6 bg-gradient-to-r from-brand-yellow to-amber-500 hover:from-amber-400 hover:to-amber-600 text-brand-dark font-black rounded-xl shadow-lg flex items-center justify-center gap-2 transition-transform hover:-translate-y-1">
+                <i class="ph-bold ph-magic-wand text-xl"></i> AI 맞춤형 청소년활동 추천받기
+            </button>
 
-        // --- 2. 기본 데이터 정의 ---
-        const PROJECTS = [
-            { id: 'all', name: '전체' },
-            { id: 'challenge', name: '청소년자기도전포상제', color: 'bg-blue-100 text-blue-800 border-blue-200' },
-            { id: 'international', name: '국제성취포상제', color: 'bg-indigo-100 text-indigo-800 border-indigo-200' },
-            { id: 'volunteer', name: '자원봉사', color: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
-            { id: 'cert', name: '청소년수련활동인증', color: 'bg-amber-100 text-amber-800 border-amber-200' }
-        ];
-
-        // 시도 및 가상의 시군구 데이터
-        const REGIONS = {
-            '서울특별시': ['종로구', '중구', '용산구', '성동구', '광진구', '동대문구', '중랑구', '성북구', '강북구', '도봉구', '노원구', '은평구', '서대문구', '마포구', '양천구', '강서구', '구로구', '금천구', '영등포구', '동작구', '관악구', '서초구', '강남구', '송파구', '강동구'],
-            '부산광역시': ['중구', '서구', '동구', '영도구', '부산진구', '동래구', '남구', '북구', '해운대구', '사하구', '금정구', '강서구', '연제구', '수영구', '사상구', '기장군'],
-            '대구광역시': ['중구', '동구', '서구', '남구', '북구', '수성구', '달서구', '달성군', '군위군'],
-            '인천광역시': ['중구', '동구', '미추홀구', '연수구', '남동구', '부평구', '계양구', '서구', '강화군', '옹진군'],
-            '광주광역시': ['동구', '서구', '남구', '북구', '광산구'],
-            '대전광역시': ['동구', '중구', '서구', '유성구', '대덕구'],
-            '울산광역시': ['중구', '남구', '동구', '북구', '울주군'],
-            '세종특별자치시': ['세종시'],
-            '경기도': ['수원시', '성남시', '의정부시', '안양시', '부천시', '광명시', '평택시', '동두천시', '안산시', '고양시', '과천시', '구리시', '남양주시', '오산시', '시흥시', '군포시', '의왕시', '하남시', '용인시', '파주시', '이천시', '안성시', '김포시', '화성시', '광주시', '양주시', '포천시', '여주시', '연천군', '가평군', '양평군'],
-            '강원특별자치도': ['춘천시', '원주시', '강릉시', '동해시', '태백시', '속초시', '삼척시', '홍천군', '횡성군', '영월군', '평창군', '정선군', '철원군', '화천군', '양구군', '인제군', '고성군', '양양군'],
-            '충청북도': ['청주시', '충주시', '제천시', '보은군', '옥천군', '영동군', '증평군', '진천군', '괴산군', '음성군', '단양군'],
-            '충청남도': ['천안시', '공주시', '보령시', '아산시', '서산시', '논산시', '계룡시', '당진시', '금산군', '부여군', '서천군', '청양군', '홍성군', '예산군', '태안군'],
-            '전북특별자치도': ['전주시', '군산시', '익산시', '정읍시', '남원시', '김제시', '완주군', '진안군', '무주군', '장수군', '임실군', '순창군', '고창군', '부안군'],
-            '전라남도': ['목포시', '여수시', '순천시', '나주시', '광양시', '담양군', '곡성군', '구례군', '고흥군', '보성군', '화순군', '장흥군', '강진군', '해남군', '영암군', '무안군', '함평군', '영광군', '장성군', '완도군', '진도군', '신안군'],
-            '경상북도': ['포항시', '경주시', '김천시', '안동시', '구미시', '영주시', '영천시', '상주시', '문경시', '경산시', '의성군', '청송군', '영양군', '영덕군', '청도군', '고령군', '성주군', '칠곡군', '예천군', '봉화군', '울진군', '울릉군'],
-            '경상남도': ['창원시', '진주시', '통영시', '사천시', '김해시', '밀양시', '거제시', '양산시', '의령군', '함안군', '창녕군', '고성군', '남해군', '하동군', '산청군', '함양군', '거창군', '합천군'],
-            '제주특별자치도': ['제주시', '서귀포시']
-        };
-
-        // --- 3. Mock Data 생성기 ---
-        const generateMockData = () => {
-            const data = [];
-            let idCounter = 1;
-            const facilityTypes = ['청소년수련관', '청소년문화의집', '청소년센터', 'YMCA', 'YWCA', '청소년상담복지센터'];
-            
-            Object.keys(REGIONS).forEach(province => {
-                // 시도별 가중치 (수도권 등 많게)
-                let multiplier = 1;
-                if (['경기도', '서울특별시'].includes(province)) multiplier = 3;
-                else if (['부산광역시', '인천광역시', '경상남도'].includes(province)) multiplier = 2;
-
-                REGIONS[province].forEach(district => {
-                    // 구/군별 임의 기관 수 생성 (0 ~ 5개 * 가중치)
-                    const count = Math.floor(Math.random() * 5 * multiplier);
-                    
-                    for (let i = 0; i < count; i++) {
-                        // 랜덤하게 1~3개의 사업 배정
-                        const numProjects = Math.floor(Math.random() * 3) + 1;
-                        const availableProjects = PROJECTS.filter(p => p.id !== 'all');
-                        const assignedProjects = [];
-                        for(let j=0; j<numProjects; j++) {
-                            const randIdx = Math.floor(Math.random() * availableProjects.length);
-                            const proj = availableProjects.splice(randIdx, 1)[0];
-                            assignedProjects.push(proj.name);
-                        }
-
-                        const type = facilityTypes[Math.floor(Math.random() * facilityTypes.length)];
-                        
-                        data.push({
-                            id: idCounter++,
-                            province: province,
-                            district: district,
-                            name: `${district} ${type} ${i>0 ? i+1 : ''}`.trim(),
-                            projects: assignedProjects,
-                            contact: `0${Math.floor(Math.random() * 8) + 2}-${Math.floor(Math.random() * 9000) + 1000}-${Math.floor(Math.random() * 9000) + 1000}`,
-                            website: Math.random() > 0.3 ? `http://www.youth-${idCounter}.or.kr` : ''
-                        });
-                    }
-                });
-            });
-            return data;
-        };
-
-        const facilitiesData = generateMockData();
-
-        // 데이터 필터링 함수
-        const getFilteredData = () => {
-            return facilitiesData.filter(item => {
-                const matchProject = state.project === '전체' || item.projects.includes(state.project);
-                const matchProvince = !state.province || item.province === state.province;
-                const matchDistrict = !state.district || item.district === state.district;
-                const matchSearch = item.name.toLowerCase().includes(state.searchQuery.toLowerCase());
-                return matchProject && matchProvince && matchDistrict && matchSearch;
-            });
-        };
-
-        // UI 업데이트 메인 함수
-        const updateDashboard = () => {
-            const filteredData = getFilteredData();
-            
-            updateBreadcrumbs();
-            renderProjectTabs();
-            updateKPICards(filteredData);
-            renderDistrictList(filteredData);
-            renderTable(filteredData);
-            updateMapColors(); // D3 지도가 준비된 후 호출됨
-        };
-
-        // Breadcrumb 업데이트
-        const updateBreadcrumbs = () => {
-            const parts = [state.project];
-            if (state.province) parts.push(state.province);
-            if (state.district) parts.push(state.district);
-            
-            const breadcrumbEl = document.getElementById('breadcrumb');
-            breadcrumbEl.innerHTML = parts.join(' <i class="fa-solid fa-chevron-right text-[10px] mx-2 text-gray-400"></i> ');
-            
-            const resetBtn = document.getElementById('resetFilterBtn');
-            if (state.province || state.district || state.project !== '전체' || state.searchQuery) {
-                resetBtn.classList.remove('hidden');
-            } else {
-                resetBtn.classList.add('hidden');
-            }
-        };
-
-        // 사업 탭 렌더링
-        const renderProjectTabs = () => {
-            const container = document.getElementById('projectTabs');
-            container.innerHTML = '';
-            
-            PROJECTS.forEach(proj => {
-                const isSelected = state.project === proj.name;
-                const btn = document.createElement('button');
+            <!-- Accordion Menus -->
+            <div class="flex flex-col gap-3" id="accordionContainer">
                 
-                // 공통 클래스
-                let baseClass = "px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 shadow-sm border";
-                
-                if (isSelected) {
-                    // 선택됨: 파란색 테마
-                    btn.className = `${baseClass} bg-primary-900 text-white border-primary-900 shadow-md transform scale-[1.02]`;
-                } else {
-                    // 미선택: 밝은 회색
-                    btn.className = `${baseClass} bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:text-gray-900`;
-                }
-                
-                btn.textContent = proj.name;
-                btn.onclick = () => {
-                    state.project = proj.name;
-                    // 사업 변경 시 하위 필터(지역) 유지 여부 결정 (보통 유지함)
-                    updateDashboard();
-                };
-                container.appendChild(btn);
-            });
-        };
-
-        // KPI 카드 업데이트
-        const updateKPICards = (data) => {
-            const container = document.getElementById('kpiCards');
-            
-            const totalFacilities = data.length;
-            const uniqueProvinces = new Set(data.map(d => d.province)).size;
-            const uniqueDistricts = new Set(data.map(d => d.province + d.district)).size;
-            
-            // 전체 사업 수 계산 (중복 없이 배정된 사업 목록)
-            const allProjectsInView = new Set();
-            data.forEach(d => d.projects.forEach(p => allProjectsInView.add(p)));
-            const totalProjects = allProjectsInView.size;
-
-            const kpis = [
-                { title: '운영기관 수', value: totalFacilities, unit: '개', icon: 'fa-building', color: 'text-primary-900', bg: 'bg-blue-50' },
-                { title: '참여 시도 수', value: uniqueProvinces, unit: '개', icon: 'fa-map', color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                { title: '참여 시군구 수', value: uniqueDistricts, unit: '개', icon: 'fa-map-pin', color: 'text-indigo-600', bg: 'bg-indigo-50' },
-                { title: '운영사업 수', value: totalProjects, unit: '종', icon: 'fa-cubes', color: 'text-amber-600', bg: 'bg-amber-50' }
-            ];
-
-            container.innerHTML = kpis.map(kpi => `
-                <div class="bg-white p-5 rounded-xl shadow-card border border-gray-100 flex items-center justify-between group hover:shadow-card-hover transition-shadow">
-                    <div>
-                        <p class="text-sm font-medium text-gray-500 mb-1">${kpi.title}</p>
-                        <div class="flex items-baseline gap-1">
-                            <h3 class="text-3xl font-bold text-gray-800 tracking-tight">${kpi.value.toLocaleString()}</h3>
-                            <span class="text-sm text-gray-500 font-medium">${kpi.unit}</span>
+                <!-- 1. 청소년 인구 -->
+                <div class="bg-brand-light/30 rounded-xl border border-gray-700 overflow-hidden">
+                    <button class="w-full px-5 py-4 flex justify-between items-center text-white hover:bg-brand-light/50 transition-colors" onclick="toggleAccordion(this)">
+                        <span class="font-bold text-base flex items-center gap-2"><i class="ph-fill ph-users text-brand-yellow"></i> 청소년인구</span>
+                        <div class="flex items-center gap-3">
+                            <span id="sumPop" class="text-brand-yellow font-bold text-sm whitespace-nowrap">7,898,320명</span>
+                            <i class="ph-bold ph-caret-down transition-transform"></i>
                         </div>
-                    </div>
-                    <div class="w-12 h-12 rounded-full ${kpi.bg} flex items-center justify-center transition-transform group-hover:scale-110">
-                        <i class="fa-solid ${kpi.icon} ${kpi.color} text-xl"></i>
-                    </div>
-                </div>
-            `).join('');
-        };
-
-        // 우측 지역 상세 리스트 렌더링
-        const renderDistrictList = (filteredData) => {
-            const container = document.getElementById('districtList');
-            const header = document.getElementById('selectedRegionHeader');
-
-            if (!state.province) {
-                header.innerHTML = `
-                    <div class="text-2xl font-bold text-primary-900">전국</div>
-                    <div class="text-sm text-gray-500 mt-1">지도의 지역을 클릭하여 시군구별 현황을 확인하세요.</div>
-                `;
-                
-                // 전국 상태일 때는 시도별 요약을 보여줌
-                const provCounts = {};
-                filteredData.forEach(d => {
-                    provCounts[d.province] = (provCounts[d.province] || 0) + 1;
-                });
-                
-                const sortedProvs = Object.entries(provCounts).sort((a,b) => b[1] - a[1]);
-                
-                container.innerHTML = `
-                    <div class="mb-3 px-1 text-sm font-bold text-gray-700">시도별 요약 (운영기관 순)</div>
-                    <div class="space-y-2">
-                        ${sortedProvs.map(([prov, count]) => `
-                            <div class="flex justify-between items-center p-3 hover:bg-gray-50 rounded-lg cursor-pointer border border-transparent hover:border-gray-200 transition-colors"
-                                 onclick="if(window.zoomToProvince) window.zoomToProvince('${prov}'); else { state.province='${prov}'; state.district=null; updateDashboard(); }">
-                                <span class="font-medium text-gray-700">${prov}</span>
-                                <span class="bg-primary-50 text-primary-900 px-2 py-0.5 rounded text-sm font-bold">${count}</span>
-                            </div>
-                        `).join('')}
-                    </div>
-                `;
-                return;
-            }
-
-            // 특정 시도 선택됨
-            // 현재 선택된 시도의 데이터만 추출 (사업, 검색 필터 적용된 상태)
-            const provData = filteredData.filter(d => d.province === state.province);
-            const totalInProv = provData.length;
-
-            header.innerHTML = `
-                <div class="flex items-center gap-3">
-                    <button class="text-gray-400 hover:text-primary-900 transition-colors" onclick="if(window.resetMapZoom) window.resetMapZoom(); else { state.province=null; state.district=null; updateDashboard(); }" title="전국으로 돌아가기">
-                        <i class="fa-solid fa-arrow-left"></i>
                     </button>
-                    <div class="text-2xl font-bold text-primary-900">${state.province}</div>
-                </div>
-                <div class="text-sm text-gray-600 mt-2 bg-blue-50 inline-block px-3 py-1 rounded-full font-medium">
-                    총 운영기관 <span class="text-primary-900 font-bold">${totalInProv}</span>개
-                </div>
-            `;
-
-            // 시군구별 카운트 계산
-            const distCounts = {};
-            // 해당 시도의 모든 시군구를 0으로 초기화 (데이터가 없어도 리스트에 보이게)
-            REGIONS[state.province].forEach(d => distCounts[d] = 0);
-            
-            provData.forEach(d => {
-                distCounts[d.district] = (distCounts[d.district] || 0) + 1;
-            });
-
-            // 이름순 정렬
-            const sortedDistricts = Object.entries(distCounts).sort((a,b) => a[0].localeCompare(b[0]));
-
-            container.innerHTML = `
-                <div class="space-y-1">
-                    <div class="flex justify-between items-center p-3 rounded-lg cursor-pointer transition-colors ${!state.district ? 'bg-primary-50 border-primary-200 border' : 'hover:bg-gray-50 border border-transparent'}"
-                         onclick="state.district=null; updateDashboard();">
-                        <span class="font-bold text-gray-800">전체보기</span>
-                        <span class="text-primary-900 font-bold">${totalInProv}</span>
+                    <!-- 클릭 시 이벤트: onclick="showTrendView('항목이름')" 적용 -->
+                    <div class="accordion-content bg-brand-dark/50 px-3 text-sm text-gray-300">
+                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('연령별 청소년인구 (9~24세)')">
+                            <span>연령별 청소년인구 (9~24세)</span><span class="font-bold text-white" id="statYouthPop">7,898,320명</span>
+                        </div>
+                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('학령 인구')">
+                            <span>학령 인구</span><span class="font-bold text-white" id="statSchoolAge">5,120,400명</span>
+                        </div>
+                        <div class="py-3 px-2 flex justify-between pb-4 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('학생 인구')">
+                            <span>학생인구</span><span class="font-bold text-white" id="statStudents">4,890,100명</span>
+                        </div>
                     </div>
-                    
-                    ${sortedDistricts.map(([dist, count]) => {
-                        const isSelected = state.district === dist;
-                        return `
-                        <div class="flex justify-between items-center p-3 rounded-lg cursor-pointer transition-colors ${isSelected ? 'bg-primary-900 text-white shadow-md' : 'hover:bg-gray-50 text-gray-700 border border-transparent hover:border-gray-200'}"
-                             onclick="state.district='${dist}'; updateDashboard();">
-                            <span class="font-medium ${isSelected ? 'text-white' : ''}">${dist}</span>
-                            <span class="${isSelected ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'} px-2 py-0.5 rounded text-sm font-bold">${count}</span>
-                        </div>
-                        `;
-                    }).join('')}
                 </div>
-            `;
-        };
 
-        // 데이터 테이블 렌더링
-        const renderTable = (filteredData) => {
-            const tbody = document.getElementById('facilityTableBody');
-            document.getElementById('tableTotalCount').textContent = filteredData.length.toLocaleString();
-            
-            if (filteredData.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="6" class="px-4 py-12 text-center text-gray-500">
-                            <div class="flex flex-col items-center gap-3">
-                                <i class="fa-regular fa-folder-open text-4xl text-gray-300"></i>
-                                <p>조건에 맞는 운영기관이 없습니다.</p>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-
-            // Get color mapping for tags
-            const getTagStyle = (projName) => {
-                const proj = PROJECTS.find(p => p.name === projName);
-                return proj ? proj.color : 'bg-gray-100 text-gray-800 border-gray-200';
-            };
-
-            tbody.innerHTML = filteredData.map(item => `
-                <tr class="hover:bg-blue-50/50 transition-colors">
-                    <td class="px-4 py-3 whitespace-nowrap text-gray-600">${item.province}</td>
-                    <td class="px-4 py-3 whitespace-nowrap text-gray-600">${item.district}</td>
-                    <td class="px-4 py-3 font-bold text-gray-800">${item.name}</td>
-                    <td class="px-4 py-3">
-                        <div class="flex flex-wrap gap-1.5">
-                            ${item.projects.map(p => `
-                                <span class="px-2 py-0.5 rounded text-xs font-medium border ${getTagStyle(p)}">${p}</span>
-                            `).join('')}
+                <!-- 2. 청소년 시설 -->
+                <div class="bg-brand-light/30 rounded-xl border border-gray-700 overflow-hidden">
+                    <button class="w-full px-5 py-4 flex justify-between items-center text-white hover:bg-brand-light/50 transition-colors" onclick="toggleAccordion(this)">
+                        <span class="font-bold text-base flex items-center gap-2"><i class="ph-fill ph-buildings text-brand-yellow"></i> 청소년시설</span>
+                        <div class="flex items-center gap-3">
+                            <span id="sumFac" class="text-brand-yellow font-bold text-sm whitespace-nowrap">842개소</span>
+                            <i class="ph-bold ph-caret-down transition-transform"></i>
                         </div>
-                    </td>
-                    <td class="px-4 py-3 whitespace-nowrap text-gray-600 font-mono text-sm">${item.contact}</td>
-                    <td class="px-4 py-3 text-center">
-                        ${item.website ? `
-                            <a href="${item.website}" target="_blank" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-50 text-primary-600 hover:bg-primary-50 hover:text-primary-900 transition-colors" title="홈페이지 방문">
-                                <i class="fa-solid fa-link"></i>
-                            </a>
-                        ` : '<span class="text-gray-300">-</span>'}
-                    </td>
-                </tr>
-            `).join('');
-        };
+                    </button>
+                    <div class="accordion-content bg-brand-dark/50 px-3 text-sm text-gray-300">
+                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('청소년수련관')"><span>청소년수련관</span><span class="font-bold text-white" id="fac1">195개</span></div>
+                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('청소년문화의집')"><span>청소년문화의집</span><span class="font-bold text-white" id="fac2">320개</span></div>
+                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('청소년수련원')"><span>청소년수련원</span><span class="font-bold text-white" id="fac3">154개</span></div>
+                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('청소년특화시설')"><span>청소년특화시설</span><span class="font-bold text-white" id="fac4">14개</span></div>
+                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('청소년야영장')"><span>청소년야영장</span><span class="font-bold text-white" id="fac5">42개</span></div>
+                        <div class="py-3 px-2 flex justify-between pb-4 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('유스호스텔')"><span>유스호스텔</span><span class="font-bold text-white" id="fac6">117개</span></div>
+                    </div>
+                </div>
 
-        let g_muni, g_prov; 
-        const width = 800;
-        const height = 600;
+                <!-- 3. 학교 -->
+                <div class="bg-brand-light/30 rounded-xl border border-gray-700 overflow-hidden">
+                    <button class="w-full px-5 py-4 flex justify-between items-center text-white hover:bg-brand-light/50 transition-colors" onclick="toggleAccordion(this)">
+                        <span class="font-bold text-base flex items-center gap-2"><i class="ph-fill ph-student text-brand-yellow"></i> 학교</span>
+                        <div class="flex items-center gap-3">
+                            <span id="sumSch" class="text-brand-yellow font-bold text-sm whitespace-nowrap">11,750개교</span>
+                            <i class="ph-bold ph-caret-down transition-transform"></i>
+                        </div>
+                    </button>
+                    <div class="accordion-content bg-brand-dark/50 px-3 text-sm text-gray-300">
+                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('초등학교')"><span>초등학교</span><span class="font-bold text-white" id="sch1">6,120개</span></div>
+                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('중학교')"><span>중학교</span><span class="font-bold text-white" id="sch2">3,250개</span></div>
+                        <div class="py-3 px-2 flex justify-between pb-4 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('고등학교')"><span>고등학교</span><span class="font-bold text-white" id="sch3">2,380개</span></div>
+                    </div>
+                </div>
 
-        window.resetMapZoom = () => {
-            state.province = null;
-            state.district = null;
-            if (window.__d3svg && window.__d3zoom) {
-                window.__d3svg.transition().duration(750).call(window.__d3zoom.transform, d3.zoomIdentity);
+                <!-- 4. 청소년활동 (9개 항목) -->
+                <div class="bg-brand-light/30 rounded-xl border border-gray-700 overflow-hidden">
+                    <button class="w-full px-5 py-4 flex justify-between items-center text-white hover:bg-brand-light/50 transition-colors" onclick="toggleAccordion(this)">
+                        <span class="font-bold text-base flex items-center gap-2"><i class="ph-fill ph-check-circle text-brand-yellow"></i> 청소년활동</span>
+                        <div class="flex items-center gap-3">
+                            <span id="sumAct" class="text-brand-yellow font-bold text-sm whitespace-nowrap">5,595개</span>
+                            <i class="ph-bold ph-caret-down transition-transform"></i>
+                        </div>
+                    </button>
+                    <div class="accordion-content bg-brand-dark/50 px-3 text-sm text-gray-300">
+                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('청소년방과후아카데미')"><span>청소년방과후아카데미</span><span class="font-bold text-white" id="act_val_4">350개</span></div>
+                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('청소년자원봉사활동')"><span>청소년자원봉사활동</span><span class="font-bold text-white" id="act_val_1">1,204개</span></div>
+                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('국제청소년성취포상제')"><span>국제청소년성취포상제</span><span class="font-bold text-white" id="act_val_2">342개</span></div>
+                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('청소년자기도전포상제')"><span>청소년자기도전포상제</span><span class="font-bold text-white" id="act_val_3">510개</span></div>
+                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('수련활동인증제')"><span>수련활동인증제</span><span class="font-bold text-white" id="act_val_5">890개</span></div>
+                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('수련활동신고제')"><span>수련활동신고제</span><span class="font-bold text-white" id="act_val_6">1,450개</span></div>
+                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('참여활동(특별회의,참여위원회)')"><span>참여활동(특별회의,참여위원회)</span><span class="font-bold text-white" id="act_val_7">262개</span></div>
+                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('국제교류')"><span>국제교류</span><span class="font-bold text-white" id="act_val_8">45개</span></div>
+                        <div class="py-3 px-2 flex justify-between pb-4 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('그룹활동')"><span>그룹활동</span><span class="font-bold text-white" id="act_val_9">542개</span></div>
+                    </div>
+                </div>
+
+                <!-- 5. 청소년지도자 -->
+                <div class="bg-brand-light/30 rounded-xl border border-gray-700 overflow-hidden mb-8">
+                    <button class="w-full px-5 py-4 flex justify-between items-center text-white hover:bg-brand-light/50 transition-colors" onclick="toggleAccordion(this)">
+                        <span class="font-bold text-base flex items-center gap-2"><i class="ph-fill ph-chalkboard-teacher text-brand-yellow"></i> 청소년지도자</span>
+                        <div class="flex items-center gap-3">
+                            <span id="sumLead" class="text-brand-yellow font-bold text-sm whitespace-nowrap">7,370명</span>
+                            <i class="ph-bold ph-caret-down transition-transform"></i>
+                        </div>
+                    </button>
+                    <div class="accordion-content bg-brand-dark/50 px-3 text-sm text-gray-300">
+                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('청소년지도사 인원')"><span>청소년지도사 인원</span><span class="font-bold text-white" id="lead1">4,250명</span></div>
+                        <div class="py-3 px-2 flex justify-between pb-4 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('청소년상담사 인원')"><span>청소년상담사 인원</span><span class="font-bold text-white" id="lead2">3,120명</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel: The Map (65% width) -->
+        <div class="w-full lg:w-[65%] h-[50vh] lg:h-screen relative flex items-center justify-center bg-[#1e293b]">
+            <div class="absolute inset-0 z-10 pointer-events-none flex items-center justify-center" id="mainMapLoading">
+                <div class="text-white flex flex-col items-center">
+                    <i class="ph ph-spinner-gap animate-spin text-4xl mb-2 text-brand-yellow"></i>
+                    <span>지도 불러오는 중...</span>
+                </div>
+            </div>
+            <!-- Map Container must have inset-0 to fill parent completely -->
+            <div id="mainMap" class="absolute inset-0 z-20"></div> 
+            <div class="absolute bottom-8 text-center w-full z-30 text-gray-400 text-sm animate-pulse pointer-events-none">
+                지도에서 시·도를 클릭하면 상세 정보를 볼 수 있습니다
+            </div>
+        </div>
+    </main>
+
+    <!-- VIEW 2: Region Detail Dashboard (시군구 상세) -->
+    <main id="detailView" class="hidden w-full min-h-screen bg-white p-6 lg:p-12 relative transition-opacity duration-500">
+        <div class="max-w-[1500px] mx-auto h-full flex flex-col">
+            <div class="flex justify-between items-end mb-6 border-b-2 border-seoul-dark pb-4">
+                <div>
+                    <button onclick="showMainView()" class="flex items-center gap-2 text-gray-500 hover:text-brand-dark font-medium mb-3 transition-colors">
+                        <i class="ph-bold ph-arrow-left"></i> 전국 지도로 돌아가기
+                    </button>
+                    <h1 id="detailRegionTitle" class="text-4xl lg:text-5xl font-black text-seoul-dark tracking-tight">서울특별시</h1>
+                </div>
+                <div class="text-right">
+                    <p class="text-lg font-bold text-gray-800">2026. 06. 기준</p>
+                </div>
+            </div>
+
+            <div id="aiRegionalInsight" class="mb-8 p-4 bg-brand-dark/5 border-l-4 border-brand-yellow rounded-r-xl flex items-center gap-3 text-gray-700">
+                <i class="ph-bold ph-sparkle text-xl text-brand-yellow"></i>
+                <span id="aiRegionalInsightText" class="text-sm font-medium">AI가 지역 현황을 분석하고 있습니다...</span>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1">
+                <div class="lg:col-span-5 flex flex-col gap-8">
+                    <!-- 상세 표 -->
+                    <div class="w-full overflow-hidden rounded-t-lg shadow-sm border border-gray-200">
+                        <table class="w-full text-center border-collapse">
+                            <thead>
+                                <tr class="bg-gray-800 text-white text-sm">
+                                    <th class="py-3 px-2 font-bold border-r border-gray-600">구분</th>
+                                    <th class="py-3 px-2 font-bold border-r border-gray-600">자원봉사</th>
+                                    <th class="py-3 px-2 font-bold border-r border-gray-600">인증제</th>
+                                    <th class="py-3 px-2 font-bold border-r border-gray-600">포상제</th>
+                                    <th class="py-3 px-2 font-bold">방과후A</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-gray-700 text-[14px]" id="detailTableBody"></tbody>
+                        </table>
+                    </div>
+                    <!-- 도넛 차트들 -->
+                    <div class="flex justify-around items-end mt-4 px-4">
+                        <div class="flex flex-col items-center gap-3"><div class="donut-chart" style="background: conic-gradient(#E6192B 0% 65%, #E2E2E2 65% 100%);"><div class="donut-inner"><span class="text-seoul-red text-xs">청소년</span><span class="text-seoul-red text-sm">키워드</span></div></div><p class="text-center font-bold text-xs mt-1">지역 주요 이슈</p></div>
+                        <div class="flex flex-col items-center gap-3"><div class="donut-chart" style="background: conic-gradient(#E6192B 0% 30%, #E2E2E2 30% 100%);"><div class="donut-inner"><span class="text-seoul-red text-sm">핵심역량</span></div></div><p class="text-center font-bold text-xs mt-1">주요 핵심역량</p></div>
+                        <div class="flex flex-col items-center gap-3"><div class="donut-chart" style="background: conic-gradient(#E6192B 0% 45%, #E2E2E2 45% 100%);"><div class="donut-inner"><span class="text-seoul-red text-xs">마이성장</span><span class="text-seoul-red text-sm">데이터</span></div></div><p class="text-center font-bold text-xs mt-1">마이데이터 참여</p></div>
+                    </div>
+                </div>
+                <!-- 우측 대형 상세 지도 -->
+                <div class="lg:col-span-7 relative min-h-[600px] border border-gray-200 bg-gray-50 rounded-xl overflow-hidden shadow-inner">
+                    <div id="detailMap" class="absolute inset-0 z-10 w-full h-full"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- VIEW 3: Trend & Chart Dashboard (항목 클릭 시 나타나는 새로운 화면) -->
+    <main id="trendView" class="hidden w-full min-h-screen bg-gray-50 p-6 lg:p-12 relative transition-opacity duration-500">
+        <div class="max-w-[1500px] mx-auto h-full flex flex-col">
+            <div class="flex justify-between items-end mb-8 border-b-2 border-seoul-dark pb-4">
+                <div>
+                    <button onclick="showMainView()" class="flex items-center gap-2 text-gray-500 hover:text-brand-dark font-medium mb-3 transition-colors">
+                        <i class="ph-bold ph-arrow-left"></i> 대시보드 홈으로 돌아가기
+                    </button>
+                    <h1 class="text-3xl lg:text-4xl font-black text-seoul-dark tracking-tight">
+                        <span id="trendViewTitle" class="text-brand-yellow mr-2">선택항목</span> 
+                        <span class="text-gray-800">통계 분석</span>
+                    </h1>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm font-bold text-gray-500">KOSIS 국가통계포털 연계 자료</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 flex-1">
+                <!-- 막대 차트 (전국 시도 비교) -->
+                <div class="bg-white p-6 rounded-2xl shadow border border-gray-200 flex flex-col h-[500px]">
+                    <h3 class="font-bold text-lg mb-4 text-gray-800 flex items-center gap-2"><i class="ph-fill ph-chart-bar text-brand-yellow"></i> 전국 시·도별 현황 비교</h3>
+                    <div class="flex-1 relative w-full h-full">
+                        <canvas id="barChart"></canvas>
+                    </div>
+                </div>
+                <!-- 꺾은선 차트 (연도별 추이) -->
+                <div class="bg-white p-6 rounded-2xl shadow border border-gray-200 flex flex-col h-[500px]">
+                    <h3 class="font-bold text-lg mb-4 text-gray-800 flex items-center gap-2"><i class="ph-fill ph-chart-line text-seoul-red"></i> 최근 5년간 연도별 추이</h3>
+                    <div class="flex-1 relative w-full h-full">
+                        <canvas id="lineChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- AI RECOMMENDATION MODAL -->
+    <div id="aiModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="bg-brand-dark text-white px-6 py-4 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-brand-yellow flex items-center justify-center text-brand-dark font-black"><i class="ph-bold ph-magic-wand text-2xl"></i></div>
+                    <div>
+                        <h3 class="font-black text-lg">AI 맞춤형 청소년활동 추천</h3>
+                        <p class="text-xs text-gray-300">관심사와 진로에 딱 맞는 프로그램을 생성합니다</p>
+                    </div>
+                </div>
+                <button onclick="closeAiRecommenderModal()" class="text-gray-300 hover:text-white p-2"><i class="ph-bold ph-x text-xl"></i></button>
+            </div>
+            <div class="p-6 overflow-y-auto space-y-6 flex-1">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">관심 분야</label>
+                        <select id="aiInterest" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm"><option>환경 및 생태</option><option>디지털 및 AI 코딩</option><option>문화예술</option></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">연령대</label>
+                        <select id="aiAge" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm"><option>중학생 (14~16세)</option><option>고등학생 (17~19세)</option></select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">희망 지역 / 목표</label>
+                    <input type="text" id="aiGoal" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm" value="진로 역량 개발과 스펙 쌓기">
+                </div>
+                <button onclick="generateAiRecommendation()" class="w-full py-4 bg-brand-dark text-white font-black rounded-xl flex items-center justify-center gap-2"><i class="ph-bold ph-sparkle text-brand-yellow"></i> AI 추천 생성하기</button>
+                <div id="aiResultContainer" class="hidden bg-gray-50 rounded-2xl p-5"><div id="aiResultContent" class="text-sm"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // DOM & Maps
+        const mainView = document.getElementById('mainView');
+        const detailView = document.getElementById('detailView');
+        const trendView = document.getElementById('trendView');
+        let mapMain, mapDetail, geojsonMain, geojsonDetail, currentProvince = '';
+        let chartInstances = {}; // Chart.js 차트 객체 저장용
+
+        const URL_PROVINCES = 'https://raw.githubusercontent.com/southkorea/southkorea-maps/master/kostat/2013/json/skorea_provinces_geo_simple.json';
+        const URL_MUNICIPALITIES = 'https://raw.githubusercontent.com/southkorea/southkorea-maps/master/kostat/2013/json/skorea_municipalities_geo_simple.json';
+        let municipalitiesData = null;
+
+        // 독도/울릉도 같은 섬을 둥근 다각형으로 그려주는 헬퍼 함수
+        function createIslandPolygon(lng, lat, rx, ry, segments = 16) {
+            let coords = [];
+            for (let i = 0; i < segments; i++) {
+                let theta = (i / segments) * 2 * Math.PI;
+                coords.push([lng + rx * Math.cos(theta), lat + ry * Math.sin(theta)]);
             }
-            updateDashboard();
+            coords.push(coords[0]); // 다각형 닫기
+            return [coords];
+        }
+
+        // 여러 개의 Polygon/MultiPolygon을 안전하게 하나의 MultiPolygon으로 묶어주는 함수 (NaN 에러 방지)
+        function mergeFeaturesToMultiPolygon(features, newName, newCode) {
+            let multiCoords = [];
+            features.forEach(f => {
+                if(f.geometry.type === 'Polygon') multiCoords.push(f.geometry.coordinates);
+                else if(f.geometry.type === 'MultiPolygon') multiCoords.push(...f.geometry.coordinates);
+            });
+            return {
+                type: "Feature",
+                properties: { name: newName, code: newCode },
+                geometry: { type: "MultiPolygon", coordinates: multiCoords }
+            };
+        }
+
+        // Accordion Toggle
+        function toggleAccordion(btn) {
+            const content = btn.nextElementSibling;
+            const icon = btn.querySelector('.ph-caret-down');
+            if (content.classList.contains('accordion-open')) {
+                content.classList.remove('accordion-open');
+                icon.style.transform = 'rotate(0deg)';
+            } else {
+                content.classList.add('accordion-open');
+                icon.style.transform = 'rotate(180deg)';
+            }
+        }
+
+        // 콤마가 포함된 텍스트를 숫자로 깔끔하게 변환 (합산 에러 방지)
+        const parseNum = (val) => parseInt(String(val).replace(/,/g, ''), 10) || 0;
+        
+        // 안전하게 HTML에 글씨를 써주는 헬퍼 함수 (에러 방지)
+        const setText = (id, text) => {
+            const el = document.getElementById(id);
+            if(el) el.textContent = text;
         };
 
-        const initMap = async () => {
-            const container = document.getElementById('mapContainer');
+        // 데이터베이스 (엑셀 인구 및 임의 시설 데이터)
+        function getRegionData(regionName) {
+            const realYouthPopData = {
+                "서울특별시": 1335020, "부산광역시": 435120, "대구광역시": 345670, "인천광역시": 462310,
+                "대전광역시": 241500, "울산광역시": 182300, "세종특별자치시": 75400, "경기도": 2321500,
+                "강원도": 208700, "충청북도": 235400, "충청남도": 338900, "전라북도": 258700,
+                "경상북도": 351200, "경상남도": 476500, "제주특별자치도": 121400, "전남광주통합특별시": 508700
+            };
+            const seed = regionName.length + (regionName.charCodeAt(0) % 10);
+            const actualPop = realYouthPopData[regionName] || 0;
+
+            return {
+                pop: actualPop.toLocaleString(), schAge: Math.floor(actualPop * 0.7).toLocaleString(), std: Math.floor(actualPop * 0.65).toLocaleString(),
+                fac1: seed * 10 + 5, fac2: seed * 15 + 10, fac3: seed * 8, fac4: seed, fac5: seed * 2, fac6: seed * 5,
+                sch1: seed * 100 + 50, sch2: seed * 50 + 20, sch3: seed * 40 + 10,
+                act1: (seed * 100 + 200).toLocaleString(), act2: seed * 10 + 20, act3: seed * 20 + 30, act4: seed * 15 + 10,
+                act5: seed * 30 + 50, act6: seed * 50 + 100, act7: seed * 5 + 10, act8: seed * 2, act9: seed * 25 + 20,
+                lead1: (seed * 120 + 300).toLocaleString(), lead2: (seed * 90 + 200).toLocaleString()
+            };
+        }
+
+        const defaultStats = {
+            pop: "7,898,320", schAge: "5,120,400", std: "4,890,100",
+            fac1: "195", fac2: "320", fac3: "154", fac4: "14", fac5: "42", fac6: "117",
+            sch1: "6,120", sch2: "3,250", sch3: "2,380",
+            act1: "1,204", act2: "342", act3: "510", act4: "350", act5: "890", act6: "1,450", act7: "262", act8: "45", act9: "542",
+            lead1: "4,250", lead2: "3,120"
+        };
+
+        // 데이터를 UI에 쏴주는 핵심 함수
+        function applyDataToUI(d, isDefault, regionName) {
+            const noticeEl = document.getElementById('activeRegionNotice');
+            if(noticeEl) noticeEl.innerHTML = isDefault ? "(현재 전국 통합 보기)" : `현재 선택된 지역: <span class="text-brand-yellow font-black">[ ${regionName} ]</span>`;
             
-            const svg = d3.select("#mapContainer").append("svg")
-                .attr("viewBox", `0 0 ${width} ${height}`)
-                .attr("width", "100%")
-                .attr("height", "100%")
-                .style("background-color", "transparent")
-                .style("filter", "drop-shadow(0px 4px 10px rgba(0,0,0,0.05))"); // 맵 전체에 부드러운 그림자
-
-            g_muni = svg.append("g"); // 시군구 레이어 (아래)
-            g_prov = svg.append("g"); // 시도 레이어 (위)
-
-            // 줌 동작 설정
-            const zoom = d3.zoom()
-                .scaleExtent([1, 8])
-                .on("zoom", (event) => {
-                    g_muni.attr("transform", event.transform);
-                    g_prov.attr("transform", event.transform);
-                    
-                    // 확대 배율에 맞춰 시군구 텍스트 크기 조정 (항상 일정한 크기로 보이도록 유지)
-                    g_muni.selectAll(".municipality-label")
-                        .style("font-size", (12 / event.transform.k) + "px");
-                });
-
-            svg.call(zoom);
-            window.__d3svg = svg;
-            window.__d3zoom = zoom;
+            // 세부 지표 업데이트 (아코디언 안쪽 내용들)
+            setText('statYouthPop', String(d.pop).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + "명");
+            setText('statSchoolAge', d.schAge + "명");
+            setText('statStudents', d.std + "명");
             
-            d3.select("#zoomInBtn").on("click", () => svg.transition().call(zoom.scaleBy, 1.5));
-            d3.select("#zoomOutBtn").on("click", () => svg.transition().call(zoom.scaleBy, 0.75));
-            d3.select("#zoomResetBtn").on("click", window.resetMapZoom);
+            for(let i=1; i<=6; i++) setText('fac'+i, d['fac'+i] + "개");
+            for(let i=1; i<=3; i++) setText('sch'+i, d['sch'+i] + "개");
+            for(let i=1; i<=9; i++) setText('act_val_'+i, d['act'+i] + "개");
+            
+            setText('lead1', d.lead1 + "명"); 
+            setText('lead2', d.lead2 + "명");
 
-            try {
-                // 시도 및 시군구 데이터를 동시에 병렬로 불러옴
-                const [provGeojson, muniGeojson] = await Promise.all([
-                    fetch('https://raw.githubusercontent.com/southkorea/southkorea-maps/master/kostat/2013/json/skorea_provinces_geo_simple.json').then(r => r.json()),
-                    fetch('https://raw.githubusercontent.com/southkorea/southkorea-maps/master/kostat/2013/json/skorea_municipalities_geo_simple.json').then(r => r.json())
-                ]);
+            // 합산 공식 적용 (아코디언 제목 옆 노란색 숫자들)
+            let totalPop = parseNum(d.pop);
+            let totalFac = parseNum(d.fac1) + parseNum(d.fac2) + parseNum(d.fac3) + parseNum(d.fac4) + parseNum(d.fac5) + parseNum(d.fac6);
+            let totalSch = parseNum(d.sch1) + parseNum(d.sch2) + parseNum(d.sch3);
+            let totalAct = parseNum(d.act1) + parseNum(d.act2) + parseNum(d.act3) + parseNum(d.act4) + parseNum(d.act5) + parseNum(d.act6) + parseNum(d.act7) + parseNum(d.act8) + parseNum(d.act9);
+            let totalLead = parseNum(d.lead1) + parseNum(d.lead2);
 
-                // 알버트(Albers) 투영법 대신 메르카토르(Mercator) 투영법을 사용하여 대한민국의 중심 좌표에 맞춥니다.
-                const projection = d3.geoMercator()
-                    .center([127.5, 35.9]) // 대한민국 중심 경도, 위도
-                    .scale(5500)           // 화면에 꽉 차도록 배율 조정
-                    .translate([width / 2, height / 2]);
+            setText('sumPop', totalPop.toLocaleString() + "명");
+            setText('sumFac', totalFac.toLocaleString() + "개소");
+            setText('sumSch', totalSch.toLocaleString() + "개교");
+            setText('sumAct', totalAct.toLocaleString() + "개");
+            setText('sumLead', totalLead.toLocaleString() + "명");
+        }
 
-                const path = d3.geoPath().projection(projection);
+        // 차트 화면 열기
+        function showTrendView(title) {
+            document.getElementById('trendViewTitle').textContent = title;
+            mainView.classList.add('opacity-0');
+            detailView.classList.add('opacity-0');
+            setTimeout(() => {
+                mainView.classList.add('hidden');
+                detailView.classList.add('hidden');
+                trendView.classList.remove('hidden');
+                trendView.classList.remove('opacity-0');
+                renderCharts(title); // 차트 렌더링 호출
+            }, 300);
+        }
 
-                const nameMapping = {
-                    '서울특별시': '서울특별시', '부산광역시': '부산광역시', '대구광역시': '대구광역시',
-                    '인천광역시': '인천광역시', '광주광역시': '광주광역시', '대전광역시': '대전광역시',
-                    '울산광역시': '울산광역시', '세종특별자치시': '세종특별자치시', '경기도': '경기도',
-                    '강원도': '강원특별자치도', '충청북도': '충청북도', '충청남도': '충청남도',
-                    '전라북도': '전북특별자치도', '전라남도': '전라남도', '경상북도': '경상북도',
-                    '경상남도': '경상남도', '제주특별자치도': '제주특별자치도'
-                };
+        let comboChartInstance = null; // 전역 차트 변수 선언
 
-                const PROV_CODES = {
-                    '11': '서울특별시', '21': '부산광역시', '22': '대구광역시', '23': '인천광역시',
-                    '24': '광주광역시', '25': '대전광역시', '26': '울산광역시', '29': '세종특별자치시',
-                    '31': '경기도', '32': '강원특별자치도', '33': '충청북도', '34': '충청남도',
-                    '35': '전북특별자치도', '36': '전라남도', '37': '경상북도', '38': '경상남도', '39': '제주특별자치도'
-                };
+        function renderCharts(title) {
+            const canvas = document.getElementById('mainComboChart');
+            if(!canvas) return; 
 
-                // 1. 시군구(하위) 레이어 그리기
-                muniGeojson.features.forEach(d => {
-                    const codePrefix = d.properties.code.substring(0,2);
-                    d.properties.provName = PROV_CODES[codePrefix] || '알수없음';
-                });
+            if (comboChartInstance) comboChartInstance.destroy();
 
-                g_muni.selectAll("path")
-                    .data(muniGeojson.features)
-                    .enter().append("path")
-                    .attr("class", "municipality-path")
-                    .attr("d", path)
-                    .attr("id", d => d.properties.name)
-                    .style("opacity", 0) // 처음에는 숨김
-                    .style("pointer-events", "none")
-                    .on("mouseover", handleMuniMouseOver)
-                    .on("mouseout", handleMuniMouseOut)
-                    .on("click", handleMuniClick);
+            const regions = ["서울특별시", "부산광역시", "대구광역시", "인천광역시", "광주광역시", "대전광역시", "울산광역시", "세종특별자치시", "경기도", "강원특별자치도", "충청북도", "충청남도", "전북특별자치도", "전라남도", "경상북도", "경상남도", "제주특별자치도"];
+            const baseData = [1335020, 435120, 345670, 462310, 241500, 235400, 182300, 75400, 2321500, 208700, 235400, 338900, 258700, 268700, 351200, 476500, 121400];
 
-                // 시군구 텍스트 라벨 추가 (초기에는 숨김)
-                const seenLabels = new Set();
-                
-                g_muni.selectAll("text")
-                    .data(muniGeojson.features)
-                    .enter().append("text")
-                    .attr("class", "municipality-label")
-                    .attr("transform", d => {
-                        const centroid = path.centroid(d);
-                        // 좌표 계산 실패 시 0,0 위치로 예외 처리
-                        if (isNaN(centroid[0]) || isNaN(centroid[1])) return "translate(0,0)";
-                        return `translate(${centroid[0]}, ${centroid[1]})`;
-                    })
-                    .text(d => {
-                        const rawName = d.properties.name; // 예: "성남시 분당구"
-                        const provName = d.properties.provName;
-                        
-                        // 우측 리스트(REGIONS) 기준 이름으로 맵핑 ("성남시 분당구" -> "성남시")
-                        const provDistricts = REGIONS[provName] || [];
-                        let mappedName = rawName;
-                        const partial = provDistricts.find(dist => rawName.includes(dist) || dist.includes(rawName.split(' ')[0]));
-                        if (partial) mappedName = partial;
+            let chartDataByYear = {};
+            for (let year = 2020; year <= 2026; year++) {
+                let factor = Math.pow(1.02, (2026 - year));
+                chartDataByYear[year] = baseData.map(v => Math.floor(v * factor));
+            }
 
-                        // 한 도시에 구가 여러 개라 라벨이 겹쳐서 중복 출력되는 것을 방지
-                        const uniqueKey = provName + "_" + mappedName;
-                        if (seenLabels.has(uniqueKey)) return ""; // 이미 쓴 이름이면 생략
-                        seenLabels.add(uniqueKey);
-                        
-                        return mappedName;
-                    })
-                    .style("font-size", "12px")
-                    .style("opacity", 0);
-
-                // 2. 시도(상위) 레이어 그리기
-                g_prov.selectAll("path")
-                    .data(provGeojson.features)
-                    .enter().append("path")
-                    .attr("class", "province-path")
-                    .attr("d", path)
-                    .attr("id", d => nameMapping[d.properties.name] || d.properties.name)
-                    .on("mouseover", handleProvMouseOver)
-                    .on("mouseout", handleProvMouseOut)
-                    .on("click", handleProvClick);
-
-                // 시도 텍스트 라벨 추가
-                g_prov.selectAll("text")
-                    .data(provGeojson.features)
-                    .enter().append("text")
-                    .attr("class", "province-label")
-                    .attr("transform", d => {
-                        const centroid = path.centroid(d);
-                        if (d.properties.name === '경기도') return `translate(${centroid[0] + 10}, ${centroid[1] + 20})`;
-                        if (d.properties.name === '충청남도') return `translate(${centroid[0] - 10}, ${centroid[1]})`;
-                        return `translate(${centroid})`;
-                    })
-                    .text(d => {
-                        const mappedName = nameMapping[d.properties.name] || d.properties.name;
-                        if (mappedName.length > 4) return mappedName.slice(0, 2);
-                        return mappedName.replace('광역시','').replace('특별시','').replace('특별자치도','').replace('특별자치시','');
-                    });
-
-                // 외부 호출용 Province 줌 함수 정의 (리스트 클릭 시)
-                window.zoomToProvince = function(provName) {
-                    const node = g_prov.selectAll("path").filter(function() { return this.id === provName; }).node();
-                    if (node) {
-                        const d = d3.select(node).datum();
-                        handleProvClick.call(node, null, d);
-                    } else {
-                        state.province = provName;
-                        state.district = null;
-                        updateDashboard();
+            comboChartInstance = new Chart(canvas.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: regions,
+                    datasets: [{
+                        label: '청소년 인구',
+                        data: chartDataByYear[2026],
+                        backgroundColor: '#FDBA1A',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { beginAtZero: true, ticks: { callback: v => (v/10000).toFixed(1) + '만' } }
                     }
-                };
-
-                // 시도 클릭 시 줌 및 시군구 표시 로직
-                function handleProvClick(event, d) {
-                    const provName = this.id;
-                    state.province = provName;
-                    state.district = null;
-                    
-                    // 선택 지역 바운딩 박스 계산
-                    const bounds = path.bounds(d);
-                    const dx = bounds[1][0] - bounds[0][0];
-                    const dy = bounds[1][1] - bounds[0][1];
-                    const x = (bounds[0][0] + bounds[1][0]) / 2;
-                    const y = (bounds[0][1] + bounds[1][1]) / 2;
-                    
-                    // 해당 시도 영역이 화면에 꽉 차도록 여백을 약간 주고(0.85) 배율 계산
-                    const scale = Math.max(1, Math.min(8, 0.85 / Math.max(dx / width, dy / height)));
-                    const translate = [width / 2 - scale * x, height / 2 - scale * y];
-
-                    // 줌 애니메이션
-                    svg.transition().duration(750).call(
-                        zoom.transform, 
-                        d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale)
-                    );
-
-                    updateDashboard();
                 }
-
-                document.getElementById('mapLoading').style.display = 'none';
-                updateMapColors();
-
-            } catch (error) {
-                console.error("Map loading failed", error);
-                document.getElementById('mapLoading').innerHTML = '<p class="text-red-500">지도 데이터를 불러올 수 없습니다.</p>';
-            }
-        };
-
-        const getColorScale = (data) => {
-            const counts = Object.keys(REGIONS).map(prov => data.filter(d => d.province === prov).length);
-            const maxCount = Math.max(...counts, 1);
-            
-            // 제공된 이미지처럼 부드럽고 따뜻한 느낌을 주기 위해 약간 더 밝고 산뜻한 파란색 계열 사용
-            return d3.scaleLinear()
-                .domain([0, maxCount * 0.3, maxCount * 0.6, maxCount])
-                .range(['#f1f5f9', '#bae6fd', '#7dd3fc', '#0284c7']); 
-        };
-
-        const updateMapColors = () => {
-            if (!g_prov || !g_muni) return;
-
-            const mapBaseData = facilitiesData.filter(item => state.project === '전체' || item.projects.includes(state.project));
-            const colorScale = getColorScale(mapBaseData);
-            
-            // 시도별 카운트
-            const provCounts = {};
-            Object.keys(REGIONS).forEach(p => provCounts[p] = 0);
-            mapBaseData.forEach(d => provCounts[d.province]++);
-
-            g_prov.selectAll(".province-path")
-                .transition().duration(500)
-                .attr("fill", function() {
-                    const count = provCounts[this.id] || 0;
-                    return count > 0 ? colorScale(count) : "#f1f5f9";
-                })
-                .style("opacity", function() {
-                    if (!state.province) return 1;
-                    return this.id === state.province ? 0 : 0.2;
-                })
-                .style("pointer-events", function() {
-                    return !state.province ? "all" : "none";
-                });
-
-            // 시도 텍스트 라벨 투명도 처리
-            g_prov.selectAll(".province-label")
-                .transition().duration(500)
-                .style("opacity", !state.province ? 1 : 0);
-
-            // 시군구별 카운트 (부분 일치 로직 포함 - MockData와 GeoJSON 명칭 차이 보정)
-            const distCounts = {};
-            mapBaseData.forEach(d => {
-                const exactKey = `${d.province}_${d.district}`;
-                distCounts[exactKey] = (distCounts[exactKey] || 0) + 1;
             });
 
-            const getMuniCount = (prov, muni) => {
-                const exactKey = `${prov}_${muni}`;
-                if (distCounts[exactKey] !== undefined) return distCounts[exactKey];
-                
-                // Ex: GeoJSON="수원시 장안구", MockData="수원시" 인 경우 매핑 연결
-                const partialMatch = Object.keys(distCounts).find(k => 
-                    k.startsWith(prov) && (muni.includes(k.split('_')[1]) || k.split('_')[1].includes(muni.split(' ')[0]))
-                );
-                return partialMatch ? distCounts[partialMatch] : 0;
+            const slider = document.getElementById('yearSlider');
+            slider.oninput = function() {
+                const year = this.value;
+                document.getElementById('currentYearDisplay').textContent = year === '2026' ? '2026.06 기준' : year + '년';
+                comboChartInstance.data.datasets[0].data = chartDataByYear[year];
+                comboChartInstance.update();
             };
-
-            g_muni.selectAll(".municipality-path")
-                .transition().duration(500)
-                .attr("fill", function(d) {
-                    const count = getMuniCount(d.properties.provName, d.properties.name);
-                    // 시군구는 영역이 작으므로 색상을 살짝 강조 (x1.5)
-                    return count > 0 ? colorScale(count * 1.5) : "#f8fafc";
-                })
-                .attr("stroke", function() {
-                    return state.district === this.id ? "#1e293b" : "#ffffff";
-                })
-                .attr("stroke-width", function() {
-                    return state.district === this.id ? "2.5px" : "1.5px";
-                })
-                .style("opacity", function(d) {
-                    return state.province === d.properties.provName ? 1 : 0;
-                })
-                .style("pointer-events", function(d) {
-                    return state.province === d.properties.provName ? "all" : "none";
-                });
-
-            // 시군구 텍스트 라벨 표시 여부 (선택된 시도의 하위 구역만 텍스트 표시)
-            g_muni.selectAll(".municipality-label")
-                .transition().duration(500)
-                .style("opacity", function(d) {
-                    return state.province === d.properties.provName ? 1 : 0;
-                });
-
-            renderLegend(colorScale, provCounts);
-        };
-
-        const renderLegend = (colorScale, provCounts) => {
-            const max = Math.max(...Object.values(provCounts), 1);
-            const legendEl = document.getElementById('mapLegend');
-            legendEl.innerHTML = `
-                <span class="text-gray-400 mr-1">0</span>
-                <div class="w-4 h-4 rounded-sm" style="background-color: ${colorScale(0)}"></div>
-                <div class="w-4 h-4 rounded-sm" style="background-color: ${colorScale(max*0.3)}"></div>
-                <div class="w-4 h-4 rounded-sm" style="background-color: ${colorScale(max*0.6)}"></div>
-                <div class="w-4 h-4 rounded-sm" style="background-color: ${colorScale(max)}"></div>
-                <span class="text-gray-700 ml-1 font-bold">${max}</span>
-            `;
-        };
-
-        const tooltip = d3.select("#tooltip");
-
-        function handleProvMouseOver(event, d) {
-            const provName = this.id;
-            const mapBaseData = facilitiesData.filter(item => state.project === '전체' || item.projects.includes(state.project));
-            const count = mapBaseData.filter(item => item.province === provName).length;
-
-            tooltip.transition().duration(200).style("opacity", .95);
-            tooltip.html(`
-                <div class="font-bold text-gray-800 border-b border-gray-100 pb-1 mb-1">${provName}</div>
-                <div class="text-gray-600">운영기관: <span class="font-bold text-primary-900">${count}</span>개</div>
-            `)
-            .style("left", (event.pageX + 15) + "px")
-            .style("top", (event.pageY - 28) + "px");
-        }
-
-        function handleProvMouseOut() {
-            tooltip.transition().duration(500).style("opacity", 0);
-        }
-
-        function handleMuniMouseOver(event, d) {
-            const rawDistName = d.properties.name;
-            const provName = d.properties.provName;
-            
-            // 툴팁에서도 모의 데이터(REGIONS) 명칭으로 통일하여 보여줌 (예: 성남시 분당구 -> 성남시)
-            let distName = rawDistName;
-            const provDistricts = REGIONS[provName] || [];
-            const partial = provDistricts.find(dist => rawDistName.includes(dist) || dist.includes(rawDistName.split(' ')[0]));
-            if (partial) distName = partial;
-
-            const mapBaseData = facilitiesData.filter(item => state.project === '전체' || item.projects.includes(state.project));
-            let count = mapBaseData.filter(item => item.province === provName && item.district === distName).length;
-
-            d3.select(this).attr("stroke", "#0284c7").attr("stroke-width", "2px");
-
-            tooltip.transition().duration(200).style("opacity", .95);
-            tooltip.html(`
-                <div class="font-bold text-gray-800 border-b border-gray-100 pb-1 mb-1">${provName} ${distName}</div>
-                <div class="text-gray-600">운영기관: <span class="font-bold text-primary-900">${count}</span>개</div>
-            `)
-            .style("left", (event.pageX + 15) + "px")
-            .style("top", (event.pageY - 28) + "px");
-        }
-
-        function handleMuniMouseOut() {
-            d3.select(this)
-                .attr("stroke", state.district === this.id ? "#1e293b" : "#ffffff")
-                .attr("stroke-width", state.district === this.id ? "2.5px" : "1.5px");
-            tooltip.transition().duration(500).style("opacity", 0);
-        }
-
-        function handleMuniClick(event, d) {
-            // 시군구 클릭 시에는 줌 변경 없이 데이터만 갱신
-            // 주의: GeoJSON 구 이름(예:수원시 장안구)을 기반으로 현재 Mock 데이터 포맷(예:수원시)과 유사 매칭시킵니다.
-            let matchedDistrict = d.properties.name;
-            const provData = facilitiesData.filter(item => item.province === d.properties.provName);
-            
-            if(!provData.some(item => item.district === matchedDistrict)) {
-                const partial = provData.find(item => matchedDistrict.includes(item.district) || item.district.includes(matchedDistrict.split(' ')[0]));
-                if(partial) matchedDistrict = partial.district;
-            }
-
-            if (state.district === matchedDistrict) {
-                state.district = null; // 선택 해제
-            } else {
-                state.district = matchedDistrict;
-            }
-            updateDashboard();
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            const searchInput = document.getElementById('searchInput');
-            searchInput.addEventListener('input', (e) => {
-                state.searchQuery = e.target.value;
-                updateDashboard();
+            initMainMap();
+            fetch(URL_MUNICIPALITIES).then(r => r.json()).then(d => municipalitiesData = d);
+            
+            // 페이지 시작 시 탭 옆 기본 수치 강제 주입
+            applyDataToUI(defaultStats, true, "");
+            
+            // 리사이즈 시 지도 크기 재계산
+            window.addEventListener('resize', () => {
+                if(mapMain && !mainView.classList.contains('hidden')) {
+                    mapMain.invalidateSize();
+                    if(geojsonMain) mapMain.fitBounds(geojsonMain.getBounds(), { animate: false });
+                }
+                if(mapDetail && !detailView.classList.contains('hidden')) {
+                    mapDetail.invalidateSize();
+                    if(geojsonDetail && geojsonDetail.getBounds().isValid()) mapDetail.fitBounds(geojsonDetail.getBounds(), { animate: false });
+                }
             });
-
-            document.getElementById('resetFilterBtn').addEventListener('click', () => {
-                state.project = '전체';
-                state.searchQuery = '';
-                document.getElementById('searchInput').value = '';
-                window.resetMapZoom();
-            });
-
-            updateDashboard();
-            initMap();
         });
+
+        // 1. 전국 지도 세팅
+        function initMainMap() {
+            mapMain = L.map('mainMap', { center: [36.0, 127.8], zoom: 6.5, zoomControl: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false, touchZoom: false });
+
+            fetch(URL_PROVINCES).then(res => res.json()).then(data => {
+                document.getElementById('mainMapLoading').style.display = 'none';
+                
+                // 전남광주 병합
+                let gjFeature = data.features.find(f => f.properties.name === "광주광역시");
+                let jnFeature = data.features.find(f => f.properties.name === "전라남도");
+                if (gjFeature && jnFeature) {
+                    let merged = mergeFeaturesToMultiPolygon([gjFeature, jnFeature], "전남광주통합특별시", "36");
+                    data.features = data.features.filter(f => f.properties.name !== "광주광역시" && f.properties.name !== "전라남도");
+                    data.features.push(merged);
+                }
+
+                // 경상북도 + 독도/울릉도(타원형) 추가
+                let gbFeature = data.features.find(f => f.properties.name === "경상북도");
+                if (gbFeature) {
+                    if (gbFeature.geometry.type === 'Polygon') {
+                        gbFeature.geometry.type = 'MultiPolygon';
+                        gbFeature.geometry.coordinates = [gbFeature.geometry.coordinates];
+                    }
+                    gbFeature.geometry.coordinates.push(createIslandPolygon(130.86, 37.50, 0.08, 0.08)); // 울릉도 타원
+                    gbFeature.geometry.coordinates.push(createIslandPolygon(131.87, 37.24, 0.06, 0.06)); // 독도 타원
+                }
+
+                // 맵에 그리기 및 마우스 이벤트(툴팁, 호버) 설정
+                geojsonMain = L.geoJson(data, {
+                    style: () => ({ fillColor: '#E5E7EB', weight: 1.5, opacity: 1, color: '#ffffff', fillOpacity: 0.9, className: 'cursor-pointer transition-colors' }),
+                    onEachFeature: (feature, layer) => {
+                        // 툴팁 활성화
+                        layer.bindTooltip(feature.properties.name, {
+                            className: 'bg-gray-800 border-none text-white font-bold text-sm rounded-lg shadow-xl px-3 py-1.5',
+                            sticky: true, direction: 'auto'
+                        });
+
+                        layer.on({
+                            mouseover: e => { 
+                                e.target.setStyle({ fillColor: '#FDBA1A', fillOpacity: 1 }); 
+                                e.target.bringToFront(); 
+                                applyDataToUI(getRegionData(feature.properties.name), false, feature.properties.name); 
+                            },
+                            mouseout: e => { 
+                                geojsonMain.resetStyle(e.target); 
+                                applyDataToUI(defaultStats, true, ""); 
+                            },
+                            click: e => { 
+                                currentProvince = feature.properties.name; 
+                                showDetailView(currentProvince); 
+                            }
+                        });
+                    }
+                }).addTo(mapMain);
+
+                // 화면 크기 계산 딜레이 (에러 방지)
+                setTimeout(() => {
+                    mapMain.invalidateSize();
+                    mapMain.fitBounds(geojsonMain.getBounds(), { animate: false });
+                }, 100);
+            });
+        }
+
+        // 2. 시군구 상세 화면 진입
+        function showDetailView(regionName) {
+            document.getElementById('detailRegionTitle').textContent = regionName;
+            mainView.classList.add('opacity-0');
+            setTimeout(() => {
+                mainView.classList.add('hidden'); 
+                detailView.classList.remove('hidden');
+                detailView.classList.remove('opacity-0');
+                initDetailMap(regionName);
+                generateTableData();
+            }, 500);
+        }
+
+        // 3. 다시 메인(홈)으로 복귀
+        function showMainView() {
+            detailView.classList.add('opacity-0');
+            trendView.classList.add('opacity-0');
+            setTimeout(() => {
+                detailView.classList.add('hidden'); 
+                trendView.classList.add('hidden'); 
+                mainView.classList.remove('hidden');
+                mainView.classList.remove('opacity-0');
+                if (mapDetail) { mapDetail.remove(); mapDetail = null; }
+                
+                setTimeout(() => {
+                    if(mapMain) {
+                        mapMain.invalidateSize();
+                        if(geojsonMain) mapMain.fitBounds(geojsonMain.getBounds(), { animate: false });
+                    }
+                }, 100);
+            }, 500);
+        }
+
+        // 4. 시군구 상세 지도 세팅
+        function initDetailMap(regionName) {
+            if (mapDetail) mapDetail.remove();
+            mapDetail = L.map('detailMap', { zoomControl: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false });
+
+            if (!municipalitiesData) return;
+
+            const codes = { "서울특별시": ["11"], "경기도": ["31"], "전남광주통합특별시": ["24", "36"], "경상북도": ["37"] }; 
+            const valid = codes[regionName] || [];
+            
+            let targetFeatures = municipalitiesData.features.filter(f => {
+                let c = f.properties.code || f.properties.SIG_CD;
+                return c && valid.length ? valid.some(v => c.toString().startsWith(v)) : (f.properties.name.includes(regionName.substring(0,2)));
+            });
+
+            // 상세 지도에도 울릉도/독도 타원 추가
+            if (regionName === "경상북도") {
+                targetFeatures.push({ 
+                    "type": "Feature", 
+                    "properties": { "name": "울릉군 (울릉도/독도)" }, 
+                    "geometry": { 
+                        "type": "MultiPolygon", 
+                        "coordinates": [
+                            createIslandPolygon(130.86, 37.50, 0.06, 0.06),
+                            createIslandPolygon(131.87, 37.24, 0.04, 0.04)
+                        ] 
+                    }
+                });
+            }
+
+            geojsonDetail = L.geoJson({ type: "FeatureCollection", features: targetFeatures }, {
+                style: () => ({ fillColor: '#EAEAEA', weight: 1.5, color: '#ffffff', fillOpacity: 1, className: 'cursor-pointer transition-colors' }),
+                onEachFeature: (feature, layer) => {
+                    layer.bindTooltip(feature.properties.name, {
+                        className: 'bg-seoul-dark border-none text-brand-yellow font-bold text-sm rounded-lg shadow-xl px-3 py-1.5',
+                        sticky: true, direction: 'auto'
+                    });
+
+                    layer.on({
+                        mouseover: e => { 
+                            e.target.setStyle({ fillColor: '#FDBA1A' }); 
+                            e.target.bringToFront(); 
+                        },
+                        mouseout: e => geojsonDetail.resetStyle(e.target),
+                        click: () => document.getElementById('detailRegionTitle').innerHTML = `<span class="text-2xl text-gray-400 font-bold mr-3">${regionName}</span>${feature.properties.name}`
+                    });
+                }
+            }).addTo(mapDetail);
+
+            setTimeout(() => {
+                mapDetail.invalidateSize();
+                if(geojsonDetail.getBounds().isValid()) {
+                    mapDetail.fitBounds(geojsonDetail.getBounds(), { padding: [20, 20], animate: false });
+                }
+            }, 100);
+        }
+
+        // 상세 화면 껍데기 표 데이터
+        function generateTableData() {
+            let html = '';
+            for(let i=0; i<4; i++) html += `<tr class="border-b border-gray-200"><td class="py-3 px-2 font-bold bg-gray-50 border-r border-gray-200">항목${i+1}</td><td class="py-3">12개</td><td class="py-3">5개</td><td class="py-3">8개</td><td class="py-3">3개</td></tr>`;
+            document.getElementById('detailTableBody').innerHTML = html;
+        }
+
+        function toggleAiChat() { document.getElementById('aiChatWindow').classList.toggle('hidden'); }
+        function openAiRecommenderModal() { document.getElementById('aiModal').classList.remove('hidden'); document.getElementById('aiModal').classList.add('flex'); }
+        function closeAiRecommenderModal() { document.getElementById('aiModal').classList.add('hidden'); document.getElementById('aiModal').classList.remove('flex'); }
+        function sendPresetPrompt(t) { document.getElementById('aiChatInput').value = t; sendUserMessage(); }
+        function sendUserMessage() {
+            const v = document.getElementById('aiChatInput').value;
+            if(!v) return;
+            document.getElementById('aiChatMessages').innerHTML += `<div class="flex items-start gap-2 justify-end"><div class="bg-brand-dark text-white p-3 rounded-2xl rounded-tr-none text-sm">${v}</div></div>`;
+            document.getElementById('aiChatInput').value = '';
+        }
+        function generateAiRecommendation() {
+            document.getElementById('aiResultContainer').classList.remove('hidden');
+            document.getElementById('aiResultContent').innerHTML = "추천 알고리즘 처리 중...";
+            setTimeout(() => document.getElementById('aiResultContent').innerHTML = "추천된 프로그램: <br>1. 환경 생태 코딩<br>2. 지역사회 봉사", 1000);
+        }
     </script>
 </body>
 </html>
