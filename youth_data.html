@@ -72,6 +72,17 @@
             max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out;
         }
         .accordion-open { max-height: 800px; } /* 항목이 많으므로 늘림 */
+
+        /* 타임라인 커스텀 슬라이더 (시안 반영) */
+        .custom-range {
+            -webkit-appearance: none; appearance: none; background: transparent; outline: none; height: 10px; margin: 0;
+        }
+        .custom-range::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none; width: 32px; height: 32px; border-radius: 50%;
+            background: #165f7c; border: 4px solid white; cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4); transition: transform 0.1s ease;
+        }
+        .custom-range::-webkit-slider-thumb:hover { transform: scale(1.1); }
     </style>
 </head>
 <body class="text-gray-800">
@@ -304,13 +315,13 @@
     <!-- VIEW 3: Trend & Chart Dashboard (항목 클릭 시 나타나는 새로운 화면) -->
     <main id="trendView" class="hidden w-full min-h-screen bg-gray-50 p-6 lg:p-12 relative transition-opacity duration-500">
         <div class="max-w-[1500px] mx-auto h-full flex flex-col">
-            <div class="flex justify-between items-end mb-8 border-b-2 border-seoul-dark pb-4">
+            <div class="flex justify-between items-end mb-8 border-b-2 border-gray-400 pb-4">
                 <div>
-                    <button onclick="showMainView()" class="flex items-center gap-2 text-gray-500 hover:text-brand-dark font-medium mb-3 transition-colors">
+                    <button onclick="showMainView()" class="flex items-center gap-2 text-gray-500 hover:text-[#165f7c] font-medium mb-3 transition-colors">
                         <i class="ph-bold ph-arrow-left"></i> 대시보드 홈으로 돌아가기
                     </button>
-                    <h1 class="text-3xl lg:text-4xl font-black text-seoul-dark tracking-tight">
-                        <span id="trendViewTitle" class="text-brand-yellow mr-2">선택항목</span> 
+                    <h1 class="text-3xl lg:text-4xl font-black text-gray-800 tracking-tight">
+                        <span id="trendViewTitle" class="text-[#fca010] mr-2">선택항목</span> 
                         <span class="text-gray-800">통계 분석</span>
                     </h1>
                 </div>
@@ -319,20 +330,30 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 flex-1">
-                <!-- 막대 차트 (전국 시도 비교) -->
-                <div class="bg-white p-6 rounded-2xl shadow border border-gray-200 flex flex-col h-[500px]">
-                    <h3 class="font-bold text-lg mb-4 text-gray-800 flex items-center gap-2"><i class="ph-fill ph-chart-bar text-brand-yellow"></i> 전국 시·도별 현황 비교</h3>
-                    <div class="flex-1 relative w-full h-full">
-                        <canvas id="barChart"></canvas>
+            <!-- 단일 통합 차트 및 타임라인 영역 -->
+            <div class="flex-1 bg-white p-6 rounded-2xl shadow border border-gray-200 flex flex-col min-h-[600px]">
+                <!-- 상단 타임라인 UI (2020 ~ 2026.06) -->
+                <div class="w-full mb-6 mt-2 relative">
+                    <div class="flex justify-between mb-4 px-2">
+                        <button id="timelineBtn0" onclick="setYear(0)" class="px-5 py-2 rounded-lg text-sm bg-gray-200 text-gray-600 border border-gray-300 transition-all">2020년</button>
+                        <button id="timelineBtn1" onclick="setYear(1)" class="px-5 py-2 rounded-lg text-sm bg-gray-200 text-gray-600 border border-gray-300 transition-all">2021년</button>
+                        <button id="timelineBtn2" onclick="setYear(2)" class="px-5 py-2 rounded-lg text-sm bg-gray-200 text-gray-600 border border-gray-300 transition-all">2022년</button>
+                        <button id="timelineBtn3" onclick="setYear(3)" class="px-5 py-2 rounded-lg text-sm bg-gray-200 text-gray-600 border border-gray-300 transition-all">2023년</button>
+                        <button id="timelineBtn4" onclick="setYear(4)" class="px-5 py-2 rounded-lg text-sm bg-gray-200 text-gray-600 border border-gray-300 transition-all">2024년</button>
+                        <button id="timelineBtn5" onclick="setYear(5)" class="px-5 py-2 rounded-lg text-sm bg-gray-200 text-gray-600 border border-gray-300 transition-all">2025년</button>
+                        <button id="timelineBtn6" onclick="setYear(6)" class="px-5 py-2 rounded-lg text-sm bg-[#165f7c] text-white border border-[#114a60] transition-all font-bold shadow-md scale-110">2026년 6월</button>
+                    </div>
+                    <div class="relative w-full px-12">
+                        <!-- 배경 가로 선 -->
+                        <div class="absolute top-1/2 left-6 right-6 h-1 bg-[#165f7c] -translate-y-1/2 rounded-full z-0 pointer-events-none"></div>
+                        <!-- 마우스 드래그가 가능한 Range Input -->
+                        <input type="range" id="yearSlider" min="0" max="6" value="6" step="1" class="w-full relative z-10 custom-range" oninput="slideYear(this.value)">
                     </div>
                 </div>
-                <!-- 꺾은선 차트 (연도별 추이) -->
-                <div class="bg-white p-6 rounded-2xl shadow border border-gray-200 flex flex-col h-[500px]">
-                    <h3 class="font-bold text-lg mb-4 text-gray-800 flex items-center gap-2"><i class="ph-fill ph-chart-line text-seoul-red"></i> 최근 5년간 연도별 추이</h3>
-                    <div class="flex-1 relative w-full h-full">
-                        <canvas id="lineChart"></canvas>
-                    </div>
+
+                <!-- 가로형 누적 막대 차트 렌더링 영역 -->
+                <div class="flex-1 relative w-full h-full mt-4">
+                    <canvas id="mainComboChart"></canvas>
                 </div>
             </div>
         </div>
@@ -508,49 +529,182 @@
 
         let comboChartInstance = null; // 전역 차트 변수 선언
 
+        // 연도별/지역별 남녀 인구 시뮬레이션 데이터 생성 (엑셀 데이터 기반 구성)
+        const generateGenderData = () => {
+            const regions = ["서울특별시", "부산광역시", "대구광역시", "인천광역시", "광주광역시", "대전광역시", "울산광역시", "세종특별자치시", "경기도", "강원특별자치도", "충청북도", "충청남도", "전북특별자치도", "전라남도", "경상북도", "경상남도", "제주특별자치도"];
+            // 2026년 6월 기준 9~24세 시도별 총인구 합산 베이스 
+            const baseTotals = [1256433, 435094, 342869, 462310, 241500, 235400, 182300, 75400, 2107415, 208700, 235400, 338900, 258700, 268700, 351200, 476500, 121400];
+            
+            let result = {};
+            for(let year = 2020; year <= 2026; year++) {
+                let factor = Math.pow(1.025, (2026 - year)); // 2020년으로 갈수록 2.5%씩 인구 많게 시뮬레이션
+                result[year] = { labels: regions, male: [], female: [] };
+                
+                baseTotals.forEach(total => {
+                    let yearTotal = Math.floor(total * factor);
+                    let male = Math.floor(yearTotal * 0.518); // 남성 약 51.8% 비율 적용
+                    let female = yearTotal - male;            // 여성 나머지 비율
+                    result[year].male.push(male);
+                    result[year].female.push(female);
+                });
+            }
+            return result;
+        };
+
+        const chartDataByYear = generateGenderData();
+        const yearsList = [2020, 2021, 2022, 2023, 2024, 2025, 2026];
+
+        // 차트 그리기
         function renderCharts(title) {
             const canvas = document.getElementById('mainComboChart');
             if(!canvas) return; 
 
             if (comboChartInstance) comboChartInstance.destroy();
 
-            const regions = ["서울특별시", "부산광역시", "대구광역시", "인천광역시", "광주광역시", "대전광역시", "울산광역시", "세종특별자치시", "경기도", "강원특별자치도", "충청북도", "충청남도", "전북특별자치도", "전라남도", "경상북도", "경상남도", "제주특별자치도"];
-            const baseData = [1335020, 435120, 345670, 462310, 241500, 235400, 182300, 75400, 2321500, 208700, 235400, 338900, 258700, 268700, 351200, 476500, 121400];
+            // 플러그인: 막대 안쪽에 텍스트, 바깥쪽에 총합 그리기
+            const inlineLabelPlugin = {
+                id: 'inlineLabelPlugin',
+                afterDatasetsDraw(chart, args, pluginOptions) {
+                    const { ctx, data } = chart;
+                    ctx.save();
+                    ctx.font = 'bold 13px "Pretendard", sans-serif';
+                    ctx.textBaseline = 'middle';
 
-            let chartDataByYear = {};
-            for (let year = 2020; year <= 2026; year++) {
-                let factor = Math.pow(1.02, (2026 - year));
-                chartDataByYear[year] = baseData.map(v => Math.floor(v * factor));
-            }
+                    const metaMale = chart.getDatasetMeta(0);
+                    const metaFemale = chart.getDatasetMeta(1);
 
+                    data.labels.forEach((label, i) => {
+                        const maleVal = data.datasets[0].data[i];
+                        const femaleVal = data.datasets[1].data[i];
+                        const total = maleVal + femaleVal;
+                        
+                        const barMale = metaMale.data[i];
+                        const barFemale = metaFemale.data[i];
+                        
+                        // 남성 데이터 라벨 그리기 (막대 중앙)
+                        if (maleVal > 0 && barMale.width > 40) {
+                            ctx.fillStyle = '#ffffff'; // 다크테마 대비 흰색
+                            ctx.textAlign = 'center';
+                            ctx.fillText(`남 ${(maleVal/10000).toFixed(1)}만`, barMale.x - (barMale.width / 2), barMale.y);
+                        }
+                        
+                        // 여성 데이터 라벨 그리기 (막대 중앙)
+                        if (femaleVal > 0 && barFemale.width > 40) {
+                            ctx.fillStyle = '#1e293b'; // 노란 바탕 대비 다크 텍스트
+                            ctx.textAlign = 'center';
+                            ctx.fillText(`여 ${(femaleVal/10000).toFixed(1)}만`, barFemale.x - (barFemale.width / 2), barFemale.y);
+                        }
+                        
+                        // 총합 라벨 그리기 (막대 끝 밖으로)
+                        ctx.fillStyle = '#FDBA1A'; // 다크테마 옐로우 포인트
+                        ctx.textAlign = 'left';
+                        ctx.fillText(`${(total/10000).toFixed(1)}만명`, barFemale.x + 10, barFemale.y);
+                    });
+                    ctx.restore();
+                }
+            };
+
+            // 차트 인스턴스 생성
             comboChartInstance = new Chart(canvas.getContext('2d'), {
                 type: 'bar',
                 data: {
-                    labels: regions,
-                    datasets: [{
-                        label: '청소년 인구',
-                        data: chartDataByYear[2026],
-                        backgroundColor: '#FDBA1A',
-                        borderRadius: 6
-                    }]
+                    labels: chartDataByYear[2026].labels,
+                    datasets: [
+                        {
+                            label: '남자인구수',
+                            data: chartDataByYear[2026].male,
+                            backgroundColor: '#3b82f6', // 다크테마에 어울리는 선명한 블루
+                            barPercentage: 0.75
+                        },
+                        {
+                            label: '여자인구수',
+                            data: chartDataByYear[2026].female,
+                            backgroundColor: '#FDBA1A', // 브랜드 옐로우
+                            borderRadius: { topRight: 8, bottomRight: 8 }, // 끝부분 둥글게
+                            barPercentage: 0.75
+                        }
+                    ]
                 },
                 options: {
-                    indexAxis: 'y',
+                    indexAxis: 'y', // 가로형 막대그래프
                     responsive: true,
                     maintainAspectRatio: false,
+                    layout: {
+                        padding: { right: 80 } // 바깥쪽 총합 텍스트 여백 확보
+                    },
                     scales: {
-                        x: { beginAtZero: true, ticks: { callback: v => (v/10000).toFixed(1) + '만' } }
+                        x: { 
+                            stacked: true, 
+                            beginAtZero: true, 
+                            max: 2700000,
+                            ticks: { 
+                                font: { size: 14, weight: 'bold', family: "'Pretendard', sans-serif" },
+                                color: '#94a3b8', // 다크테마용 연한 회색
+                                callback: v => (v/10000).toFixed(0) + '만' 
+                            },
+                            grid: { color: '#334155', drawBorder: false } // 눈금선 어둡게
+                        },
+                        y: { 
+                            stacked: true,
+                            ticks: { font: { size: 15, weight: 'bold', family: "'Pretendard', sans-serif" }, color: '#f8fafc' }, // Y축 글씨 흰색
+                            grid: { display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }, 
+                        tooltip: {
+                            backgroundColor: 'rgba(30, 41, 59, 0.95)',
+                            titleColor: '#FDBA1A',
+                            bodyFont: { font: { family: "'Pretendard', sans-serif" } },
+                            callbacks: {
+                                label: context => `${context.dataset.label}: ${context.raw.toLocaleString()}명`
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 400,
+                        easing: 'easeOutQuart'
+                    }
+                },
+                plugins: [inlineLabelPlugin]
+            });
+        }
+
+        // 버튼 클릭 시 슬라이더 값 동기화 및 업데이트
+        window.setYear = function(index) {
+            document.getElementById('yearSlider').value = index;
+            window.slideYear(index);
+        }
+
+        // 슬라이더 드래그 시 연도별 차트 데이터 갱신
+        window.slideYear = function(index) {
+            const idx = parseInt(index);
+            const targetYear = yearsList[idx];
+            
+            // 프로그레스 바 채우기 (네이비 선)
+            const sliderFill = document.getElementById('sliderFill');
+            if(sliderFill) sliderFill.style.width = `calc(${(idx / 6) * 100}% - ${(idx/6)*24}px)`;
+            
+            // 타임라인 버튼 디자인(하이라이트) 상태 변경
+            for(let i=0; i<=6; i++) {
+                const btn = document.getElementById('timelineBtn' + i);
+                if(btn) {
+                    if(i === idx) {
+                        // 활성화 됨: 네이비 배경, 옐로우 테두리, 팝업 효과
+                        btn.className = `px-4 lg:px-6 py-2.5 rounded-xl text-sm lg:text-base transition-all bg-brand-dark text-white border-2 border-brand-yellow font-black shadow-lg scale-110 z-10`;
+                    } else {
+                        // 비활성화 됨: 투명 배경, 연한 글씨
+                        btn.className = `px-4 lg:px-6 py-2.5 rounded-xl text-sm lg:text-base transition-all bg-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-200 border-2 border-transparent font-bold`;
                     }
                 }
-            });
+            }
 
-            const slider = document.getElementById('yearSlider');
-            slider.oninput = function() {
-                const year = this.value;
-                document.getElementById('currentYearDisplay').textContent = year === '2026' ? '2026.06 기준' : year + '년';
-                comboChartInstance.data.datasets[0].data = chartDataByYear[year];
+            // 차트 데이터 교체 후 부드러운 업데이트
+            if (comboChartInstance) {
+                comboChartInstance.data.datasets[0].data = chartDataByYear[targetYear].male;
+                comboChartInstance.data.datasets[1].data = chartDataByYear[targetYear].female;
                 comboChartInstance.update();
-            };
+            }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
