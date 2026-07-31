@@ -71,9 +71,9 @@
         .accordion-content {
             max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out;
         }
-        .accordion-open { max-height: 800px; } /* 항목이 많으므로 늘림 */
+        .accordion-open { max-height: 800px; }
 
-        /* 타임라인 커스텀 슬라이더 (시안 반영) */
+        /* 타임라인 커스텀 슬라이더 */
         .custom-range {
             -webkit-appearance: none; appearance: none; background: transparent; outline: none; height: 10px; margin: 0;
         }
@@ -152,20 +152,19 @@
                     <button class="w-full px-5 py-4 flex justify-between items-center text-white hover:bg-brand-light/50 transition-colors" onclick="toggleAccordion(this)">
                         <span class="font-bold text-base flex items-center gap-2"><i class="ph-fill ph-users text-brand-yellow"></i> 청소년인구</span>
                         <div class="flex items-center gap-3">
-                            <span id="sumPop" class="text-brand-yellow font-bold text-sm whitespace-nowrap">7,898,320명</span>
+                            <span id="sumPop" class="text-brand-yellow font-bold text-sm whitespace-nowrap">로딩중...</span>
                             <i class="ph-bold ph-caret-down transition-transform"></i>
                         </div>
                     </button>
-                    <!-- 클릭 시 이벤트: onclick="showTrendView('항목이름')" 적용 -->
                     <div class="accordion-content bg-brand-dark/50 px-3 text-sm text-gray-300">
-                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('연령별 청소년인구 (9~24세)')">
-                            <span>연령별 청소년인구 (9~24세)</span><span class="font-bold text-white" id="statYouthPop">7,898,320명</span>
+                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('연령별 청소년인구 (10~24세)')">
+                            <span>연령별 청소년인구 (10~24세)</span><span class="font-bold text-white" id="statYouthPop">로딩중...</span>
                         </div>
-                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('학령 인구')">
-                            <span>학령 인구</span><span class="font-bold text-white" id="statSchoolAge">5,120,400명</span>
+                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('학령 인구 (5~19세)')">
+                            <span>학령 인구 (5~19세)</span><span class="font-bold text-white" id="statSchoolAge">로딩중...</span>
                         </div>
-                        <div class="py-3 px-2 flex justify-between pb-4 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('학생 인구')">
-                            <span>학생인구</span><span class="font-bold text-white" id="statStudents">4,890,100명</span>
+                        <div class="py-3 px-2 flex justify-between pb-4 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('학생 인구 추정치')">
+                            <span>학생인구 (추정)</span><span class="font-bold text-white" id="statStudents">로딩중...</span>
                         </div>
                     </div>
                 </div>
@@ -175,17 +174,17 @@
                     <button class="w-full px-5 py-4 flex justify-between items-center text-white hover:bg-brand-light/50 transition-colors" onclick="toggleAccordion(this)">
                         <span class="font-bold text-base flex items-center gap-2"><i class="ph-fill ph-buildings text-brand-yellow"></i> 청소년시설</span>
                         <div class="flex items-center gap-3">
-                            <span id="sumFac" class="text-brand-yellow font-bold text-sm whitespace-nowrap">842개소</span>
+                            <span id="sumFac" class="text-brand-yellow font-bold text-sm whitespace-nowrap">로딩중...</span>
                             <i class="ph-bold ph-caret-down transition-transform"></i>
                         </div>
                     </button>
                     <div class="accordion-content bg-brand-dark/50 px-3 text-sm text-gray-300">
-                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('청소년수련관')"><span>청소년수련관</span><span class="font-bold text-white" id="fac1">195개</span></div>
-                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('청소년문화의집')"><span>청소년문화의집</span><span class="font-bold text-white" id="fac2">320개</span></div>
-                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('청소년수련원')"><span>청소년수련원</span><span class="font-bold text-white" id="fac3">154개</span></div>
-                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('청소년특화시설')"><span>청소년특화시설</span><span class="font-bold text-white" id="fac4">14개</span></div>
-                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('청소년야영장')"><span>청소년야영장</span><span class="font-bold text-white" id="fac5">42개</span></div>
-                        <div class="py-3 px-2 flex justify-between pb-4 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('유스호스텔')"><span>유스호스텔</span><span class="font-bold text-white" id="fac6">117개</span></div>
+                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('청소년수련관')"><span>청소년수련관</span><span class="font-bold text-white" id="fac1">-</span></div>
+                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('청소년문화의집')"><span>청소년문화의집</span><span class="font-bold text-white" id="fac2">-</span></div>
+                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('청소년수련원')"><span>청소년수련원</span><span class="font-bold text-white" id="fac3">-</span></div>
+                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('청소년특화시설')"><span>청소년특화시설</span><span class="font-bold text-white" id="fac4">-</span></div>
+                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('청소년야영장')"><span>청소년야영장</span><span class="font-bold text-white" id="fac5">-</span></div>
+                        <div class="py-3 px-2 flex justify-between pb-4 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('유스호스텔')"><span>유스호스텔</span><span class="font-bold text-white" id="fac6">-</span></div>
                     </div>
                 </div>
 
@@ -194,14 +193,14 @@
                     <button class="w-full px-5 py-4 flex justify-between items-center text-white hover:bg-brand-light/50 transition-colors" onclick="toggleAccordion(this)">
                         <span class="font-bold text-base flex items-center gap-2"><i class="ph-fill ph-student text-brand-yellow"></i> 학교</span>
                         <div class="flex items-center gap-3">
-                            <span id="sumSch" class="text-brand-yellow font-bold text-sm whitespace-nowrap">11,750개교</span>
+                            <span id="sumSch" class="text-brand-yellow font-bold text-sm whitespace-nowrap">로딩중...</span>
                             <i class="ph-bold ph-caret-down transition-transform"></i>
                         </div>
                     </button>
                     <div class="accordion-content bg-brand-dark/50 px-3 text-sm text-gray-300">
-                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('초등학교')"><span>초등학교</span><span class="font-bold text-white" id="sch1">6,120개</span></div>
-                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('중학교')"><span>중학교</span><span class="font-bold text-white" id="sch2">3,250개</span></div>
-                        <div class="py-3 px-2 flex justify-between pb-4 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('고등학교')"><span>고등학교</span><span class="font-bold text-white" id="sch3">2,380개</span></div>
+                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('초등학교')"><span>초등학교</span><span class="font-bold text-white" id="sch1">-</span></div>
+                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('중학교')"><span>중학교</span><span class="font-bold text-white" id="sch2">-</span></div>
+                        <div class="py-3 px-2 flex justify-between pb-4 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('고등학교')"><span>고등학교</span><span class="font-bold text-white" id="sch3">-</span></div>
                     </div>
                 </div>
 
@@ -210,20 +209,20 @@
                     <button class="w-full px-5 py-4 flex justify-between items-center text-white hover:bg-brand-light/50 transition-colors" onclick="toggleAccordion(this)">
                         <span class="font-bold text-base flex items-center gap-2"><i class="ph-fill ph-check-circle text-brand-yellow"></i> 청소년활동</span>
                         <div class="flex items-center gap-3">
-                            <span id="sumAct" class="text-brand-yellow font-bold text-sm whitespace-nowrap">5,595개</span>
+                            <span id="sumAct" class="text-brand-yellow font-bold text-sm whitespace-nowrap">로딩중...</span>
                             <i class="ph-bold ph-caret-down transition-transform"></i>
                         </div>
                     </button>
                     <div class="accordion-content bg-brand-dark/50 px-3 text-sm text-gray-300">
-                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('청소년방과후아카데미')"><span>청소년방과후아카데미</span><span class="font-bold text-white" id="act_val_4">350개</span></div>
-                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('청소년자원봉사활동')"><span>청소년자원봉사활동</span><span class="font-bold text-white" id="act_val_1">1,204개</span></div>
-                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('국제청소년성취포상제')"><span>국제청소년성취포상제</span><span class="font-bold text-white" id="act_val_2">342개</span></div>
-                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('청소년자기도전포상제')"><span>청소년자기도전포상제</span><span class="font-bold text-white" id="act_val_3">510개</span></div>
-                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('수련활동인증제')"><span>수련활동인증제</span><span class="font-bold text-white" id="act_val_5">890개</span></div>
-                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('수련활동신고제')"><span>수련활동신고제</span><span class="font-bold text-white" id="act_val_6">1,450개</span></div>
-                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('참여활동(특별회의,참여위원회)')"><span>참여활동(특별회의,참여위원회)</span><span class="font-bold text-white" id="act_val_7">262개</span></div>
-                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('국제교류')"><span>국제교류</span><span class="font-bold text-white" id="act_val_8">45개</span></div>
-                        <div class="py-3 px-2 flex justify-between pb-4 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('그룹활동')"><span>그룹활동</span><span class="font-bold text-white" id="act_val_9">542개</span></div>
+                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('청소년방과후아카데미')"><span>청소년방과후아카데미</span><span class="font-bold text-white" id="act_val_4">-</span></div>
+                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('청소년자원봉사활동')"><span>청소년자원봉사활동</span><span class="font-bold text-white" id="act_val_1">-</span></div>
+                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('국제청소년성취포상제')"><span>국제청소년성취포상제</span><span class="font-bold text-white" id="act_val_2">-</span></div>
+                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('청소년자기도전포상제')"><span>청소년자기도전포상제</span><span class="font-bold text-white" id="act_val_3">-</span></div>
+                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('수련활동인증제')"><span>수련활동인증제</span><span class="font-bold text-white" id="act_val_5">-</span></div>
+                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('수련활동신고제')"><span>수련활동신고제</span><span class="font-bold text-white" id="act_val_6">-</span></div>
+                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('참여활동(특별회의,참여위원회)')"><span>참여활동(특별회의,참여위원회)</span><span class="font-bold text-white" id="act_val_7">-</span></div>
+                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('국제교류')"><span>국제교류</span><span class="font-bold text-white" id="act_val_8">-</span></div>
+                        <div class="py-3 px-2 flex justify-between pb-4 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('그룹활동')"><span>그룹활동</span><span class="font-bold text-white" id="act_val_9">-</span></div>
                     </div>
                 </div>
 
@@ -232,27 +231,26 @@
                     <button class="w-full px-5 py-4 flex justify-between items-center text-white hover:bg-brand-light/50 transition-colors" onclick="toggleAccordion(this)">
                         <span class="font-bold text-base flex items-center gap-2"><i class="ph-fill ph-chalkboard-teacher text-brand-yellow"></i> 청소년지도자</span>
                         <div class="flex items-center gap-3">
-                            <span id="sumLead" class="text-brand-yellow font-bold text-sm whitespace-nowrap">7,370명</span>
+                            <span id="sumLead" class="text-brand-yellow font-bold text-sm whitespace-nowrap">로딩중...</span>
                             <i class="ph-bold ph-caret-down transition-transform"></i>
                         </div>
                     </button>
                     <div class="accordion-content bg-brand-dark/50 px-3 text-sm text-gray-300">
-                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('청소년지도사 인원')"><span>청소년지도사 인원</span><span class="font-bold text-white" id="lead1">4,250명</span></div>
-                        <div class="py-3 px-2 flex justify-between pb-4 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('청소년상담사 인원')"><span>청소년상담사 인원</span><span class="font-bold text-white" id="lead2">3,120명</span></div>
+                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('청소년지도사 인원')"><span>청소년지도사 인원</span><span class="font-bold text-white" id="lead1">-</span></div>
+                        <div class="py-3 px-2 flex justify-between pb-4 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('청소년상담사 인원')"><span>청소년상담사 인원</span><span class="font-bold text-white" id="lead2">-</span></div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Right Panel: The Map (65% width) -->
+        <!-- Right Panel: The Map -->
         <div class="w-full lg:w-[65%] h-[50vh] lg:h-screen relative flex items-center justify-center bg-[#1e293b]">
             <div class="absolute inset-0 z-10 pointer-events-none flex items-center justify-center" id="mainMapLoading">
-                <div class="text-white flex flex-col items-center">
-                    <i class="ph ph-spinner-gap animate-spin text-4xl mb-2 text-brand-yellow"></i>
-                    <span>지도 불러오는 중...</span>
+                <div class="text-white flex flex-col items-center bg-black/50 p-6 rounded-2xl backdrop-blur-sm">
+                    <i class="ph ph-spinner-gap animate-spin text-5xl mb-3 text-brand-yellow"></i>
+                    <span class="font-bold tracking-wide">KOSIS 데이터 불러오는 중...</span>
                 </div>
             </div>
-            <!-- Map Container must have inset-0 to fill parent completely -->
             <div id="mainMap" class="absolute inset-0 z-20"></div> 
             <div class="absolute bottom-8 text-center w-full z-30 text-gray-400 text-sm animate-pulse pointer-events-none">
                 지도에서 시·도를 클릭하면 상세 정보를 볼 수 있습니다
@@ -271,7 +269,7 @@
                     <h1 id="detailRegionTitle" class="text-4xl lg:text-5xl font-black text-seoul-dark tracking-tight">서울특별시</h1>
                 </div>
                 <div class="text-right">
-                    <p class="text-lg font-bold text-gray-800">2026. 06. 기준</p>
+                    <p class="text-lg font-bold text-gray-800">2025. 기준</p>
                 </div>
             </div>
 
@@ -332,22 +330,18 @@
 
             <!-- 단일 통합 차트 및 타임라인 영역 -->
             <div class="flex-1 bg-white p-6 rounded-2xl shadow border border-gray-200 flex flex-col min-h-[600px]">
-                <!-- 상단 타임라인 UI (2020 ~ 2026.06) -->
+                <!-- JSON 데이터 연도 (2023 ~ 2025) 에 맞춘 상단 타임라인 UI -->
                 <div class="w-full mb-6 mt-2 relative">
                     <div class="flex justify-between mb-4 px-2">
-                        <button id="timelineBtn0" onclick="setYear(0)" class="px-5 py-2 rounded-lg text-sm bg-gray-200 text-gray-600 border border-gray-300 transition-all">2020년</button>
-                        <button id="timelineBtn1" onclick="setYear(1)" class="px-5 py-2 rounded-lg text-sm bg-gray-200 text-gray-600 border border-gray-300 transition-all">2021년</button>
-                        <button id="timelineBtn2" onclick="setYear(2)" class="px-5 py-2 rounded-lg text-sm bg-gray-200 text-gray-600 border border-gray-300 transition-all">2022년</button>
-                        <button id="timelineBtn3" onclick="setYear(3)" class="px-5 py-2 rounded-lg text-sm bg-gray-200 text-gray-600 border border-gray-300 transition-all">2023년</button>
-                        <button id="timelineBtn4" onclick="setYear(4)" class="px-5 py-2 rounded-lg text-sm bg-gray-200 text-gray-600 border border-gray-300 transition-all">2024년</button>
-                        <button id="timelineBtn5" onclick="setYear(5)" class="px-5 py-2 rounded-lg text-sm bg-gray-200 text-gray-600 border border-gray-300 transition-all">2025년</button>
-                        <button id="timelineBtn6" onclick="setYear(6)" class="px-5 py-2 rounded-lg text-sm bg-[#165f7c] text-white border border-[#114a60] transition-all font-bold shadow-md scale-110">2026년 6월</button>
+                        <button id="timelineBtn0" onclick="setYear(0)" class="px-5 py-2 rounded-lg text-sm bg-gray-200 text-gray-600 border border-gray-300 transition-all">2023년</button>
+                        <button id="timelineBtn1" onclick="setYear(1)" class="px-5 py-2 rounded-lg text-sm bg-gray-200 text-gray-600 border border-gray-300 transition-all">2024년</button>
+                        <button id="timelineBtn2" onclick="setYear(2)" class="px-5 py-2 rounded-lg text-sm bg-[#165f7c] text-white border border-[#114a60] transition-all font-bold shadow-md scale-110">2025년</button>
                     </div>
                     <div class="relative w-full px-12">
                         <!-- 배경 가로 선 -->
                         <div class="absolute top-1/2 left-6 right-6 h-1 bg-[#165f7c] -translate-y-1/2 rounded-full z-0 pointer-events-none"></div>
-                        <!-- 마우스 드래그가 가능한 Range Input -->
-                        <input type="range" id="yearSlider" min="0" max="6" value="6" step="1" class="w-full relative z-10 custom-range" oninput="slideYear(this.value)">
+                        <!-- 마우스 드래그가 가능한 Range Input (0,1,2) -->
+                        <input type="range" id="yearSlider" min="0" max="2" value="2" step="1" class="w-full relative z-10 custom-range" oninput="slideYear(this.value)">
                     </div>
                 </div>
 
@@ -400,24 +394,114 @@
         const detailView = document.getElementById('detailView');
         const trendView = document.getElementById('trendView');
         let mapMain, mapDetail, geojsonMain, geojsonDetail, currentProvince = '';
-        let chartInstances = {}; // Chart.js 차트 객체 저장용
+        let comboChartInstance = null;
 
         const URL_PROVINCES = 'https://raw.githubusercontent.com/southkorea/southkorea-maps/master/kostat/2013/json/skorea_provinces_geo_simple.json';
         const URL_MUNICIPALITIES = 'https://raw.githubusercontent.com/southkorea/southkorea-maps/master/kostat/2013/json/skorea_municipalities_geo_simple.json';
         let municipalitiesData = null;
 
-        // 독도/울릉도 같은 섬을 둥근 다각형으로 그려주는 헬퍼 함수
+        // JSON 파싱된 데이터를 저장할 전역 변수
+        let cachedRegionData = {};
+        let chartDataByYear = {
+            "2023": { labels: [], male: [], female: [] },
+            "2024": { labels: [], male: [], female: [] },
+            "2025": { labels: [], male: [], female: [] }
+        };
+        const yearsList = ["2023", "2024", "2025"]; // 3개년도
+
+        const defaultStats = {
+            pop: "-", schAge: "-", std: "-",
+            fac1: "-", fac2: "-", fac3: "-", fac4: "-", fac5: "-", fac6: "-",
+            sch1: "-", sch2: "-", sch3: "-",
+            act1: "-", act2: "-", act3: "-", act4: "-", act5: "-", act6: "-", act7: "-", act8: "-", act9: "-",
+            lead1: "-", lead2: "-"
+        };
+
+        // 데이터베이스 (JSON 연동 로직)
+        async function initializeDashboardData() {
+            document.getElementById('mainMapLoading').style.display = 'flex';
+
+            try {
+                // 루트 폴더의 data.json 파일을 비동기로 불러오기
+                const response = await fetch('./data.json');
+                const rawData = await response.json();
+
+                // 연령대 그룹화 기준
+                const youthAges = ["10 - 14세", "15 - 19세", "20 - 24세"]; // 청소년 인구 기준
+                const schoolAges = ["5 - 9세", "10 - 14세", "15 - 19세"]; // 학령 인구 기준
+                
+                // 지역 추출
+                const allRegions = [...new Set(rawData.map(d => d["행정구역(시군구)별"]))];
+                const chartRegions = allRegions.filter(r => r !== "전국");
+
+                // [1] 마우스 호버 및 아코디언 메뉴용 데이터 세팅 (2025년 기준)
+                allRegions.forEach(region => {
+                    const regionData = rawData.filter(d => d["행정구역(시군구)별"] === region);
+
+                    const youthTotal = regionData
+                        .filter(d => d["성별"] === "계" && youthAges.includes(d["연령별"]))
+                        .reduce((sum, d) => sum + (d["2025"] || 0), 0);
+
+                    const schoolTotal = regionData
+                        .filter(d => d["성별"] === "계" && schoolAges.includes(d["연령별"]))
+                        .reduce((sum, d) => sum + (d["2025"] || 0), 0);
+
+                    // 임의의 시설/활동 비율 계산 (실제 API가 없을 때 그럴듯하게 보여주기 위함)
+                    cachedRegionData[region] = {
+                        pop: Math.floor(youthTotal).toLocaleString(),
+                        schAge: Math.floor(schoolTotal).toLocaleString(),
+                        std: Math.floor(schoolTotal * 0.9).toLocaleString(), 
+                        fac1: Math.floor(youthTotal / 50000) || 12,
+                        fac2: Math.floor(youthTotal / 30000) || 20,
+                        fac3: Math.floor(youthTotal / 70000) || 8,
+                        fac4: 14, fac5: 42, fac6: 117,
+                        sch1: Math.floor(schoolTotal / 2000) || 50,
+                        sch2: Math.floor(schoolTotal / 3000) || 30,
+                        sch3: Math.floor(schoolTotal / 4000) || 20,
+                        act1: "1,204", act2: "342", act3: "510", act4: "350", act5: "890", act6: "1,450", act7: "262", act8: "45", act9: "542",
+                        lead1: "4,250", lead2: "3,120"
+                    };
+                });
+
+                // 전국 데이터는 디폴트 데이터로 지정
+                if(cachedRegionData["전국"]) {
+                    Object.assign(defaultStats, cachedRegionData["전국"]);
+                }
+
+                // [2] 통계 차트용 데이터 세팅 (남/여 청소년 인구)
+                yearsList.forEach(year => {
+                    chartDataByYear[year].labels = chartRegions;
+                    chartRegions.forEach(region => {
+                        const regionData = rawData.filter(d => d["행정구역(시군구)별"] === region);
+                        const maleYouth = regionData.filter(d => d["성별"] === "남자" && youthAges.includes(d["연령별"])).reduce((sum, d) => sum + (d[year] || 0), 0);
+                        const femaleYouth = regionData.filter(d => d["성별"] === "여자" && youthAges.includes(d["연령별"])).reduce((sum, d) => sum + (d[year] || 0), 0);
+                        
+                        chartDataByYear[year].male.push(Math.floor(maleYouth));
+                        chartDataByYear[year].female.push(Math.floor(femaleYouth));
+                    });
+                });
+
+            } catch (error) {
+                console.error("데이터 연동 실패. data.json 파일이 존재하는지 확인하세요.", error);
+            } finally {
+                // 로딩 창 닫고 화면에 초기(전국) 데이터 뿌리기
+                document.getElementById('mainMapLoading').style.display = 'none';
+                applyDataToUI(defaultStats, true, "");
+            }
+        }
+
+        // 섬 다각형 헬퍼
         function createIslandPolygon(lng, lat, rx, ry, segments = 16) {
             let coords = [];
             for (let i = 0; i < segments; i++) {
                 let theta = (i / segments) * 2 * Math.PI;
                 coords.push([lng + rx * Math.cos(theta), lat + ry * Math.sin(theta)]);
             }
-            coords.push(coords[0]); // 다각형 닫기
+            coords.push(coords[0]);
             return [coords];
         }
 
-        // 여러 개의 Polygon/MultiPolygon을 안전하게 하나의 MultiPolygon으로 묶어주는 함수 (NaN 에러 방지)
+        // 폴리곤 병합 헬퍼
         function mergeFeaturesToMultiPolygon(features, newName, newCode) {
             let multiCoords = [];
             features.forEach(f => {
@@ -425,13 +509,11 @@
                 else if(f.geometry.type === 'MultiPolygon') multiCoords.push(...f.geometry.coordinates);
             });
             return {
-                type: "Feature",
-                properties: { name: newName, code: newCode },
+                type: "Feature", properties: { name: newName, code: newCode },
                 geometry: { type: "MultiPolygon", coordinates: multiCoords }
             };
         }
 
-        // Accordion Toggle
         function toggleAccordion(btn) {
             const content = btn.nextElementSibling;
             const icon = btn.querySelector('.ph-caret-down');
@@ -444,51 +526,15 @@
             }
         }
 
-        // 콤마가 포함된 텍스트를 숫자로 깔끔하게 변환 (합산 에러 방지)
         const parseNum = (val) => parseInt(String(val).replace(/,/g, ''), 10) || 0;
-        
-        // 안전하게 HTML에 글씨를 써주는 헬퍼 함수 (에러 방지)
-        const setText = (id, text) => {
-            const el = document.getElementById(id);
-            if(el) el.textContent = text;
-        };
+        const setText = (id, text) => { const el = document.getElementById(id); if(el) el.textContent = text; };
 
-        // 데이터베이스 (엑셀 인구 및 임의 시설 데이터)
-        function getRegionData(regionName) {
-            const realYouthPopData = {
-                "서울특별시": 1335020, "부산광역시": 435120, "대구광역시": 345670, "인천광역시": 462310,
-                "대전광역시": 241500, "울산광역시": 182300, "세종특별자치시": 75400, "경기도": 2321500,
-                "강원도": 208700, "충청북도": 235400, "충청남도": 338900, "전라북도": 258700,
-                "경상북도": 351200, "경상남도": 476500, "제주특별자치도": 121400, "전남광주통합특별시": 508700
-            };
-            const seed = regionName.length + (regionName.charCodeAt(0) % 10);
-            const actualPop = realYouthPopData[regionName] || 0;
-
-            return {
-                pop: actualPop.toLocaleString(), schAge: Math.floor(actualPop * 0.7).toLocaleString(), std: Math.floor(actualPop * 0.65).toLocaleString(),
-                fac1: seed * 10 + 5, fac2: seed * 15 + 10, fac3: seed * 8, fac4: seed, fac5: seed * 2, fac6: seed * 5,
-                sch1: seed * 100 + 50, sch2: seed * 50 + 20, sch3: seed * 40 + 10,
-                act1: (seed * 100 + 200).toLocaleString(), act2: seed * 10 + 20, act3: seed * 20 + 30, act4: seed * 15 + 10,
-                act5: seed * 30 + 50, act6: seed * 50 + 100, act7: seed * 5 + 10, act8: seed * 2, act9: seed * 25 + 20,
-                lead1: (seed * 120 + 300).toLocaleString(), lead2: (seed * 90 + 200).toLocaleString()
-            };
-        }
-
-        const defaultStats = {
-            pop: "7,898,320", schAge: "5,120,400", std: "4,890,100",
-            fac1: "195", fac2: "320", fac3: "154", fac4: "14", fac5: "42", fac6: "117",
-            sch1: "6,120", sch2: "3,250", sch3: "2,380",
-            act1: "1,204", act2: "342", act3: "510", act4: "350", act5: "890", act6: "1,450", act7: "262", act8: "45", act9: "542",
-            lead1: "4,250", lead2: "3,120"
-        };
-
-        // 데이터를 UI에 쏴주는 핵심 함수
+        // 화면 텍스트 업데이트
         function applyDataToUI(d, isDefault, regionName) {
             const noticeEl = document.getElementById('activeRegionNotice');
             if(noticeEl) noticeEl.innerHTML = isDefault ? "(현재 전국 통합 보기)" : `현재 선택된 지역: <span class="text-brand-yellow font-black">[ ${regionName} ]</span>`;
             
-            // 세부 지표 업데이트 (아코디언 안쪽 내용들)
-            setText('statYouthPop', String(d.pop).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + "명");
+            setText('statYouthPop', d.pop + "명");
             setText('statSchoolAge', d.schAge + "명");
             setText('statStudents', d.std + "명");
             
@@ -499,7 +545,6 @@
             setText('lead1', d.lead1 + "명"); 
             setText('lead2', d.lead2 + "명");
 
-            // 합산 공식 적용 (아코디언 제목 옆 노란색 숫자들)
             let totalPop = parseNum(d.pop);
             let totalFac = parseNum(d.fac1) + parseNum(d.fac2) + parseNum(d.fac3) + parseNum(d.fac4) + parseNum(d.fac5) + parseNum(d.fac6);
             let totalSch = parseNum(d.sch1) + parseNum(d.sch2) + parseNum(d.sch3);
@@ -523,36 +568,9 @@
                 detailView.classList.add('hidden');
                 trendView.classList.remove('hidden');
                 trendView.classList.remove('opacity-0');
-                renderCharts(title); // 차트 렌더링 호출
+                renderCharts(title); 
             }, 300);
         }
-
-        let comboChartInstance = null; // 전역 차트 변수 선언
-
-        // 연도별/지역별 남녀 인구 시뮬레이션 데이터 생성 (엑셀 데이터 기반 구성)
-        const generateGenderData = () => {
-            const regions = ["서울특별시", "부산광역시", "대구광역시", "인천광역시", "광주광역시", "대전광역시", "울산광역시", "세종특별자치시", "경기도", "강원특별자치도", "충청북도", "충청남도", "전북특별자치도", "전라남도", "경상북도", "경상남도", "제주특별자치도"];
-            // 2026년 6월 기준 9~24세 시도별 총인구 합산 베이스 
-            const baseTotals = [1256433, 435094, 342869, 462310, 241500, 235400, 182300, 75400, 2107415, 208700, 235400, 338900, 258700, 268700, 351200, 476500, 121400];
-            
-            let result = {};
-            for(let year = 2020; year <= 2026; year++) {
-                let factor = Math.pow(1.025, (2026 - year)); // 2020년으로 갈수록 2.5%씩 인구 많게 시뮬레이션
-                result[year] = { labels: regions, male: [], female: [] };
-                
-                baseTotals.forEach(total => {
-                    let yearTotal = Math.floor(total * factor);
-                    let male = Math.floor(yearTotal * 0.518); // 남성 약 51.8% 비율 적용
-                    let female = yearTotal - male;            // 여성 나머지 비율
-                    result[year].male.push(male);
-                    result[year].female.push(female);
-                });
-            }
-            return result;
-        };
-
-        const chartDataByYear = generateGenderData();
-        const yearsList = [2020, 2021, 2022, 2023, 2024, 2025, 2026];
 
         // 차트 그리기
         function renderCharts(title) {
@@ -561,7 +579,6 @@
 
             if (comboChartInstance) comboChartInstance.destroy();
 
-            // 플러그인: 막대 안쪽에 텍스트, 바깥쪽에 총합 그리기
             const inlineLabelPlugin = {
                 id: 'inlineLabelPlugin',
                 afterDatasetsDraw(chart, args, pluginOptions) {
@@ -581,22 +598,19 @@
                         const barMale = metaMale.data[i];
                         const barFemale = metaFemale.data[i];
                         
-                        // 남성 데이터 라벨 그리기 (막대 중앙)
                         if (maleVal > 0 && barMale.width > 40) {
-                            ctx.fillStyle = '#ffffff'; // 다크테마 대비 흰색
+                            ctx.fillStyle = '#ffffff'; 
                             ctx.textAlign = 'center';
                             ctx.fillText(`남 ${(maleVal/10000).toFixed(1)}만`, barMale.x - (barMale.width / 2), barMale.y);
                         }
                         
-                        // 여성 데이터 라벨 그리기 (막대 중앙)
                         if (femaleVal > 0 && barFemale.width > 40) {
-                            ctx.fillStyle = '#1e293b'; // 노란 바탕 대비 다크 텍스트
+                            ctx.fillStyle = '#1e293b'; 
                             ctx.textAlign = 'center';
                             ctx.fillText(`여 ${(femaleVal/10000).toFixed(1)}만`, barFemale.x - (barFemale.width / 2), barFemale.y);
                         }
                         
-                        // 총합 라벨 그리기 (막대 끝 밖으로)
-                        ctx.fillStyle = '#FDBA1A'; // 다크테마 옐로우 포인트
+                        ctx.fillStyle = '#FDBA1A'; 
                         ctx.textAlign = 'left';
                         ctx.fillText(`${(total/10000).toFixed(1)}만명`, barFemale.x + 10, barFemale.y);
                     });
@@ -604,103 +618,66 @@
                 }
             };
 
-            // 차트 인스턴스 생성
+            // 차트 기본값은 2025년 데이터
+            const defaultYearData = chartDataByYear["2025"];
+
             comboChartInstance = new Chart(canvas.getContext('2d'), {
                 type: 'bar',
                 data: {
-                    labels: chartDataByYear[2026].labels,
+                    labels: defaultYearData.labels,
                     datasets: [
-                        {
-                            label: '남자인구수',
-                            data: chartDataByYear[2026].male,
-                            backgroundColor: '#3b82f6', // 다크테마에 어울리는 선명한 블루
-                            barPercentage: 0.75
-                        },
-                        {
-                            label: '여자인구수',
-                            data: chartDataByYear[2026].female,
-                            backgroundColor: '#FDBA1A', // 브랜드 옐로우
-                            borderRadius: { topRight: 8, bottomRight: 8 }, // 끝부분 둥글게
-                            barPercentage: 0.75
-                        }
+                        { label: '남자인구수', data: defaultYearData.male, backgroundColor: '#3b82f6', barPercentage: 0.75 },
+                        { label: '여자인구수', data: defaultYearData.female, backgroundColor: '#FDBA1A', borderRadius: { topRight: 8, bottomRight: 8 }, barPercentage: 0.75 }
                     ]
                 },
                 options: {
-                    indexAxis: 'y', // 가로형 막대그래프
+                    indexAxis: 'y', 
                     responsive: true,
                     maintainAspectRatio: false,
-                    layout: {
-                        padding: { right: 80 } // 바깥쪽 총합 텍스트 여백 확보
-                    },
+                    layout: { padding: { right: 80 } },
                     scales: {
                         x: { 
-                            stacked: true, 
-                            beginAtZero: true, 
-                            max: 2700000,
-                            ticks: { 
-                                font: { size: 14, weight: 'bold', family: "'Pretendard', sans-serif" },
-                                color: '#94a3b8', // 다크테마용 연한 회색
-                                callback: v => (v/10000).toFixed(0) + '만' 
-                            },
-                            grid: { color: '#334155', drawBorder: false } // 눈금선 어둡게
+                            stacked: true, beginAtZero: true, 
+                            ticks: { font: { size: 14, weight: 'bold', family: "'Pretendard', sans-serif" }, color: '#94a3b8', callback: v => (v/10000).toFixed(0) + '만' },
+                            grid: { color: '#334155', drawBorder: false } 
                         },
                         y: { 
                             stacked: true,
-                            ticks: { font: { size: 15, weight: 'bold', family: "'Pretendard', sans-serif" }, color: '#f8fafc' }, // Y축 글씨 흰색
+                            ticks: { font: { size: 15, weight: 'bold', family: "'Pretendard', sans-serif" }, color: '#f8fafc' }, 
                             grid: { display: false }
                         }
                     },
                     plugins: {
                         legend: { display: false }, 
-                        tooltip: {
-                            backgroundColor: 'rgba(30, 41, 59, 0.95)',
-                            titleColor: '#FDBA1A',
-                            bodyFont: { font: { family: "'Pretendard', sans-serif" } },
-                            callbacks: {
-                                label: context => `${context.dataset.label}: ${context.raw.toLocaleString()}명`
-                            }
-                        }
+                        tooltip: { backgroundColor: 'rgba(30, 41, 59, 0.95)', titleColor: '#FDBA1A', callbacks: { label: context => `${context.dataset.label}: ${context.raw.toLocaleString()}명` } }
                     },
-                    animation: {
-                        duration: 400,
-                        easing: 'easeOutQuart'
-                    }
+                    animation: { duration: 400, easing: 'easeOutQuart' }
                 },
                 plugins: [inlineLabelPlugin]
             });
         }
 
-        // 버튼 클릭 시 슬라이더 값 동기화 및 업데이트
         window.setYear = function(index) {
             document.getElementById('yearSlider').value = index;
             window.slideYear(index);
         }
 
-        // 슬라이더 드래그 시 연도별 차트 데이터 갱신
+        // 슬라이더 조작
         window.slideYear = function(index) {
             const idx = parseInt(index);
-            const targetYear = yearsList[idx];
+            const targetYear = yearsList[idx]; // "2023", "2024", "2025"
             
-            // 프로그레스 바 채우기 (네이비 선)
-            const sliderFill = document.getElementById('sliderFill');
-            if(sliderFill) sliderFill.style.width = `calc(${(idx / 6) * 100}% - ${(idx/6)*24}px)`;
-            
-            // 타임라인 버튼 디자인(하이라이트) 상태 변경
-            for(let i=0; i<=6; i++) {
+            // 버튼 하이라이트 동기화 (0, 1, 2)
+            for(let i=0; i<=2; i++) {
                 const btn = document.getElementById('timelineBtn' + i);
                 if(btn) {
-                    if(i === idx) {
-                        // 활성화 됨: 네이비 배경, 옐로우 테두리, 팝업 효과
-                        btn.className = `px-4 lg:px-6 py-2.5 rounded-xl text-sm lg:text-base transition-all bg-brand-dark text-white border-2 border-brand-yellow font-black shadow-lg scale-110 z-10`;
-                    } else {
-                        // 비활성화 됨: 투명 배경, 연한 글씨
-                        btn.className = `px-4 lg:px-6 py-2.5 rounded-xl text-sm lg:text-base transition-all bg-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-200 border-2 border-transparent font-bold`;
-                    }
+                    if(i === idx) btn.className = `px-4 lg:px-6 py-2.5 rounded-xl text-sm lg:text-base transition-all bg-brand-dark text-white border-2 border-brand-yellow font-black shadow-lg scale-110 z-10`;
+                    else btn.className = `px-4 lg:px-6 py-2.5 rounded-xl text-sm lg:text-base transition-all bg-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-200 border-2 border-transparent font-bold`;
                 }
             }
 
-            // 차트 데이터 교체 후 부드러운 업데이트
-            if (comboChartInstance) {
+            // 차트 데이터 업데이트
+            if (comboChartInstance && chartDataByYear[targetYear] && chartDataByYear[targetYear].labels.length > 0) {
                 comboChartInstance.data.datasets[0].data = chartDataByYear[targetYear].male;
                 comboChartInstance.data.datasets[1].data = chartDataByYear[targetYear].female;
                 comboChartInstance.update();
@@ -709,12 +686,9 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             initMainMap();
+            initializeDashboardData(); // 데이터 JSON 호출
             fetch(URL_MUNICIPALITIES).then(r => r.json()).then(d => municipalitiesData = d);
             
-            // 페이지 시작 시 탭 옆 기본 수치 강제 주입
-            applyDataToUI(defaultStats, true, "");
-            
-            // 리사이즈 시 지도 크기 재계산
             window.addEventListener('resize', () => {
                 if(mapMain && !mainView.classList.contains('hidden')) {
                     mapMain.invalidateSize();
@@ -727,22 +701,14 @@
             });
         });
 
-        // 1. 전국 지도 세팅
         function initMainMap() {
             mapMain = L.map('mainMap', { center: [36.0, 127.8], zoom: 6.5, zoomControl: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false, touchZoom: false });
 
             fetch(URL_PROVINCES).then(res => res.json()).then(data => {
-                document.getElementById('mainMapLoading').style.display = 'none';
+                // 전남광주 병합 (JSON 데이터의 지역명에 맞춰서 매핑 수정)
+                // 제공해주신 KOSIS 데이터는 광주와 전남이 따로 있으므로 굳이 병합하지 않아도 됩니다.
+                // 만약 시각적으로 합치고 싶다면 아래 코드를 유지하지만, 데이터 매칭을 위해 일단 분리 유지
                 
-                // 전남광주 병합
-                let gjFeature = data.features.find(f => f.properties.name === "광주광역시");
-                let jnFeature = data.features.find(f => f.properties.name === "전라남도");
-                if (gjFeature && jnFeature) {
-                    let merged = mergeFeaturesToMultiPolygon([gjFeature, jnFeature], "전남광주통합특별시", "36");
-                    data.features = data.features.filter(f => f.properties.name !== "광주광역시" && f.properties.name !== "전라남도");
-                    data.features.push(merged);
-                }
-
                 // 경상북도 + 독도/울릉도(타원형) 추가
                 let gbFeature = data.features.find(f => f.properties.name === "경상북도");
                 if (gbFeature) {
@@ -750,15 +716,13 @@
                         gbFeature.geometry.type = 'MultiPolygon';
                         gbFeature.geometry.coordinates = [gbFeature.geometry.coordinates];
                     }
-                    gbFeature.geometry.coordinates.push(createIslandPolygon(130.86, 37.50, 0.08, 0.08)); // 울릉도 타원
-                    gbFeature.geometry.coordinates.push(createIslandPolygon(131.87, 37.24, 0.06, 0.06)); // 독도 타원
+                    gbFeature.geometry.coordinates.push(createIslandPolygon(130.86, 37.50, 0.08, 0.08)); 
+                    gbFeature.geometry.coordinates.push(createIslandPolygon(131.87, 37.24, 0.06, 0.06)); 
                 }
 
-                // 맵에 그리기 및 마우스 이벤트(툴팁, 호버) 설정
                 geojsonMain = L.geoJson(data, {
                     style: () => ({ fillColor: '#E5E7EB', weight: 1.5, opacity: 1, color: '#ffffff', fillOpacity: 0.9, className: 'cursor-pointer transition-colors' }),
                     onEachFeature: (feature, layer) => {
-                        // 툴팁 활성화
                         layer.bindTooltip(feature.properties.name, {
                             className: 'bg-gray-800 border-none text-white font-bold text-sm rounded-lg shadow-xl px-3 py-1.5',
                             sticky: true, direction: 'auto'
@@ -768,7 +732,10 @@
                             mouseover: e => { 
                                 e.target.setStyle({ fillColor: '#FDBA1A', fillOpacity: 1 }); 
                                 e.target.bringToFront(); 
-                                applyDataToUI(getRegionData(feature.properties.name), false, feature.properties.name); 
+                                
+                                const reg = feature.properties.name;
+                                // 캐싱된 데이터 연동
+                                applyDataToUI(cachedRegionData[reg] || defaultStats, false, reg); 
                             },
                             mouseout: e => { 
                                 geojsonMain.resetStyle(e.target); 
@@ -782,7 +749,6 @@
                     }
                 }).addTo(mapMain);
 
-                // 화면 크기 계산 딜레이 (에러 방지)
                 setTimeout(() => {
                     mapMain.invalidateSize();
                     mapMain.fitBounds(geojsonMain.getBounds(), { animate: false });
@@ -790,7 +756,6 @@
             });
         }
 
-        // 2. 시군구 상세 화면 진입
         function showDetailView(regionName) {
             document.getElementById('detailRegionTitle').textContent = regionName;
             mainView.classList.add('opacity-0');
@@ -803,7 +768,6 @@
             }, 500);
         }
 
-        // 3. 다시 메인(홈)으로 복귀
         function showMainView() {
             detailView.classList.add('opacity-0');
             trendView.classList.add('opacity-0');
@@ -823,14 +787,13 @@
             }, 500);
         }
 
-        // 4. 시군구 상세 지도 세팅
         function initDetailMap(regionName) {
             if (mapDetail) mapDetail.remove();
             mapDetail = L.map('detailMap', { zoomControl: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false });
 
             if (!municipalitiesData) return;
 
-            const codes = { "서울특별시": ["11"], "경기도": ["31"], "전남광주통합특별시": ["24", "36"], "경상북도": ["37"] }; 
+            const codes = { "서울특별시": ["11"], "경기도": ["31"], "경상북도": ["37"] }; 
             const valid = codes[regionName] || [];
             
             let targetFeatures = municipalitiesData.features.filter(f => {
@@ -838,18 +801,10 @@
                 return c && valid.length ? valid.some(v => c.toString().startsWith(v)) : (f.properties.name.includes(regionName.substring(0,2)));
             });
 
-            // 상세 지도에도 울릉도/독도 타원 추가
             if (regionName === "경상북도") {
                 targetFeatures.push({ 
-                    "type": "Feature", 
-                    "properties": { "name": "울릉군 (울릉도/독도)" }, 
-                    "geometry": { 
-                        "type": "MultiPolygon", 
-                        "coordinates": [
-                            createIslandPolygon(130.86, 37.50, 0.06, 0.06),
-                            createIslandPolygon(131.87, 37.24, 0.04, 0.04)
-                        ] 
-                    }
+                    "type": "Feature", "properties": { "name": "울릉군 (울릉도/독도)" }, 
+                    "geometry": { "type": "MultiPolygon", "coordinates": [ createIslandPolygon(130.86, 37.50, 0.06, 0.06), createIslandPolygon(131.87, 37.24, 0.04, 0.04) ] }
                 });
             }
 
@@ -862,10 +817,7 @@
                     });
 
                     layer.on({
-                        mouseover: e => { 
-                            e.target.setStyle({ fillColor: '#FDBA1A' }); 
-                            e.target.bringToFront(); 
-                        },
+                        mouseover: e => { e.target.setStyle({ fillColor: '#FDBA1A' }); e.target.bringToFront(); },
                         mouseout: e => geojsonDetail.resetStyle(e.target),
                         click: () => document.getElementById('detailRegionTitle').innerHTML = `<span class="text-2xl text-gray-400 font-bold mr-3">${regionName}</span>${feature.properties.name}`
                     });
@@ -880,7 +832,6 @@
             }, 100);
         }
 
-        // 상세 화면 껍데기 표 데이터
         function generateTableData() {
             let html = '';
             for(let i=0; i<4; i++) html += `<tr class="border-b border-gray-200"><td class="py-3 px-2 font-bold bg-gray-50 border-r border-gray-200">항목${i+1}</td><td class="py-3">12개</td><td class="py-3">5개</td><td class="py-3">8개</td><td class="py-3">3개</td></tr>`;
