@@ -617,16 +617,39 @@
             initMainMap();
             fetch(URL_MUNICIPALITIES).then(r => r.json()).then(d => municipalitiesData = d);
             applyDataToUI(defaultStats, true, "");
-            
-            // [추가됨] JSON 파일 불러오기
-            fetch('sisul.json')
-                .then(res => res.json())
-                .then(data => {
-                    // ※ 만약 JSON 구조가 { records: [...] } 처럼 감싸져 있다면, data.records 형태로 담으세요.
-                    sisulData = data.records; 
-                })
-                .catch(err => console.error('시설 데이터를 불러오는데 실패했습니다.', err));
-            
+			// 1. 오픈 API 설정 (실제 발급받은 키와 URL로 변경하세요)
+			const API_KEY = 'qvA59nT2md8JI3dNJEaA3%2BxVRYFQLFWkujsBRDVvinjz1DVnm16ntIgxdvjwVz2uzg5mkoDI%2BhyZzGjYWnLjdA%3D%3D'; 
+			const BASE_URL = 'https://api.data.go.kr/openapi/tn_pubr_public_teen_training_fclt_api'; // 실제 API 주소로 변경
+
+			// 2. 파라미터 설정 (전체 데이터를 한 번에 부르기 위해 numOfRows를 크게 설정)
+			// 공공데이터포털 API의 경우 보통 json 형태로 받으려면 type=json을 파라미터에 추가합니다.
+			const reqUrl = `${BASE_URL}?serviceKey=${API_KEY}&pageNo=1&numOfRows=1000&type=json`;
+
+			fetch(reqUrl)
+				.then(res => res.json())
+				.then(data => {
+					console.log("API 응답 데이터 원본:", data); // F12 개발자 도구에서 실제 구조 확인용
+
+					// 3. API 응답 구조에 맞게 데이터 추출
+					// 공공데이터포털 표준 구조: data.response.body.items
+					if (data.response && data.response.body && data.response.body.items) {
+						sisulData = data.response.body.items;
+					} 
+					// 혹시 API마다 구조가 다를 수 있으므로 대비책 마련
+					else if (data.records) {
+						sisulData = data.records;
+					} else {
+						sisulData = data; 
+					}
+
+					console.log("성공적으로 불러온 시설 개수:", sisulData.length);
+				})
+				.catch(err => {
+					console.error('오픈 API 데이터를 불러오는데 실패했습니다.', err);
+					document.getElementById('aiRegionalInsightText').innerHTML = `<span class="text-red-400">데이터를 불러오는 중 오류가 발생했습니다.</span>`;
+				});
+
+			// 👆👆 여기까지 👆👆
             window.addEventListener('resize', () => {
                 if(mapMain && !mainView.classList.contains('hidden')) { mapMain.invalidateSize(); if(geojsonMain) mapMain.fitBounds(geojsonMain.getBounds(), { animate: false }); }
                 if(mapDetail && !detailView.classList.contains('hidden')) { mapDetail.invalidateSize(); if(geojsonDetail && geojsonDetail.getBounds().isValid()) mapDetail.fitBounds(geojsonDetail.getBounds(), { animate: false }); }
