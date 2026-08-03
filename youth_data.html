@@ -691,8 +691,11 @@
 						
 						let currentCum = 0; // 전년도까지의 누적 인원 카운터
 						
-						rawLeaderData.forEach(row => {
-							if (row["구분"] === "총 계") return; // 첫 번째 '총 계' 행 건너뛰기
+						rawLeaderData.forEach(row => {// 👇👇 [추가/수정된 부분] 총계 행을 만나면 메인 대시보드 숫자를 업데이트! 👇👇
+							if (row["구분"] === "총 계") {
+							defaultStats.lead1 = row["총계"]; // 진짜 총계(79,793명)로 덮어쓰기
+							return; // 건너뛰기
+							}
 							
 							const yearStr = row["구분"]; // 예: '93년
 							const yearMatch = yearStr.match(/\d+/);
