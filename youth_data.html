@@ -474,7 +474,7 @@
         </div>
     </div>
 
-    <script>
+	<script>
         const mainView = document.getElementById('mainView');
         const detailView = document.getElementById('detailView');
         const trendView = document.getElementById('trendView');
@@ -484,6 +484,8 @@
         let currentMunicipality = '';
         let comboChartInstance = null;
         let currentDetailTab = 'facility';
+        
+        let sisulData = []; // [추가] 시설 데이터를 담을 전역 변수
 
         const URL_PROVINCES = 'https://raw.githubusercontent.com/southkorea/southkorea-maps/master/kostat/2013/json/skorea_provinces_geo_simple.json';
         const URL_MUNICIPALITIES = 'https://raw.githubusercontent.com/southkorea/southkorea-maps/master/kostat/2013/json/skorea_municipalities_geo_simple.json';
@@ -518,10 +520,10 @@
             const content = btn.nextElementSibling;
             const icon = btn.querySelector('.ph-caret-down');
             const isOpen = content.classList.contains('accordion-open');
-           
+            
             document.querySelectorAll('.accordion-content').forEach(c => c.classList.remove('accordion-open'));
             document.querySelectorAll('#accordionContainer .ph-caret-down').forEach(i => i.style.transform = 'rotate(0deg)');
-           
+            
             if (!isOpen) {
                 content.classList.add('accordion-open');
                 icon.style.transform = 'rotate(180deg)';
@@ -532,7 +534,7 @@
         const setText = (id, text) => { const el = document.getElementById(id); if(el) el.textContent = text; };
 
         const regionsList = ["서울특별시", "부산광역시", "대구광역시", "인천광역시", "광주광역시", "대전광역시", "울산광역시", "세종특별자치시", "경기도", "강원특별자치도", "충청북도", "충청남도", "전북특별자치도", "전라남도", "경상북도", "경상남도", "제주특별자치도"];
-       
+        
         const facilityDataStore = {
             '청소년수련관': [25, 12, 8, 9, 5, 6, 4, 2, 45, 10, 8, 11, 14, 15, 12, 8, 1],
             '청소년문화의집': [45, 15, 10, 15, 8, 12, 6, 3, 60, 15, 12, 18, 25, 30, 20, 25, 3],
@@ -596,8 +598,8 @@
 
         function applyDataToUI(d, isDefault, regionName) {
             const noticeEl = document.getElementById('activeRegionNotice');
-            if(noticeEl) noticeEl.innerHTML = isDefault ? "(현재 전국 통합 보기)" : `현재 선택된 지역: <span class="text-brand-yellow font-black">[ ${regionName} ]</span>`;
-           
+            if(noticeEl) noticeEl.innerHTML = isDefault ? "(현재 전국 통합 보기)" : `현재 선택된 지역: <span class="text-brand-yellow font-bold">[ ${regionName} ]</span>`;
+            
             setText('statYouthPop', String(d.pop).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + "명"); setText('statSchoolAge', d.schAge + "명"); setText('statStudents', d.std + "명");
             for(let i=1; i<=6; i++) setText('fac'+i, d['fac'+i] + "개");
             for(let i=1; i<=3; i++) setText('sch'+i, d['sch'+i] + "개");
@@ -615,7 +617,16 @@
             initMainMap();
             fetch(URL_MUNICIPALITIES).then(r => r.json()).then(d => municipalitiesData = d);
             applyDataToUI(defaultStats, true, "");
-           
+            
+            // [추가됨] JSON 파일 불러오기
+            fetch('sisul.json')
+                .then(res => res.json())
+                .then(data => {
+                    // ※ 만약 JSON 구조가 { records: [...] } 처럼 감싸져 있다면, data.records 형태로 담으세요.
+                    sisulData = data.records; 
+                })
+                .catch(err => console.error('시설 데이터를 불러오는데 실패했습니다.', err));
+            
             window.addEventListener('resize', () => {
                 if(mapMain && !mainView.classList.contains('hidden')) { mapMain.invalidateSize(); if(geojsonMain) mapMain.fitBounds(geojsonMain.getBounds(), { animate: false }); }
                 if(mapDetail && !detailView.classList.contains('hidden')) { mapDetail.invalidateSize(); if(geojsonDetail && geojsonDetail.getBounds().isValid()) mapDetail.fitBounds(geojsonDetail.getBounds(), { animate: false }); }
@@ -628,7 +639,7 @@
             fetch(URL_PROVINCES).then(res => res.json()).then(data => {
                 provincesData = data;
                 document.getElementById('mainMapLoading').style.display = 'none';
-               
+                
                 let gjFeature = data.features.find(f => f.properties.name === "광주광역시");
                 let jnFeature = data.features.find(f => f.properties.name === "전라남도");
                 if (gjFeature && jnFeature) {
@@ -663,13 +674,13 @@
         function showDetailView(regionName) {
             document.getElementById('detailRegionTitle').textContent = regionName;
             document.getElementById('detailSubRegionTitle').textContent = '전체';
-           
+            
             mainView.classList.add('opacity-0');
             setTimeout(() => {
                 mainView.classList.add('hidden');
                 detailView.classList.remove('hidden');
                 detailView.classList.remove('opacity-0');
-               
+                
                 initDetailMap(regionName);
                 updateDetailPanel(regionName, '전체');
             }, 500);
@@ -680,13 +691,12 @@
             setTimeout(() => {
                 detailView.classList.add('hidden'); trendView.classList.add('hidden');
                 mainView.classList.remove('hidden'); mainView.classList.remove('opacity-0');
-               
+                
                 if (mapDetail) { mapDetail.remove(); mapDetail = null; }
                 setTimeout(() => { if(mapMain) { mapMain.invalidateSize(); if(geojsonMain) mapMain.fitBounds(geojsonMain.getBounds(), { animate: false }); } }, 100);
             }, 500);
         }
 
-        // 시군구 맵 전체보기로 초기화하는 함수
         function resetDetailMunicipality() {
             if(!geojsonDetail) return;
             geojsonDetail.eachLayer(l => geojsonDetail.resetStyle(l));
@@ -698,8 +708,7 @@
         function initDetailMap(regionName) {
             if (mapDetail) mapDetail.remove();
             mapDetail = L.map('detailMap', { center: [36.0, 127.8], zoom: 7, zoomControl: false, dragging: true, scrollWheelZoom: true, doubleClickZoom: false });
-           
-            // 지도 배경(바다/바깥영역) 클릭 시 전체보기로 초기화
+            
             mapDetail.on('click', () => {
                 if(currentMunicipality !== '전체') {
                     resetDetailMunicipality();
@@ -707,18 +716,17 @@
             });
 
             const renderMap = (data) => {
-                // 전국 17개 시도 행정구역 표준 코드 매핑
                 const codes = {
                     "서울특별시": ["11"], "부산광역시": ["21"], "대구광역시": ["22"], "인천광역시": ["23"],
                     "광주광역시": ["24"], "대전광역시": ["25"], "울산광역시": ["26"], "세종특별자치시": ["29"],
                     "경기도": ["31"], "강원특별자치도": ["32"], "강원도": ["32"], "충청북도": ["33"],
                     "충청남도": ["34"], "전북특별자치도": ["35"], "전라북도": ["35"], "전라남도": ["36"],
                     "경상북도": ["37"], "경상남도": ["38"], "제주특별자치도": ["39"],
-                    "전남광주통합특별시": ["24", "36"] // 커스텀 통합 지역
+                    "전남광주통합특별시": ["24", "36"]
                 };
-               
+                
                 const valid = codes[regionName] || [];
-               
+                
                 let targetFeatures = data.features.filter(f => {
                     let c = f.properties.code || f.properties.SIG_CD;
                     if (c && valid.length) return valid.some(v => c.toString().startsWith(v));
@@ -729,7 +737,6 @@
                     targetFeatures.push({ "type": "Feature", "properties": { "name": "울릉군 (울릉도/독도)" }, "geometry": { "type": "MultiPolygon", "coordinates": [ createIslandPolygon(130.86, 37.50, 0.06, 0.06), createIslandPolygon(131.87, 37.24, 0.04, 0.04) ] } });
                 }
 
-                // 혹시라도 매핑이 안되어 빈 값일 경우를 대비해 전체를 띄움
                 if (targetFeatures.length === 0) targetFeatures = data.features;
 
                 geojsonDetail = L.geoJson({ type: "FeatureCollection", features: targetFeatures }, {
@@ -748,18 +755,14 @@
                                 }
                             },
                             click: e => {
-                                L.DomEvent.stopPropagation(e); // 맵 배경 클릭 이벤트 차단
-
-                                // 이미 선택되어 노란색인 지역을 다시 클릭하면 '전체보기'로 리셋
+                                L.DomEvent.stopPropagation(e); 
                                 if(currentMunicipality === feature.properties.name) {
                                     resetDetailMunicipality();
                                 } else {
-                                    // Reset all
                                     geojsonDetail.eachLayer(l => geojsonDetail.resetStyle(l));
-                                    // Highlight clicked
                                     e.target.setStyle({ fillColor: '#FDBA1A', color: '#b45309', weight: 2 });
                                     e.target.bringToFront();
-                                   
+                                    
                                     currentMunicipality = feature.properties.name;
                                     document.getElementById('detailSubRegionTitle').textContent = currentMunicipality;
                                     updateDetailPanel(currentProvince, currentMunicipality);
@@ -777,7 +780,6 @@
                 }, 100);
             };
 
-            // 데이터가 이미 로드되어 있으면 바로 그리고, 아니면 fetch 후 그림
             if (municipalitiesData) {
                 renderMap(municipalitiesData);
             } else {
@@ -788,15 +790,16 @@
             }
         }
 
+        // [수정됨] JSON 데이터를 활용하도록 변경
         function updateDetailPanel(province, municipality) {
             const isAll = (municipality === '전체');
             const nameSeed = municipality.length + (municipality.charCodeAt(0) % 10) || 5;
-           
+            
             // 1. Update AI Insight
             document.getElementById('aiRegionalInsightText').innerHTML = `
                 <i class="ph ph-spinner animate-spin inline-block mr-1"></i> AI가 <span class="text-brand-yellow font-bold">${isAll ? province : municipality}</span> 데이터를 분석 중입니다...
             `;
-           
+            
             setTimeout(() => {
                 const insights = [
                     `${isAll ? province : municipality}는 디지털/AI 코딩 관련 활동 수요가 특히 높습니다. 창의융합형 프로그램 개설을 추천합니다.`,
@@ -807,18 +810,26 @@
             }, 600);
 
             // 2. Update Stats
-            const pop = isAll ? 500000 : (nameSeed * 12000 + 15000);
-            const fac = isAll ? 120 : (nameSeed * 2 + 3);
-            const ratio = ((fac / pop) * 10000).toFixed(1);
+            const pop = isAll ? 500000 : (nameSeed * 12000 + 15000); 
+
+            // 데이터 필터링 (시도 및 시군구 매칭)
+            let filteredFacilities = sisulData.filter(item => item.ctpvNm === province);
+            if (!isAll) {
+                filteredFacilities = filteredFacilities.filter(item => item.sggNm === municipality);
+            }
+
+            const fac = filteredFacilities.length;
+            const ratio = fac > 0 ? ((fac / pop) * 10000).toFixed(1) : "0.0";
 
             document.getElementById('detailStatPop').textContent = pop.toLocaleString() + '명';
-            document.getElementById('detailStatFac').textContent = fac + '개소';
+            document.getElementById('detailStatFac').textContent = fac + '개소'; // 필터링된 실제 개수 반영
             document.getElementById('detailStatRatio').textContent = ratio;
 
-            // 3. Render Tab Content
-            renderTabContent(province, municipality, nameSeed);
+            // 3. Render Tab Content에 필터링된 데이터 전달
+            renderTabContent(province, municipality, nameSeed, filteredFacilities);
         }
 
+        // [수정됨] 탭 전환 시에도 필터링 데이터 넘기기
         function switchDetailTab(tabId) {
             currentDetailTab = tabId;
             const tabs = ['facility', 'policy', 'activity'];
@@ -828,36 +839,58 @@
                     btn.className = "flex-1 py-4 text-sm font-bold text-brand-dark border-b-2 border-brand-dark bg-white transition-colors";
                 } else {
                     btn.className = "flex-1 py-4 text-sm font-bold text-gray-500 hover:text-gray-700 border-b-2 border-transparent transition-colors";
-                    if(t === 'activity') btn.className += " relative"; // keep dot
+                    if(t === 'activity') btn.className += " relative"; 
                 }
             });
-            renderTabContent(currentProvince, currentMunicipality, (currentMunicipality.length || 5));
+            
+            const isAll = (currentMunicipality === '전체');
+            let filteredFacilities = sisulData.filter(item => item.ctpvNm === currentProvince);
+            if (!isAll) {
+                filteredFacilities = filteredFacilities.filter(item => item.sggNm === currentMunicipality);
+            }
+
+            renderTabContent(currentProvince, currentMunicipality, (currentMunicipality.length || 5), filteredFacilities);
         }
 
-        function renderTabContent(province, municipality, seed) {
+        // [수정됨] 시설 리스트 렌더링 시 실제 JSON 데이터(filteredFacilities) 활용
+        function renderTabContent(province, municipality, seed, filteredFacilities = []) {
             const container = document.getElementById('detailTabContent');
             let html = '';
             const prefix = municipality === '전체' ? province : municipality;
 
             if (currentDetailTab === 'facility') {
-                const types = ['청소년수련관', '청소년문화의집', '청소년특화시설'];
-                for(let i=0; i< (seed%4 + 3); i++) {
-                    const type = types[i%3];
-                    html += `
-                        <div class="bg-white p-4 border border-gray-100 rounded-xl shadow-sm mb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-brand-yellow transition-colors">
-                            <div>
-                                <div class="flex items-center gap-2 mb-1">
-                                    <span class="px-2 py-0.5 bg-gray-100 text-gray-600 text-[10px] font-bold rounded">${type}</span>
-                                    <h3 class="font-bold text-brand-dark text-[15px]">${prefix} ${type === '청소년문화의집' ? '제'+(i+1) : '시립'} ${type}</h3>
+                if (filteredFacilities.length === 0) {
+                    html = `<div class="p-8 text-center text-gray-400 font-bold mt-10">해당 지역에 등록된 청소년 시설 데이터가 없습니다.</div>`;
+                } else {
+                    filteredFacilities.forEach((fac) => {
+                        // 이름 기준으로 시설 유형 자동 매핑
+                        let type = '청소년시설';
+                        if(fac.fcltNm.includes('수련관')) type = '청소년수련관';
+                        else if(fac.fcltNm.includes('문화의집')) type = '청소년문화의집';
+                        else if(fac.fcltNm.includes('수련원')) type = '청소년수련원';
+                        else if(fac.fcltNm.includes('특화시설')) type = '청소년특화시설';
+                        else if(fac.fcltNm.includes('야영장')) type = '청소년야영장';
+                        else if(fac.fcltNm.includes('유스호스텔')) type = '유스호스텔';
+
+                        const address = fac.lctnRoadNm || fac.lctnLotnoAddr || '주소 정보 없음';
+                        const phone = fac.telno || '전화번호 미등록';
+
+                        html += `
+                            <div class="bg-white p-4 border border-gray-100 rounded-xl shadow-sm mb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-brand-yellow transition-colors">
+                                <div>
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="px-2 py-0.5 bg-gray-100 text-gray-600 text-[10px] font-bold rounded">${type}</span>
+                                        <h3 class="font-bold text-brand-dark text-[15px]">${fac.fcltNm}</h3>
+                                    </div>
+                                    <p class="text-xs text-gray-500 flex items-center gap-1"><i class="ph-fill ph-map-pin text-gray-400"></i> ${address}</p>
                                 </div>
-                                <p class="text-xs text-gray-500 flex items-center gap-1"><i class="ph-fill ph-map-pin text-gray-400"></i> ${province} ${municipality === '전체' ? '중앙로' : municipality} ${i*10+1}길</p>
+                                <div class="text-right flex sm:flex-col gap-3 sm:gap-1 items-center sm:items-end">
+                                    <span class="text-xs font-medium text-gray-600"><i class="ph-fill ph-phone text-brand-yellow"></i> ${phone}</span>
+                                    <button class="text-xs bg-brand-dark text-white px-3 py-1.5 rounded-lg hover:bg-brand-light transition-colors">상세보기</button>
+                                </div>
                             </div>
-                            <div class="text-right flex sm:flex-col gap-3 sm:gap-1 items-center sm:items-end">
-                                <span class="text-xs font-medium text-gray-600"><i class="ph-fill ph-phone text-brand-yellow"></i> 02-1234-${i}000</span>
-                                <button class="text-xs bg-brand-dark text-white px-3 py-1.5 rounded-lg hover:bg-brand-light transition-colors">상세보기</button>
-                            </div>
-                        </div>
-                    `;
+                        `;
+                    });
                 }
             } else if (currentDetailTab === 'policy') {
                 const policies = ['청소년방과후아카데미', '국제청소년성취포상제', '수련활동인증제'];
@@ -933,20 +966,20 @@
 
         function showTrendView(title) {
             document.getElementById('trendViewTitle').textContent = title;
-           
+            
             const facilityItems = ['청소년시설 전체보기', '청소년수련관', '청소년문화의집', '청소년수련원', '청소년특화시설', '청소년야영장', '유스호스텔'];
             const schoolItems = ['학교 전체보기', '초등학교', '중학교', '고등학교', '대학교'];
             const activityItems = ['청소년활동 전체보기', '청소년방과후아카데미', '청소년자원봉사활동', '국제청소년성취포상제', '청소년자기도전포상제', '수련활동인증제', '수련활동신고제', '참여활동(특별회의,참여위원회)', '국제교류', '그룹활동'];
             const leaderItems = ['청소년지도자 전체보기', '청소년지도사 인원', '청소년상담사 인원'];
-           
+            
             const timelineUI = document.getElementById('timelineUI');
             const summaryUI = document.getElementById('populationSummary');
-           
+            
             document.getElementById('facilityTabGroup').style.display = 'none';
             document.getElementById('schoolTabGroup').style.display = 'none';
             document.getElementById('activityTabGroup').style.display = 'none';
             document.getElementById('leaderTabGroup').style.display = 'none';
-           
+            
             if (facilityItems.includes(title)) {
                 timelineUI.style.display = 'none'; summaryUI.classList.remove('grid'); summaryUI.classList.add('hidden');
                 document.getElementById('facilityTabGroup').style.display = 'flex'; updateFacilityTabUI(title);
@@ -982,12 +1015,11 @@
                 setTimeout(() => {
                     mapTrend.invalidateSize();
                     
-                    // 🌟 바다 여백 최소화: 울릉도/독도 때문에 넓어진 기본 Bounds 대신 내륙/제주 중심의 최적 Bounds 적용
                     if(geojsonTrend) {
                         const optimalBounds = L.latLngBounds([33.1, 125.5], [38.6, 129.5]);
                         mapTrend.fitBounds(optimalBounds, { padding: [0, 0], animate: false });
                     }
-                   
+                    
                     if (facilityItems.includes(title) || schoolItems.includes(title) || activityItems.includes(title) || leaderItems.includes(title)) {
                         renderCharts(title);
                     } else {
@@ -1011,7 +1043,7 @@
             const schoolItems = ['학교 전체보기', '초등학교', '중학교', '고등학교', '대학교'];
             const activityItems = ['청소년활동 전체보기', '청소년방과후아카데미', '청소년자원봉사활동', '국제청소년성취포상제', '청소년자기도전포상제', '수련활동인증제', '수련활동신고제', '참여활동(특별회의,참여위원회)', '국제교류', '그룹활동'];
             const leaderItems = ['청소년지도자 전체보기', '청소년지도사 인원', '청소년상담사 인원'];
-           
+            
             let datasets = [];
             let totalDataArray = new Array(regionsList.length).fill(0);
             let mapDataExtracted = false;
@@ -1100,7 +1132,7 @@
             }
             else if (leaderItems.includes(title)) {
                 const yearsList = ['2022년', '2023년', '2024년', '2025년', '2026년'];
-               
+                
                 if (title === '청소년지도자 전체보기') {
                     datasets = [
                         { label: '청소년지도사 (누적)', data: leaderTrendData['청소년지도사 인원'].cum, backgroundColor: '#1e293b', stack: '지도사', borderRadius: 0, barPercentage: 0.7, categoryPercentage: 0.6 },
@@ -1134,10 +1166,10 @@
 
         function updateTrendMapColors(dataObj) {
             if (!geojsonTrend) return;
-           
+            
             const values = Object.values(dataObj).filter(v => v > 0);
             if (values.length === 0) return;
-           
+            
             values.sort((a, b) => a - b);
             const q1 = values[Math.floor(values.length * 0.2)];
             const q2 = values[Math.floor(values.length * 0.4)];
@@ -1164,7 +1196,7 @@
         function slideYear(val) {
             const buttons = document.querySelectorAll('.year-btn');
             document.getElementById('yearSlider').value = val;
-           
+            
             buttons.forEach(btn => {
                 if(btn.textContent == val) btn.className = "year-btn px-4 py-1 text-sm rounded font-bold shadow-[0_0_10px_rgba(253,186,26,0.4)] bg-brand-yellow text-brand-dark";
                 else btn.className = "year-btn px-3 py-1 text-sm rounded bg-gray-600 text-gray-300 hover:text-white transition-colors";
@@ -1172,11 +1204,11 @@
 
             const baseMale = [694210, 226262, 179748, 240401, 125580, 122408, 94796, 39208, 1207180, 108524, 122408, 176228, 134524, 139724, 182624, 247780, 63128];
             const baseFemale = [640810, 208858, 165922, 221909, 115920, 112992, 87504, 36192, 1114320, 100176, 112992, 162672, 124176, 128976, 168576, 228720, 58272];
-           
+            
             let factor = Math.pow(1.02, (2026 - val));
             let currentMale = baseMale.map(v => Math.floor(v * factor));
             let currentFemale = baseFemale.map(v => Math.floor(v * factor));
-           
+            
             let totalMale = currentMale.reduce((a, b) => a + b, 0);
             let totalFemale = currentFemale.reduce((a, b) => a + b, 0);
             let totalPop = totalMale + totalFemale;
@@ -1205,13 +1237,13 @@
         function openAiRecommenderModal() { document.getElementById('aiModal').classList.remove('hidden'); document.getElementById('aiModal').classList.add('flex'); }
         function closeAiRecommenderModal() { document.getElementById('aiModal').classList.add('hidden'); document.getElementById('aiModal').classList.remove('flex'); }
         function sendPresetPrompt(t) { document.getElementById('aiChatInput').value = t; sendUserMessage(); }
-       
+        
         function sendUserMessage() {
             const v = document.getElementById('aiChatInput').value;
             if(!v) return;
             document.getElementById('aiChatMessages').innerHTML += `<div class="flex items-start gap-2 justify-end"><div class="bg-brand-dark text-white p-3 rounded-2xl rounded-tr-none text-sm">${v}</div></div>`;
             document.getElementById('aiChatInput').value = '';
-           
+            
             setTimeout(() => {
                 document.getElementById('aiChatMessages').innerHTML += `<div class="flex items-start gap-2"><div class="w-7 h-7 rounded-full bg-brand-dark text-white flex items-center justify-center flex-shrink-0 text-xs font-bold">AI</div><div class="bg-white p-3 rounded-2xl rounded-tl-none shadow-sm border border-gray-100 text-gray-700 max-w-[80%] leading-relaxed"><i class="ph ph-spinner animate-spin"></i> 답변을 생성하고 있습니다...</div></div>`;
                 document.getElementById('aiChatMessages').scrollTop = document.getElementById('aiChatMessages').scrollHeight;
@@ -1225,7 +1257,7 @@
 
             document.getElementById('aiResultContainer').classList.remove('hidden');
             document.getElementById('aiResultContent').innerHTML = `<div class="flex items-center gap-2 text-brand-dark font-bold"><i class="ph ph-spinner-gap animate-spin text-brand-yellow text-lg"></i> AI가 전국 청소년시설 데이터를 탐색 중입니다...</div>`;
-           
+            
             setTimeout(() => {
                 document.getElementById('aiResultContent').innerHTML = `
                     <div class="mb-3 text-sm text-gray-700">

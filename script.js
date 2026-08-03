@@ -14,3 +14,4 @@ function setActiveNav(element) {
 	const pageTitle = element.innerText.trim();
 	document.getElementById('currentPageTitle').innerText = pageTitle;
 }
+
