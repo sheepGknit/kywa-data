@@ -632,8 +632,8 @@
 
 					// 3. API 응답 구조에 맞게 데이터 추출
 					// 공공데이터포털 표준 구조: data.response.body.items
-					if (data.response && data.response.body && data.response.body.items) {
-						sisulData = data.response.body.items;
+					if (data.object && data.object.body && data.object.body.items) {
+						sisulData = data.object.body.items;
 					} 
 					// 혹시 API마다 구조가 다를 수 있으므로 대비책 마련
 					else if (data.records) {
@@ -647,9 +647,8 @@
 				.catch(err => {
 					console.error('오픈 API 데이터를 불러오는데 실패했습니다.', err);
 					document.getElementById('aiRegionalInsightText').innerHTML = `<span class="text-red-400">데이터를 불러오는 중 오류가 발생했습니다.</span>`;
-				});
-
-			// 👆👆 여기까지 👆👆
+				});			
+			
             window.addEventListener('resize', () => {
                 if(mapMain && !mainView.classList.contains('hidden')) { mapMain.invalidateSize(); if(geojsonMain) mapMain.fitBounds(geojsonMain.getBounds(), { animate: false }); }
                 if(mapDetail && !detailView.classList.contains('hidden')) { mapDetail.invalidateSize(); if(geojsonDetail && geojsonDetail.getBounds().isValid()) mapDetail.fitBounds(geojsonDetail.getBounds(), { animate: false }); }
