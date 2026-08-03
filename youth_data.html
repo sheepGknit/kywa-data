@@ -840,10 +840,10 @@
             const pop = isAll ? 500000 : (nameSeed * 12000 + 15000); 
 
             // 데이터 필터링 (시도 및 시군구 매칭)
-            let filteredFacilities = sisulData.filter(item => item.ctpvNm === province);
-            if (!isAll) {
-                filteredFacilities = filteredFacilities.filter(item => item.sggNm === municipality);
-            }
+            let filteredFacilities = sisulData.filter(item => item.ctpvNm === currentProvince);
+			if (!isAll) {
+				filteredFacilities = filteredFacilities.filter(item => item.sggNm === currentMunicipality);
+			}
 
             const fac = filteredFacilities.length;
             const ratio = fac > 0 ? ((fac / pop) * 10000).toFixed(1) : "0.0";
@@ -871,10 +871,11 @@
             });
             
             const isAll = (currentMunicipality === '전체');
-            let filteredFacilities = sisulData.filter(item => item.ctpvNm === currentProvince);
-            if (!isAll) {
-                filteredFacilities = filteredFacilities.filter(item => item.sggNm === currentMunicipality);
-            }
+            // [수정 후] 영문 키(ctpvNm, sggNm) 사용
+			let filteredFacilities = sisulData.filter(item => item.ctpvNm === province);
+			if (!isAll) {
+				filteredFacilities = filteredFacilities.filter(item => item.sggNm === municipality);
+			}
 
             renderTabContent(currentProvince, currentMunicipality, (currentMunicipality.length || 5), filteredFacilities);
         }
@@ -890,6 +891,8 @@
                     html = `<div class="p-8 text-center text-gray-400 font-bold mt-10">해당 지역에 등록된 청소년 시설 데이터가 없습니다.</div>`;
                 } else {
                     filteredFacilities.forEach((fac) => {
+						// 시설명이 없을 경우 빈 문자열 처리 방어 코드 추가
+						const facilityName = fac.fcltNm || '';
                         // 이름 기준으로 시설 유형 자동 매핑
                         let type = '청소년시설';
                         if(fac.fcltNm.includes('수련관')) type = '청소년수련관';
