@@ -365,7 +365,6 @@
                 <button onclick="filterSchool('중학교')" class="sch-tab px-4 py-2 text-sm rounded-lg bg-[#1e293b] text-gray-400 font-bold">중학교</button>
                 <button onclick="filterSchool('고등학교')" class="sch-tab px-4 py-2 text-sm rounded-lg bg-[#1e293b] text-gray-400 font-bold">고등학교</button>
                 <button onclick="filterSchool('대학교')" class="sch-tab px-4 py-2 text-sm rounded-lg bg-[#1e293b] text-gray-400 font-bold">대학교</button>
-                <!-- 👇 특수학교 추가 👇 -->
                 <button onclick="filterSchool('특수학교')" class="sch-tab px-4 py-2 text-sm rounded-lg bg-[#1e293b] text-gray-400 font-bold">특수학교</button>
             </div>
 
@@ -1407,20 +1406,22 @@
                 const isAllView = title === '학교 전체보기';
                 const types = ['초등학교', '중학교', '고등학교', '대학교', '특수학교'];
                 const colors = ['#3b82f6', '#10b981', '#f97316', '#a855f7', '#ec4899'];
+				
+				// 👇 [수정] 슬라이더 연도가 2026년이거나 데이터가 없는 연도일 경우 2025년으로 고정/대체합니다.
+                let sliderVal = document.getElementById('yearSlider').value;
+                let targetYear = (parseInt(sliderVal) >= 2026) ? "2025년" : sliderVal + "년";
                 
-                const currentYear = document.getElementById('yearSlider').value + "년";
-
                 const getSchoolArrayForChart = (schType, metric="학교수") => {
                     let arr = [];
                     regionsList.forEach(region => {
                         let val = 0;
                         if (region === "전남광주통합특별시") {
-                            let v1 = (schoolData["광주광역시"] && schoolData["광주광역시"][schType] && schoolData["광주광역시"][schType][currentYear]) ? schoolData["광주광역시"][schType][currentYear][metric] || 0 : 0;
-                            let v2 = (schoolData["전라남도"] && schoolData["전라남도"][schType] && schoolData["전라남도"][schType][currentYear]) ? schoolData["전라남도"][schType][currentYear][metric] || 0 : 0;
+                            let v1 = (schoolData["광주광역시"] && schoolData["광주광역시"][schType] && schoolData["광주광역시"][schType][targetYear]) ? schoolData["광주광역시"][schType][targetYear][metric] || 0 : 0;
+                            let v2 = (schoolData["전라남도"] && schoolData["전라남도"][schType] && schoolData["전라남도"][schType][targetYear]) ? schoolData["전라남도"][schType][targetYear][metric] || 0 : 0;
                             val = v1 + v2;
                         } else {
-                            if (schoolData[region] && schoolData[region][schType] && schoolData[region][schType][currentYear]) {
-                                val = schoolData[region][schType][currentYear][metric] || 0;
+                            if (schoolData[region] && schoolData[region][schType] && schoolData[region][schType][targetYear]) {
+                                val = schoolData[region][schType][targetYear][metric] || 0;
                             }
                         }
                         arr.push(val);
@@ -1440,11 +1441,11 @@
                     datasets = [{ label: title, data: typeDataArr, backgroundColor: colors[idx] || '#3b82f6', borderRadius: 0, barPercentage: 0.5 }];
                     totalDataArray = [...typeDataArr];
                     
-                    // 👇 [추가] 특정 교급 선택 시 하단에 '데이터 상세 표' 생성 👇
+                    // 상세 표 연도 표시도 2025년으로 맞춤
                     tableHeaders = ['시도명', '기준 연도', '학교수 (개교)', '학생수 (명)'];
                     let studentArr = getSchoolArrayForChart(title, "학생수");
                     regionsList.forEach((r, i) => {
-                        tableRows.push([r, currentYear, typeDataArr[i].toLocaleString(), `<span class="text-brand-dark">${studentArr[i].toLocaleString()}</span>`]);
+                        tableRows.push([r, targetYear, typeDataArr[i].toLocaleString(), `<span class="text-brand-dark">${studentArr[i].toLocaleString()}</span>`]);
                     });
                 }
                 mapDataExtracted = true;
