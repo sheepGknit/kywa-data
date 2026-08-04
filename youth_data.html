@@ -555,7 +555,6 @@
         function getRegionData(regionName) {
             let actualPop = 0;
             
-            // popData에서 시도 단위 "소계" 가져오기
             if (popData[regionName] && popData[regionName]["소계"]) {
                 actualPop = popData[regionName]["소계"]["총인구수"]["2026.06월"] || 0;
             }
@@ -571,6 +570,7 @@
             };
 
             const seed = regionName.length + (regionName.charCodeAt(0) % 10); 
+            console.log(`🔍 [디버깅 - getRegionData] 지역: ${regionName}, 추출된 총인구수: ${actualPop}`);
 
             return {
                 pop: actualPop, 
@@ -592,6 +592,8 @@
         }
 
         function applyDataToUI(d, isDefault, regionName) {
+            console.log(`🖥️ [디버깅 - applyDataToUI] 갱신 대상: ${isDefault ? '전국기본값' : regionName}, 인구: ${d.pop}, 시설합계: ${d.fac1 + d.fac2 + d.fac3 + d.fac4 + d.fac5 + d.fac6}`);
+            
             const noticeEl = document.getElementById('activeRegionNotice');
             if(noticeEl) noticeEl.innerHTML = isDefault ? "(현재 전국 통합 보기)" : `현재 선택된 지역: <span class="text-brand-yellow font-bold">[ ${regionName} ]</span>`;
             
@@ -621,6 +623,7 @@
                 .then(res => res.json())
                 .then(data => {
                     sisulData = Array.isArray(data) ? data : (data.records || []);
+                    console.log(`🐞 [디버깅 - Fetch] sisul.json 로드 완료. 총 ${sisulData.length}개 데이터`);
 
                     const regionMap = {
                         "강원특별자치도": "강원도", "전북특별자치도": "전라북도",
@@ -696,6 +699,7 @@
                         
                         currentCum += row["총계"]; 
                     });
+                    console.log(`🐞 [디버깅 - Fetch] jidoja.json 로드 완료. 차트 데이터 개수: ${leaderTrendData['청소년지도사 인원'].cum.length}개`);
                     applyDataToUI(defaultStats, true, "");
                 })
                 .catch(err => console.error('지도자 데이터 실패.', err));
@@ -705,6 +709,7 @@
                 .then(res => res.json())
                 .then(data => {
                     popData = data;
+                    console.log(`🐞 [디버깅 - Fetch] pop_data.json 로드 완료. 최상위 지역 키:`, Object.keys(popData));
                     
                     if(popData["전국"] && popData["전국"]["전국"]) {
                         defaultStats.pop = popData["전국"]["전국"]["총인구수"]["2026.06월"] || 0;
@@ -761,6 +766,7 @@
         }
 
         function showDetailView(regionName) {
+            console.log(`🗺️ [디버깅 - View 전환] 상세 페이지 진입. 선택된 시도: ${regionName}`);
             document.getElementById('detailRegionTitle').textContent = regionName;
             document.getElementById('detailSubRegionTitle').textContent = '전체';
             
@@ -913,6 +919,7 @@
 
             const fac = filteredFacilities.length;
             const ratio = regionalPop > 0 ? ((fac / regionalPop) * 10000).toFixed(1) : "0.0";
+            console.log(`📊 [디버깅 - 상세 패널 업데이트] 시도: ${province}, 시군구: ${municipality}, 필터링된 시설 수: ${fac}개`);
 
             document.getElementById('detailStatPop').textContent = regionalPop.toLocaleString() + '명';
             document.getElementById('detailStatFac').textContent = fac + '개소'; 
@@ -923,6 +930,8 @@
 
         function switchDetailTab(tabId) {
             currentDetailTab = tabId;
+            console.log(`📑 [디버깅 - 탭 전환] 선택 탭: ${tabId}, 현재 필터: ${currentProvince} > ${currentMunicipality}`);
+
             const tabs = ['facility', 'policy', 'activity'];
             tabs.forEach(t => {
                 const btn = document.getElementById(`tab-btn-${t}`);
@@ -950,6 +959,7 @@
             const prefix = municipality === '전체' ? province : municipality;
 
             if (currentDetailTab === 'facility') {
+                console.log(`📝 [디버깅 - 시설 리스트 렌더링] 그려질 개수: ${filteredFacilities.length}개`);
                 if (filteredFacilities.length === 0) {
                     html = `<div class="p-8 text-center text-gray-400 font-bold mt-10">해당 지역에 등록된 청소년 시설 데이터가 없습니다.</div>`;
                 } else {
@@ -1060,6 +1070,7 @@
         function filterLeader(type) { updateLeaderTabUI(type); renderCharts(type); }
 
         function showTrendView(title) {
+            console.log(`📈 [디버깅 - View 전환] 통계/차트 페이지 진입. 항목: ${title}`);
             document.getElementById('trendViewTitle').textContent = title;
             
             const facilityItems = ['청소년시설 전체보기', '청소년수련관', '청소년문화의집', '청소년수련원', '청소년특화시설', '청소년야영장', '유스호스텔'];
@@ -1297,7 +1308,7 @@
                 else btn.className = "year-btn px-3 py-1 text-sm rounded bg-gray-600 text-gray-300 hover:text-white transition-colors";
             });
 
-            // 👇👇 [수정] popData(JSON)를 이용해 실제 해당 연도 데이터를 그려줌 👇👇
+            // 👇👇 popData(JSON)를 이용해 실제 해당 연도 데이터를 그려줌 👇👇
             let currentMale = new Array(regionsList.length).fill(0);
             let currentFemale = new Array(regionsList.length).fill(0);
 
@@ -1306,7 +1317,6 @@
             
             const targetYearKey = (val == "2026") ? "2026.06월" : `${val}년`;
 
-            // 각 시도별 데이터 추출 (전남광주통합특별시 예외처리 포함)
             regionsList.forEach((region, i) => {
                 if (region === "전남광주통합특별시") {
                     let m1=0, f1=0, m2=0, f2=0;
@@ -1328,19 +1338,18 @@
                 }
             });
 
-            // 전국 합계는 '전국' 키에서 직접 가져옴
             if (popData["전국"] && popData["전국"]["전국"]) {
                 totalMale = popData["전국"]["전국"]["남자인구수"][targetYearKey] || 0;
                 totalFemale = popData["전국"]["전국"]["여자인구수"][targetYearKey] || 0;
             }
             
             let totalPop = totalMale + totalFemale;
+            console.log(`⏳ [디버깅 - 연도 변경] 선택 연도: ${val}년, 변경된 전국 총 인구: ${totalPop}명`);
 
             document.getElementById('summaryTotal').textContent = totalPop.toLocaleString() + "명";
             document.getElementById('summaryMale').textContent = totalMale.toLocaleString() + "명";
             document.getElementById('summaryFemale').textContent = totalFemale.toLocaleString() + "명";
             
-            // 비율 계산
             if(totalPop > 0) {
                 document.getElementById('summaryMalePct').textContent = `(${Math.round((totalMale/totalPop)*100)}%)`;
                 document.getElementById('summaryFemalePct').textContent = `(${Math.round((totalFemale/totalPop)*100)}%)`;
