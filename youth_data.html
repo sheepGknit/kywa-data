@@ -674,17 +674,24 @@
         };
 
         function getRegionData(regionName) {
-			let actualPop = 0;
+            // 1. 인구 데이터 가져오기
+            let actualPop = 0;
             if (regionName === "전남광주통합특별시") {
                 let pop1 = (popData["광주광역시"] && popData["광주광역시"]["소계"]) ? popData["광주광역시"]["소계"]["총인구수"]["2026.06월"] || 0 : 0;
                 let pop2 = (popData["전라남도"] && popData["전라남도"]["소계"]) ? popData["전라남도"]["소계"]["총인구수"]["2026.06월"] || 0 : 0;
                 actualPop = pop1 + pop2;
+            } else if (regionName === "전국") { // 👇 전국 데이터 예외 처리
+                actualPop = (popData["전국"] && popData["전국"]["전국"]) ? popData["전국"]["전국"]["총인구수"]["2026.06월"] || 0 : 0;
             } else if (popData[regionName] && popData[regionName]["소계"]) {
                 actualPop = popData[regionName]["소계"]["총인구수"]["2026.06월"] || 0;
             }
 
+            // 2. 시설 데이터 가져오기
             let rIdx = regionsList.indexOf(regionName);
             const getFacCount = (type) => {
+                if (regionName === "전국") { // 👇 전국 시설 합계 예외 처리
+                    return facilityDataStore[type].reduce((a, b) => a + b, 0);
+                }
                 if (regionName === "전남광주통합특별시") {
                     const idx1 = regionsList.indexOf("광주광역시");
                     const idx2 = regionsList.indexOf("전라남도");
@@ -693,8 +700,8 @@
                 return rIdx !== -1 ? facilityDataStore[type][rIdx] : 0;
             };
 
-            // 👇👇 [추가] school.json에서 실제 학교수 가져오기 로직 👇👇
-            const targetYear = "2025년"; // 최신 연도 기준 (데이터 연도에 맞게 조정 가능)
+            // 3. 학교 데이터 가져오기
+            const targetYear = "2025년"; 
             const getSchCount = (schType) => {
                 if (regionName === "전남광주통합특별시") {
                     let s1 = (schoolData["광주광역시"] && schoolData["광주광역시"][schType] && schoolData["광주광역시"][schType][targetYear]) ? schoolData["광주광역시"][schType][targetYear]["학교수"] || 0 : 0;
@@ -707,7 +714,11 @@
                 return 0;
             };
 
-            const seed = regionName.length + (regionName.charCodeAt(0) % 10); 
+            const seed = regionName.length + (regionName.charCodeAt(0) % 10) || 5; 
+
+            // 4. 지도자 데이터 (전국일 경우 고정값 반환)
+            const lead1_val = regionName === "전국" ? 79793 : seed * 120 + 300;
+            const lead2_val = regionName === "전국" ? 47020 : seed * 90 + 200;
 
             return {
                 pop: actualPop, 
@@ -717,16 +728,15 @@
                 fac1: getFacCount('청소년수련관'), fac2: getFacCount('청소년문화의집'), fac3: getFacCount('청소년수련원'), 
                 fac4: getFacCount('청소년특화시설'), fac5: getFacCount('청소년야영장'), fac6: getFacCount('유스호스텔'),
                 
-                // 실제 학교 데이터 매핑!
-                sch1: getSchCount('초등학교'), 
-                sch2: getSchCount('중학교'), 
-                sch3: getSchCount('고등학교'),
-                sch4: getSchCount('대학교'),
-                sch5: getSchCount('특수학교'),
+                sch1: getSchCount('초등학교'), sch2: getSchCount('중학교'), sch3: getSchCount('고등학교'),
+                sch4: getSchCount('대학교'), sch5: getSchCount('특수학교'),
                 
-                act1: seed * 100 + 200, act2: seed * 10 + 20, act3: seed * 20 + 30, act4: seed * 15 + 10,
-                act5: seed * 30 + 50, act6: seed * 50 + 100, act7: seed * 5 + 10, act8: seed * 2, act9: seed * 25 + 20,
-                lead1: seed * 120 + 300, lead2: seed * 90 + 200
+                act1: regionName==="전국"?1204:seed * 100 + 200, act2: regionName==="전국"?342:seed * 10 + 20, 
+                act3: regionName==="전국"?510:seed * 20 + 30, act4: regionName==="전국"?350:seed * 15 + 10,
+                act5: regionName==="전국"?890:seed * 30 + 50, act6: regionName==="전국"?1450:seed * 50 + 100, 
+                act7: regionName==="전국"?262:seed * 5 + 10, act8: regionName==="전국"?45:seed * 2, act9: regionName==="전국"?542:seed * 25 + 20,
+                
+                lead1: lead1_val, lead2: lead2_val
             };
         }
 
@@ -813,7 +823,7 @@
                     defaultStats.fac5 = facilityDataStore['청소년야영장'].reduce((a, b) => a + b, 0);
                     defaultStats.fac6 = facilityDataStore['유스호스텔'].reduce((a, b) => a + b, 0);
 
-                    applyDataToUI(defaultStats, true, "");
+                    applyDataToUI(getRegionData("전국"), true, "전국");
                 })
                 .catch(err => console.error('시설 데이터 실패.', err));
             
@@ -843,7 +853,7 @@
                         currentCum += row["총계"]; 
                     });
                     console.log(`🐞 [디버깅 - Fetch] jidoja.json 로드 완료. 차트 데이터 개수: ${leaderTrendData['청소년지도사 인원'].cum.length}개`);
-                    applyDataToUI(defaultStats, true, "");
+                    applyDataToUI(getRegionData("전국"), true, "전국");
                 })
                 .catch(err => console.error('지도자 데이터 실패.', err));
                 
@@ -879,7 +889,7 @@
                         defaultStats.std = Math.floor(defaultStats.pop * 0.65);
                     }
                     
-                    applyDataToUI(defaultStats, true, "");
+                    applyDataToUI(getRegionData("전국"), true, "전국");
                 })
                 .catch(err => console.error('인구 데이터 실패.', err));
 				
@@ -898,8 +908,7 @@
                     });
                 
                     console.log(`🐞 [디버깅 - Fetch] school.json 로드 완료.`);
-                    // 👇 [수정] defaultStats 대신 getRegionData("전국")으로 최신 데이터를 뽑아서 UI에 반영합니다!
-                    applyDataToUI(getRegionData("전국"), true, "전국"); 
+                    applyDataToUI(getRegionData("전국"), true, "전국");
                 })
                 .catch(err => console.error('학교 데이터 실패.', err));
 
@@ -1500,7 +1509,7 @@
                 updateTrendMapColors(mapDataObj);
             }
 			
-			// 👇👇 [여기에 추가] 실제로 HTML에 표를 렌더링하는 로직 👇👇
+			// 🌟 [추가됨] 실제로 화면에 표를 그려주는 부분
             const tableContainer = document.getElementById('dataTableContainer');
             const dataTable = document.getElementById('detailDataTable');
             
@@ -1520,9 +1529,8 @@
                 dataTable.innerHTML = thHtml + tbHtml;
                 tableContainer.classList.remove('hidden');
             } else if (tableContainer) {
-                tableContainer.classList.add('hidden'); // 표 데이터가 없으면 숨김
+                tableContainer.classList.add('hidden'); // 데이터가 없으면 숨김
             }
-            // 👆👆 [추가 끝] 👆👆
         }
 
         function updateTrendMapColors(dataObj) {
