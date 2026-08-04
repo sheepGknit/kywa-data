@@ -800,7 +800,26 @@
             fetch('data/pop_data.json') 
                 .then(res => res.json())
                 .then(data => {
-                    popData = data;
+                    // 👇👇 [수정된 부분] 인구 데이터 지역명 강제 통일 (지도 기준 이름으로 변환) 👇👇
+                    const popRegionMap = {
+                        "강원특별자치도": "강원도", 
+                        "전북특별자치도": "전라북도",
+                        "서울": "서울특별시", "부산": "부산광역시", "대구": "대구광역시",
+                        "인천": "인천광역시", "광주": "광주광역시", "대전": "대전광역시",
+                        "울산": "울산광역시", "세종": "세종특별자치시", "경기": "경기도",
+                        "충북": "충청북도", "충남": "충청남도", "전북": "전라북도",
+                        "전남": "전라남도", "경북": "경상북도", "경남": "경상남도",
+                        "제주": "제주특별자치도", "제주도": "제주특별자치도"
+                    };
+
+                    popData = {};
+                    // 원래 데이터의 키(지역명)를 하나씩 확인해서 변환된 이름으로 다시 담아줍니다.
+                    Object.keys(data).forEach(key => {
+                        let newKey = popRegionMap[key.trim()] || key.trim();
+                        popData[newKey] = data[key];
+                    });
+                    // 👆👆 [수정 끝] 👆👆
+					
                     console.log(`🐞 [디버깅 - Fetch] pop_data.json 로드 완료. 최상위 지역 키:`, Object.keys(popData));
                     
                     if(popData["전국"] && popData["전국"]["전국"]) {
@@ -1482,51 +1501,152 @@
 		
 		
 
-        function openCompareModal() {
-            document.getElementById('compareModal').classList.remove('hidden');
-            document.getElementById('compareModal').classList.add('flex');
-            
-            let provHtml = '';
-            regionsList.forEach(r => provHtml += `<option value="${r}">${r}</option>`);
-            document.getElementById('compProvA').innerHTML = provHtml;
-            document.getElementById('compDistProv').innerHTML = provHtml;
-            document.getElementById('compProvB').innerHTML = `<option value="전체">전체 (전국 평균)</option>` + provHtml; // 전체 옵션
-            
-            document.getElementById('compProvA').value = '서울특별시';
-            document.getElementById('compProvB').value = '전체';
-            document.getElementById('compDistProv').value = '서울특별시';
-            
-            updateDistricts();
-            setCompareMode('province');
-            document.getElementById('compareResultArea').classList.add('hidden'); // 리셋
-        }
-		
+        // --- [1] 비교 모달 전역 변수 ---
+		let radarChartInstance = null;
+		let currentCompareMode = 'province';
 
-        function closeCompareModal() {
-            document.getElementById('compareModal').classList.add('hidden');
-            document.getElementById('compareModal').classList.remove('flex');
-        }
+		// --- [2] 비교 모달 열기/닫기 ---
+		function openCompareModal() {
+			document.getElementById('compareModal').classList.remove('hidden');
+			document.getElementById('compareModal').classList.add('flex');
+			
+			let provHtml = '';
+			regionsList.forEach(r => provHtml += `<option value="${r}">${r}</option>`);
+			document.getElementById('compProvA').innerHTML = provHtml;
+			document.getElementById('compDistProv').innerHTML = provHtml;
+			document.getElementById('compProvB').innerHTML = `<option value="전체">전체 (전국 평균)</option>` + provHtml; 
+			
+			document.getElementById('compProvA').value = '서울특별시';
+			document.getElementById('compProvB').value = '전체';
+			document.getElementById('compDistProv').value = '서울특별시';
+			
+			updateDistricts();
+			setCompareMode('province');
+			document.getElementById('compareResultArea').classList.add('hidden'); // 결과 초기화
+		}
+
+		function closeCompareModal() {
+			document.getElementById('compareModal').classList.add('hidden');
+			document.getElementById('compareModal').classList.remove('flex');
+		}
+
+		// --- [3] 모드 전환 (시도 vs 시군구) ---
+		function setCompareMode(mode) {
+			currentCompareMode = mode;
+			document.getElementById('compareResultArea').classList.add('hidden');
+			if(mode === 'province') {
+				document.getElementById('btnModeProv').className = "flex-1 py-2 text-sm font-bold rounded-lg bg-white shadow text-brand-dark transition-all";
+				document.getElementById('btnModeDist').className = "flex-1 py-2 text-sm font-bold rounded-lg text-gray-500 hover:text-gray-700 transition-all";
+				document.getElementById('compProvModeUI').classList.remove('hidden');
+				document.getElementById('compProvModeUI').classList.add('flex');
+				document.getElementById('compDistModeUI').classList.add('hidden');
+				document.getElementById('compDistModeUI').classList.remove('flex');
+			} else {
+				document.getElementById('btnModeProv').className = "flex-1 py-2 text-sm font-bold rounded-lg text-gray-500 hover:text-gray-700 transition-all";
+				document.getElementById('btnModeDist').className = "flex-1 py-2 text-sm font-bold rounded-lg bg-white shadow text-brand-dark transition-all";
+				document.getElementById('compProvModeUI').classList.add('hidden');
+				document.getElementById('compProvModeUI').classList.remove('flex');
+				document.getElementById('compDistModeUI').classList.remove('hidden');
+				document.getElementById('compDistModeUI').classList.add('flex');
+			}
+		}
+
+		// --- [4] 하위 지역(시군구) 셀렉트 박스 업데이트 ---
+		function updateDistricts() {
+			const prov = document.getElementById('compDistProv').value;
+			// 실제 데이터 연동 시 이 부분을 실데이터로 매핑
+			const distMap = { "서울특별시": ["종로구", "중구", "용산구", "서대문구", "마포구", "강남구"], "경기도": ["수원시", "성남시", "용인시", "고양시"] };
+			const dists = distMap[prov] || ["지역1", "지역2", "지역3"];
+			
+			let htmlA = '';
+			dists.forEach(d => htmlA += `<option value="${d}">${d}</option>`);
+			document.getElementById('compDistA').innerHTML = htmlA;
+
+			let htmlB = `<option value="전체">전체 (${prov} 평균)</option>`;
+			dists.forEach(d => htmlB += `<option value="${d}">${d}</option>`);
+			document.getElementById('compDistB').innerHTML = htmlB;
+			
+			document.getElementById('compDistB').value = '전체';
+		}
+
+		// --- [5] 차트용 가상 지표 데이터 생성 (실데이터 연결 시 이 부분 수정) ---
+		function generateMockIndicators(name) {
+			if (name === '전체') return [65, 60, 62, 58]; // 전국 평균
+			const seed = name.length + (name.charCodeAt(0) % 10);
+			return [
+				Math.min(100, Math.max(30, 45 + seed * 4)), 
+				Math.min(100, Math.max(30, 30 + (seed%5) * 12)),
+				Math.min(100, Math.max(30, 40 + (seed%4) * 15)),
+				Math.min(100, Math.max(30, 50 + (seed%6) * 8))
+			];
+		}
 		
-		
-        function setCompareMode(mode) {
-            currentCompareMode = mode;
-            document.getElementById('compareResultArea').classList.add('hidden');
-            if(mode === 'province') {
-                document.getElementById('btnModeProv').className = "flex-1 py-2 text-sm font-bold rounded-lg bg-white shadow text-brand-dark transition-all";
-                document.getElementById('btnModeDist').className = "flex-1 py-2 text-sm font-bold rounded-lg text-gray-500 hover:text-gray-700 transition-all";
-                document.getElementById('compProvModeUI').classList.remove('hidden');
-                document.getElementById('compProvModeUI').classList.add('flex');
-                document.getElementById('compDistModeUI').classList.add('hidden');
-                document.getElementById('compDistModeUI').classList.remove('flex');
-            } else {
-                document.getElementById('btnModeProv').className = "flex-1 py-2 text-sm font-bold rounded-lg text-gray-500 hover:text-gray-700 transition-all";
-                document.getElementById('btnModeDist').className = "flex-1 py-2 text-sm font-bold rounded-lg bg-white shadow text-brand-dark transition-all";
-                document.getElementById('compProvModeUI').classList.add('hidden');
-                document.getElementById('compProvModeUI').classList.remove('flex');
-                document.getElementById('compDistModeUI').classList.remove('hidden');
-                document.getElementById('compDistModeUI').classList.add('flex');
-            }
-        }
+		// --- [6] 비교 분석 실행 (차트 그리기 & 표 채우기) ---
+		function runComparison() {
+			const mode = currentCompareMode;
+			let nameA, nameB;
+			if(mode === 'province') {
+				nameA = document.getElementById('compProvA').value;
+				nameB = document.getElementById('compProvB').value;
+			} else {
+				nameA = document.getElementById('compDistA').value;
+				nameB = document.getElementById('compDistB').value;
+			}
+
+			if(nameA === nameB) {
+				document.getElementById('compareResultArea').classList.remove('hidden');
+				document.getElementById('compareResultArea').classList.add('flex');
+				document.getElementById('compareInsightText').innerHTML = `<span class="text-red-300 font-bold"><i class="ph-fill ph-warning"></i> 서로 다른 지역을 선택하여 비교해주세요.</span>`;
+				if(radarChartInstance) { radarChartInstance.destroy(); radarChartInstance = null; }
+				return;
+			}
+
+			document.getElementById('compareResultArea').classList.remove('hidden');
+			document.getElementById('compareResultArea').classList.add('flex');
+
+			const dataA = generateMockIndicators(nameA);
+			const dataB = generateMockIndicators(nameB);
+			
+			// 차트 생성 (Chart.js)
+			const canvas = document.getElementById('radarChartCanvas');
+			if(radarChartInstance) radarChartInstance.destroy();
+			
+			radarChartInstance = new Chart(canvas.getContext('2d'), {
+				type: 'radar',
+				data: {
+					labels: ['청소년 인구(수요)', '수련시설(인프라)', '정책사업(프로그램)'],
+					datasets: [
+						{ label: nameA + ' (기준)', data: dataA, backgroundColor: 'rgba(253, 186, 26, 0.5)', borderColor: '#FDBA1A', borderWidth: 2, pointBackgroundColor: '#FDBA1A', fill: true },
+						{ label: nameB, data: dataB, backgroundColor: 'rgba(59, 130, 246, 0.4)', borderColor: '#3b82f6', borderWidth: 2, pointBackgroundColor: '#3b82f6', fill: true }
+					]
+				},
+				options: { responsive: true, maintainAspectRatio: false, scales: { r: { angleLines: { color: '#e2e8f0' }, grid: { color: '#e2e8f0' }, pointLabels: { font: { size: 11, family: "'Pretendard', sans-serif", weight: 'bold' }, color: '#475569' }, ticks: { display: false, min: 0, max: 100 } } }, plugins: { legend: { position: 'bottom', labels: { font: { size: 12, family: "'Pretendard', sans-serif" } } } } }
+			});
+
+			// 상세 표 데이터 채우기
+			document.getElementById('thNameA').textContent = nameA;
+			document.getElementById('thNameB').textContent = nameB;
+			const labels = ['청소년 인구(수요)', '수련시설(인프라)', '정책사업(프로그램)'];
+			let trHtml = '';
+			dataA.forEach((val, i) => {
+				let diff = val - dataB[i];
+				let diffHtml = diff > 0 ? `<span class="text-blue-500 font-bold">(+${diff})</span>` : (diff < 0 ? `<span class="text-red-500 font-bold">(${diff})</span>` : '-');
+				trHtml += `<tr class="border-b border-gray-100"><td class="py-2 px-2 font-bold bg-white">${labels[i]}</td><td class="py-2 px-2">${val}점 ${diffHtml}</td><td class="py-2 px-2 bg-gray-50">${dataB[i]}점</td></tr>`;
+			});
+			document.getElementById('compareTableBody').innerHTML = trHtml;
+
+			// AI 인사이트 생성 (Mock 로직)
+			let insight = `<i class="ph ph-spinner animate-spin"></i> AI가 두 지역의 지표를 비교 분석하고 있습니다...`;
+			document.getElementById('compareInsightText').innerHTML = insight;
+			
+			setTimeout(() => {
+				const diff = dataA.reduce((sum, val, i) => sum + (val - dataB[i]), 0);
+				if (diff > 10) insight = `<span class="text-brand-yellow font-bold">${nameA}</span>는 ${nameB} 대비 전반적인 인프라 및 전문인력 지표가 우수합니다. 우수 사례를 타 지역으로 확산하는 벤치마킹 모델로 활용 가능합니다.`;
+				else if (diff < -10) insight = `<span class="text-brand-yellow font-bold">${nameA}</span>는 수요(인구) 대비 프로그램 및 인프라 공급이 ${nameB}에 비해 부족합니다. 예산 우선 투입을 통한 정책 사각지대 해소가 시급합니다.`;
+				else insight = `<span class="text-brand-yellow font-bold">${nameA}</span>와 ${nameB}는 전반적으로 균형 잡힌 정책 인프라를 보유하고 있습니다. 세부 프로그램 내용의 다각화가 필요합니다.`;
+				document.getElementById('compareInsightText').innerHTML = insight;
+			}, 800);
+		}
 
 
 
