@@ -101,6 +101,9 @@
             <button onclick="openAiRecommenderModal()" class="w-full py-4 mb-6 bg-gradient-to-r from-brand-yellow to-amber-500 hover:from-amber-400 hover:to-amber-600 text-brand-dark font-black rounded-xl shadow-lg flex items-center justify-center gap-2 transition-transform hover:-translate-y-1">
                 <i class="ph-bold ph-magic-wand text-xl"></i> AI 맞춤형 청소년활동 추천받기
             </button>
+			<button onclick="openCompareModal()" class="w-full py-4 mb-6 bg-white hover:bg-gray-100 text-brand-dark border-2 border-brand-dark font-black rounded-xl shadow-lg flex items-center justify-center gap-2 transition-transform hover:-translate-y-1">
+                <i class="ph-bold ph-chart-radar text-xl"></i> 우리 지역 지표 비교하기
+            </button>
 
             <div class="flex flex-col gap-3" id="accordionContainer">
                 <div class="bg-brand-light/30 rounded-xl border border-gray-700 overflow-hidden">
@@ -445,6 +448,95 @@
                 </div>
                 <button onclick="generateAiRecommendation()" class="w-full py-4 bg-brand-dark text-white font-black rounded-xl flex items-center justify-center gap-2 transition-transform hover:-translate-y-1 hover:shadow-lg"><i class="ph-bold ph-sparkle text-brand-yellow"></i> AI 추천 생성하기</button>
                 <div id="aiResultContainer" class="hidden bg-gray-50 rounded-2xl p-5"><div id="aiResultContent" class="text-sm"></div></div>
+            </div>
+        </div>
+    </div>
+	
+	
+    <!-- 지역 비교 분석 모달 -->
+    <div id="compareModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4 fade-in">
+        <div class="bg-white w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
+            <div class="bg-brand-dark text-white px-6 py-4 flex justify-between items-center shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-brand-dark font-black"><i class="ph-bold ph-chart-radar text-2xl"></i></div>
+                    <div>
+                        <h3 class="font-black text-lg">우리 지역 지표 비교하기</h3>
+                        <p class="text-xs text-gray-300">선택한 지역의 핵심 인프라 역량을 다각도로 분석합니다</p>
+                    </div>
+                </div>
+                <button onclick="closeCompareModal()" class="text-gray-300 hover:text-white p-2 transition-colors"><i class="ph-bold ph-x text-xl"></i></button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto flex-1 bg-gray-50">
+                <!-- Mode Switcher -->
+                <div class="flex bg-gray-200 rounded-xl p-1 mb-5 mx-auto max-w-md">
+                    <button id="btnModeProv" onclick="setCompareMode('province')" class="flex-1 py-2 text-sm font-bold rounded-lg bg-white shadow text-brand-dark transition-all">시·도 간 비교</button>
+                    <button id="btnModeDist" onclick="setCompareMode('district')" class="flex-1 py-2 text-sm font-bold rounded-lg text-gray-500 hover:text-gray-700 transition-all">시·군·구 간 비교</button>
+                </div>
+
+                <!-- Province vs Province UI -->
+                <div id="compProvModeUI" class="flex flex-col sm:flex-row gap-3 bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+                    <div class="flex-1">
+                        <label class="block text-xs font-bold text-gray-600 mb-1">기준 지역</label>
+                        <select id="compProvA" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-brand-yellow transition-colors"></select>
+                    </div>
+                    <div class="flex items-center justify-center text-gray-400 font-bold px-2">VS</div>
+                    <div class="flex-1">
+                        <label class="block text-xs font-bold text-gray-600 mb-1">비교 대상 (B 지역)</label>
+                        <select id="compProvB" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-brand-yellow transition-colors"></select>
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="runComparison()" class="h-[46px] px-6 bg-brand-dark hover:bg-brand-light text-white font-bold rounded-xl shadow-md transition-colors whitespace-nowrap">분석하기</button>
+                    </div>
+                </div>
+
+                <!-- District vs District UI -->
+                <div id="compDistModeUI" class="hidden flex-col gap-3 bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+                    <div class="w-full mb-2">
+                        <label class="block text-xs font-bold text-brand-yellow mb-1">분석할 광역 시·도 선택</label>
+                        <select id="compDistProv" onchange="updateDistricts()" class="w-full bg-brand-dark text-white border border-gray-700 rounded-xl p-3 text-sm focus:outline-none focus:border-brand-yellow transition-colors"></select>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <div class="flex-1">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">기준 시·군·구 (A)</label>
+                            <select id="compDistA" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-brand-yellow transition-colors"></select>
+                        </div>
+                        <div class="flex items-center justify-center text-gray-400 font-bold px-2">VS</div>
+                        <div class="flex-1">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">비교 시·군·구 (B)</label>
+                            <select id="compDistB" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-brand-yellow transition-colors"></select>
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="runComparison()" class="h-[46px] px-6 bg-brand-dark hover:bg-brand-light text-white font-bold rounded-xl shadow-md transition-colors whitespace-nowrap">분석하기</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analysis Result Section -->
+                <div id="compareResultArea" class="mt-5 hidden flex-col lg:flex-row gap-5">
+                    <div class="flex-1 bg-white p-5 rounded-2xl border border-gray-200 shadow-sm relative h-[350px] flex items-center justify-center">
+                        <canvas id="radarChartCanvas"></canvas>
+                    </div>
+                    <div class="flex-1 flex flex-col gap-4">
+                        <div class="bg-gradient-to-br from-brand-dark to-slate-800 p-5 rounded-2xl shadow-sm text-white relative overflow-hidden">
+                            <i class="ph-fill ph-sparkle text-brand-yellow text-xl mb-2"></i>
+                            <h4 class="font-bold text-brand-yellow mb-2">AI 정책 분석 인사이트</h4>
+                            <p id="compareInsightText" class="text-sm leading-relaxed text-gray-200 break-keep">
+                                분석 버튼을 누르면 AI가 지역 간 지표 차이를 분석하여 정책 사각지대 도출 및 인사이트를 제공합니다.
+                            </p>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+                            <h4 class="font-bold text-brand-dark text-sm mb-3">지표 상세 데이터 (100점 만점)</h4>
+                            <table class="w-full text-xs text-left text-gray-600">
+                                <thead class="bg-gray-50 text-gray-500 border-b border-gray-200">
+                                    <tr><th class="py-2 px-2">평가 지표</th><th class="py-2 px-2" id="thNameA">A 지역</th><th class="py-2 px-2" id="thNameB">B 지역</th></tr>
+                                </thead>
+                                <tbody id="compareTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
@@ -1387,6 +1479,34 @@
                 document.getElementById('aiChatMessages').scrollTop = document.getElementById('aiChatMessages').scrollHeight;
             }, 500);
         }
+		
+		
+
+        function openCompareModal() {
+            document.getElementById('compareModal').classList.remove('hidden');
+            document.getElementById('compareModal').classList.add('flex');
+            
+            let provHtml = '';
+            regionsList.forEach(r => provHtml += `<option value="${r}">${r}</option>`);
+            document.getElementById('compProvA').innerHTML = provHtml;
+            document.getElementById('compDistProv').innerHTML = provHtml;
+            document.getElementById('compProvB').innerHTML = `<option value="전체">전체 (전국 평균)</option>` + provHtml; // 전체 옵션
+            
+            document.getElementById('compProvA').value = '서울특별시';
+            document.getElementById('compProvB').value = '전체';
+            document.getElementById('compDistProv').value = '서울특별시';
+            
+            updateDistricts();
+            setCompareMode('province');
+            document.getElementById('compareResultArea').classList.add('hidden'); // 리셋
+        }
+		
+
+        function closeCompareModal() {
+            document.getElementById('compareModal').classList.add('hidden');
+            document.getElementById('compareModal').classList.remove('flex');
+        }
+
 
         function generateAiRecommendation() {
             const interest = document.getElementById('aiInterest').value;
