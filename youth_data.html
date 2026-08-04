@@ -947,11 +947,13 @@
             });
             
             const isAll = (currentMunicipality === '전체');
-            // [수정 후] 영문 키(ctpvNm, sggNm) 사용
-			let filteredFacilities = sisulData.filter(item => item.ctpvNm === province);
-			if (!isAll) {
-				filteredFacilities = filteredFacilities.filter(item => item.sggNm === municipality);
-			}
+            
+            // 👇👇 [수정된 부분] province -> currentProvince, municipality -> currentMunicipality
+            let filteredFacilities = sisulData.filter(item => item.ctpvNm === currentProvince);
+            if (!isAll) {
+                filteredFacilities = filteredFacilities.filter(item => item.sggNm === currentMunicipality);
+            }
+            // 👆👆 [수정 끝] 👆👆
 
             renderTabContent(currentProvince, currentMunicipality, (currentMunicipality.length || 5), filteredFacilities);
         }
