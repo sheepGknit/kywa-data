@@ -157,7 +157,9 @@
                         <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('초등학교')"><span>초등학교</span><span class="font-bold text-white" id="sch1">0개</span></div>
                         <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('중학교')"><span>중학교</span><span class="font-bold text-white" id="sch2">0개</span></div>
                         <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('고등학교')"><span>고등학교</span><span class="font-bold text-white" id="sch3">0개</span></div>
-                        <div class="py-3 px-2 flex justify-between pb-4 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('대학교')"><span>대학교</span><span class="font-bold text-white" id="sch4">0개</span></div>
+                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('대학교')"><span>대학교</span><span class="font-bold text-white" id="sch4">0개</span></div>
+                        <!-- 👇 특수학교 추가 👇 -->
+                        <div class="py-3 px-2 flex justify-between pb-4 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('특수학교')"><span>특수학교</span><span class="font-bold text-white" id="sch5">0개</span></div>
                     </div>
                 </div>
 
@@ -359,10 +361,12 @@
 
             <div id="schoolTabGroup" class="hidden flex flex-wrap gap-2 mb-4">
                 <button onclick="filterSchool('학교 전체보기')" class="sch-tab px-4 py-2 text-sm rounded-lg bg-brand-yellow text-brand-dark font-black shadow-[0_0_10px_rgba(253,186,26,0.4)]">전체보기</button>
-                <button onclick="filterSchool('초등학교')" class="sch-tab px-4 py-2 text-sm rounded-lg bg-[#1e293b] text-gray-400 hover:text-white border border-gray-600 font-bold">초등학교</button>
-                <button onclick="filterSchool('중학교')" class="sch-tab px-4 py-2 text-sm rounded-lg bg-[#1e293b] text-gray-400 hover:text-white border border-gray-600 font-bold">중학교</button>
-                <button onclick="filterSchool('고등학교')" class="sch-tab px-4 py-2 text-sm rounded-lg bg-[#1e293b] text-gray-400 hover:text-white border border-gray-600 font-bold">고등학교</button>
-                <button onclick="filterSchool('대학교')" class="sch-tab px-4 py-2 text-sm rounded-lg bg-[#1e293b] text-gray-400 hover:text-white border border-gray-600 font-bold">대학교</button>
+                <button onclick="filterSchool('초등학교')" class="sch-tab px-4 py-2 text-sm rounded-lg bg-[#1e293b] text-gray-400 font-bold">초등학교</button>
+                <button onclick="filterSchool('중학교')" class="sch-tab px-4 py-2 text-sm rounded-lg bg-[#1e293b] text-gray-400 font-bold">중학교</button>
+                <button onclick="filterSchool('고등학교')" class="sch-tab px-4 py-2 text-sm rounded-lg bg-[#1e293b] text-gray-400 font-bold">고등학교</button>
+                <button onclick="filterSchool('대학교')" class="sch-tab px-4 py-2 text-sm rounded-lg bg-[#1e293b] text-gray-400 font-bold">대학교</button>
+                <!-- 👇 특수학교 추가 👇 -->
+                <button onclick="filterSchool('특수학교')" class="sch-tab px-4 py-2 text-sm rounded-lg bg-[#1e293b] text-gray-400 font-bold">특수학교</button>
             </div>
 
             <div id="activityTabGroup" class="hidden flex flex-wrap gap-2 mb-4">
@@ -554,6 +558,7 @@
         
         let sisulData = [];
         let popData = {}; 
+		let schoolData = {};
 		const districtData = {
           "서울특별시": ["종로구", "중구", "용산구", "성동구", "광진구", "동대문구", "중랑구", "성북구", "강북구", "도봉구", "노원구", "은평구", "서대문구", "마포구", "양천구", "강서구", "구로구", "금천구", "영등포구", "동작구", "관악구", "서초구", "강남구", "송파구", "강동구"],
           "부산광역시": ["중구", "서구", "동구", "영도구", "부산진구", "동래구", "남구", "북구", "해운대구", "사하구", "금정구", "강서구", "연제구", "수영구", "사상구", "기장군"],
@@ -626,13 +631,6 @@
             '청소년특화시설': [], '청소년야영장': [], '유스호스텔': []
         };
 
-        const schoolDataStore = {
-            '초등학교': [605, 304, 230, 260, 150, 145, 120, 52, 1320, 350, 260, 420, 415, 425, 470, 520, 113],
-            '중학교': [390, 170, 125, 135, 90, 88, 64, 26, 640, 160, 128, 188, 210, 250, 270, 268, 45],
-            '고등학교': [320, 142, 93, 125, 67, 62, 57, 21, 480, 115, 84, 117, 133, 142, 185, 190, 30],
-            '대학교': [64, 22, 11, 10, 17, 19, 4, 3, 75, 9, 17, 21, 20, 21, 33, 22, 4]
-        };
-
         const activityDataStore = {
             '청소년방과후아카데미': [45, 18, 12, 15, 9, 11, 8, 3, 65, 14, 12, 16, 22, 25, 32, 40, 5],
             '청소년자원봉사활동': [180, 55, 42, 50, 32, 28, 20, 12, 220, 45, 38, 55, 75, 82, 95, 110, 15],
@@ -664,9 +662,7 @@
         };
 
         function getRegionData(regionName) {
-            let actualPop = 0;
-            
-            // 👇👇 [수정] 전남광주통합특별시 인구 합산 예외 처리 👇👇
+			let actualPop = 0;
             if (regionName === "전남광주통합특별시") {
                 let pop1 = (popData["광주광역시"] && popData["광주광역시"]["소계"]) ? popData["광주광역시"]["소계"]["총인구수"]["2026.06월"] || 0 : 0;
                 let pop2 = (popData["전라남도"] && popData["전라남도"]["소계"]) ? popData["전라남도"]["소계"]["총인구수"]["2026.06월"] || 0 : 0;
@@ -685,21 +681,21 @@
                 return rIdx !== -1 ? facilityDataStore[type][rIdx] : 0;
             };
 
-            // 👇👇 [수정] 차트에 쓰일 학교, 활동, 지도자 데이터도 합산 👇👇
-            let sch1_val=0, sch2_val=0, sch3_val=0, act1_val=0, act2_val=0, act3_val=0, act4_val=0, act5_val=0, act6_val=0, act7_val=0, act8_val=0, act9_val=0;
-            
-            if (regionName === "전남광주통합특별시") {
-                const idx1 = regionsList.indexOf("광주광역시");
-                const idx2 = regionsList.indexOf("전라남도");
-                sch1_val = schoolDataStore['초등학교'][idx1] + schoolDataStore['초등학교'][idx2];
-                sch2_val = schoolDataStore['중학교'][idx1] + schoolDataStore['중학교'][idx2];
-                sch3_val = schoolDataStore['고등학교'][idx1] + schoolDataStore['고등학교'][idx2];
-                act1_val = activityDataStore['청소년자원봉사활동'][idx1] + activityDataStore['청소년자원봉사활동'][idx2];
-                // ... (나머지 활동들도 실제로는 배열에서 가져와야 하지만, 현재 seed 기반 하드코딩이므로 시드 2배로 임시 처리)
-            }
-            
+            // 👇👇 [추가] school.json에서 실제 학교수 가져오기 로직 👇👇
+            const targetYear = "2025년"; // 최신 연도 기준 (데이터 연도에 맞게 조정 가능)
+            const getSchCount = (schType) => {
+                if (regionName === "전남광주통합특별시") {
+                    let s1 = (schoolData["광주광역시"] && schoolData["광주광역시"][schType] && schoolData["광주광역시"][schType][targetYear]) ? schoolData["광주광역시"][schType][targetYear]["학교수"] || 0 : 0;
+                    let s2 = (schoolData["전라남도"] && schoolData["전라남도"][schType] && schoolData["전라남도"][schType][targetYear]) ? schoolData["전라남도"][schType][targetYear]["학교수"] || 0 : 0;
+                    return s1 + s2;
+                }
+                if (schoolData[regionName] && schoolData[regionName][schType] && schoolData[regionName][schType][targetYear]) {
+                    return schoolData[regionName][schType][targetYear]["학교수"] || 0;
+                }
+                return 0;
+            };
+
             const seed = regionName.length + (regionName.charCodeAt(0) % 10); 
-            console.log(`🔍 [디버깅 - getRegionData] 지역: ${regionName}, 추출된 총인구수: ${actualPop}`);
 
             return {
                 pop: actualPop, 
@@ -709,9 +705,14 @@
                 fac1: getFacCount('청소년수련관'), fac2: getFacCount('청소년문화의집'), fac3: getFacCount('청소년수련원'), 
                 fac4: getFacCount('청소년특화시설'), fac5: getFacCount('청소년야영장'), fac6: getFacCount('유스호스텔'),
                 
-                // 실제 배열값이 있으면 그걸 쓰고 없으면 seed로 생성
-                sch1: sch1_val || seed * 100 + 50, sch2: sch2_val || seed * 50 + 20, sch3: sch3_val || seed * 40 + 10,
-                act1: act1_val || seed * 100 + 200, act2: seed * 10 + 20, act3: seed * 20 + 30, act4: seed * 15 + 10,
+                // 실제 학교 데이터 매핑!
+                sch1: getSchCount('초등학교'), 
+                sch2: getSchCount('중학교'), 
+                sch3: getSchCount('고등학교'),
+                sch4: getSchCount('대학교'),
+                sch5: getSchCount('특수학교'),
+                
+                act1: seed * 100 + 200, act2: seed * 10 + 20, act3: seed * 20 + 30, act4: seed * 15 + 10,
                 act5: seed * 30 + 50, act6: seed * 50 + 100, act7: seed * 5 + 10, act8: seed * 2, act9: seed * 25 + 20,
                 lead1: seed * 120 + 300, lead2: seed * 90 + 200
             };
@@ -728,7 +729,7 @@
             setText('statStudents', parseNum(d.std).toLocaleString() + "명");
             
             for(let i=1; i<=6; i++) setText('fac'+i, parseNum(d['fac'+i]).toLocaleString() + "개");
-            for(let i=1; i<=3; i++) setText('sch'+i, parseNum(d['sch'+i]).toLocaleString() + "개");
+            for(let i=1; i<=5; i++) setText('sch'+i, parseNum(d['sch'+i]).toLocaleString() + "개");
             for(let i=1; i<=9; i++) setText('act_val_'+i, parseNum(d['act'+i]).toLocaleString() + "개");
             setText('lead1', parseNum(d.lead1).toLocaleString() + "명"); 
             setText('lead2', parseNum(d.lead2).toLocaleString() + "명");
@@ -865,6 +866,26 @@
                     applyDataToUI(defaultStats, true, "");
                 })
                 .catch(err => console.error('인구 데이터 실패.', err));
+				
+			// 4. 학교 데이터 로드 (school.json)
+			fetch('data/school.json') 
+				.then(res => res.json())
+				.then(data => {
+					// 지도 기준 이름으로 강제 매핑
+					const schRegionMap = {
+						"강원특별자치도": "강원도", "전북특별자치도": "전라북도", "서울": "서울특별시", "부산": "부산광역시", "대구": "대구광역시", "인천": "인천광역시", "광주": "광주광역시", "대전": "대전광역시", "울산": "울산광역시", "세종": "세종특별자치시", "경기": "경기도", "충북": "충청북도", "충남": "충청남도", "전북": "전라북도", "전남": "전라남도", "경북": "경상북도", "경남": "경상남도", "제주": "제주특별자치도", "제주도": "제주특별자치도"
+					};
+
+					schoolData = {};
+					Object.keys(data).forEach(key => {
+						let newKey = schRegionMap[key.trim()] || key.trim();
+						schoolData[newKey] = data[key];
+					});
+				
+					console.log(`🐞 [디버깅 - Fetch] school.json 로드 완료.`);
+					applyDataToUI(defaultStats, true, ""); // 최신 데이터로 화면 새로고침
+				})
+				.catch(err => console.error('학교 데이터 실패.', err));
 
             window.addEventListener('resize', () => {
                 if(mapMain && !mainView.classList.contains('hidden')) { mapMain.invalidateSize(); if(geojsonMain) mapMain.fitBounds(geojsonMain.getBounds(), { animate: false }); }
@@ -1308,7 +1329,7 @@
             }
 
             const facilityItems = ['청소년시설 전체보기', '청소년수련관', '청소년문화의집', '청소년수련원', '청소년특화시설', '청소년야영장', '유스호스텔'];
-            const schoolItems = ['학교 전체보기', '초등학교', '중학교', '고등학교', '대학교'];
+            const schoolItems = ['학교 전체보기', '초등학교', '중학교', '고등학교', '대학교', '특수학교'];
             const activityItems = ['청소년활동 전체보기', '청소년방과후아카데미', '청소년자원봉사활동', '국제청소년성취포상제', '청소년자기도전포상제', '수련활동인증제', '수련활동신고제', '참여활동(특별회의,참여위원회)', '국제교류', '그룹활동'];
             const leaderItems = ['청소년지도자 전체보기', '청소년지도사 인원', '청소년상담사 인원'];
             
@@ -1356,18 +1377,42 @@
             }
             else if (schoolItems.includes(title)) {
                 const isAllView = title === '학교 전체보기';
-                const types = ['초등학교', '중학교', '고등학교', '대학교'];
-                const colors = ['#3b82f6', '#10b981', '#f97316', '#a855f7'];
+                const types = ['초등학교', '중학교', '고등학교', '대학교', '특수학교'];
+                const colors = ['#3b82f6', '#10b981', '#f97316', '#a855f7', '#ec4899'];
+                
+                // 현재 슬라이더의 연도 가져오기 (예: "2025년")
+                const currentYear = document.getElementById('yearSlider').value + "년";
+
+                // 특정 교급의 지역별 배열 17개를 쭈욱 뽑아주는 헬퍼 함수
+                const getSchoolArrayForChart = (schType) => {
+                    let arr = [];
+                    regionsList.forEach(region => {
+                        let val = 0;
+                        if (region === "전남광주통합특별시") {
+                            let v1 = (schoolData["광주광역시"] && schoolData["광주광역시"][schType] && schoolData["광주광역시"][schType][currentYear]) ? schoolData["광주광역시"][schType][currentYear]["학교수"] || 0 : 0;
+                            let v2 = (schoolData["전라남도"] && schoolData["전라남도"][schType] && schoolData["전라남도"][schType][currentYear]) ? schoolData["전라남도"][schType][currentYear]["학교수"] || 0 : 0;
+                            val = v1 + v2;
+                        } else {
+                            if (schoolData[region] && schoolData[region][schType] && schoolData[region][schType][currentYear]) {
+                                val = schoolData[region][schType][currentYear]["학교수"] || 0;
+                            }
+                        }
+                        arr.push(val);
+                    });
+                    return arr;
+                };
 
                 if (isAllView) {
                     types.forEach((type, idx) => {
-                        datasets.push({ label: type, data: schoolDataStore[type], backgroundColor: colors[idx], borderRadius: 0, barPercentage: 0.5 });
-                        schoolDataStore[type].forEach((val, i) => totalDataArray[i] += val);
+                        let typeDataArr = getSchoolArrayForChart(type);
+                        datasets.push({ label: type, data: typeDataArr, backgroundColor: colors[idx], borderRadius: 0, barPercentage: 0.5 });
+                        typeDataArr.forEach((val, i) => totalDataArray[i] += val);
                     });
                 } else {
                     const idx = types.indexOf(title);
-                    datasets = [{ label: title, data: schoolDataStore[title], backgroundColor: colors[idx] || '#3b82f6', borderRadius: 0, barPercentage: 0.5 }];
-                    totalDataArray = [...schoolDataStore[title]];
+                    let typeDataArr = getSchoolArrayForChart(title);
+                    datasets = [{ label: title, data: typeDataArr, backgroundColor: colors[idx] || '#3b82f6', borderRadius: 0, barPercentage: 0.5 }];
+                    totalDataArray = [...typeDataArr];
                 }
                 mapDataExtracted = true;
 
