@@ -719,7 +719,7 @@
         }
 
         function applyDataToUI(d, isDefault, regionName) {
-            console.log(`🖥️ [디버깅 - applyDataToUI] 갱신 대상: ${isDefault ? '전국기본값' : regionName}, 인구: ${d.pop}, 시설합계: ${d.fac1 + d.fac2 + d.fac3 + d.fac4 + d.fac5 + d.fac6}`);
+            console.log(`🖥️ [디버깅 - applyDataToUI] 갱신 대상: ${isDefault ? '전국기본값' : regionName}`);
             
             const noticeEl = document.getElementById('activeRegionNotice');
             if(noticeEl) noticeEl.innerHTML = isDefault ? "(현재 전국 통합 보기)" : `현재 선택된 지역: <span class="text-brand-yellow font-bold">[ ${regionName} ]</span>`;
@@ -729,6 +729,7 @@
             setText('statStudents', parseNum(d.std).toLocaleString() + "명");
             
             for(let i=1; i<=6; i++) setText('fac'+i, parseNum(d['fac'+i]).toLocaleString() + "개");
+            // 👇 [수정] 학교가 5개로 늘어났으므로 1~5까지 반영
             for(let i=1; i<=5; i++) setText('sch'+i, parseNum(d['sch'+i]).toLocaleString() + "개");
             for(let i=1; i<=9; i++) setText('act_val_'+i, parseNum(d['act'+i]).toLocaleString() + "개");
             setText('lead1', parseNum(d.lead1).toLocaleString() + "명"); 
@@ -736,7 +737,10 @@
 
             setText('sumPop', parseNum(d.pop).toLocaleString() + "명");
             setText('sumFac', (parseNum(d.fac1) + parseNum(d.fac2) + parseNum(d.fac3) + parseNum(d.fac4) + parseNum(d.fac5) + parseNum(d.fac6)).toLocaleString() + "개소");
-            setText('sumSch', (parseNum(d.sch1) + parseNum(d.sch2) + parseNum(d.sch3)).toLocaleString() + "개교");
+            
+            // 👇 [수정] 대학교(sch4), 특수학교(sch5)까지 합산하여 총 학교수 표시
+            setText('sumSch', (parseNum(d.sch1) + parseNum(d.sch2) + parseNum(d.sch3) + parseNum(d.sch4) + parseNum(d.sch5)).toLocaleString() + "개교");
+            
             setText('sumAct', (parseNum(d.act1) + parseNum(d.act2) + parseNum(d.act3) + parseNum(d.act4) + parseNum(d.act5) + parseNum(d.act6) + parseNum(d.act7) + parseNum(d.act8) + parseNum(d.act9)).toLocaleString() + "개");
             setText('sumLead', (parseNum(d.lead1) + parseNum(d.lead2)).toLocaleString() + "명");
         }
@@ -869,23 +873,23 @@
 				
 			// 4. 학교 데이터 로드 (school.json)
 			fetch('data/school.json') 
-				.then(res => res.json())
-				.then(data => {
-					// 지도 기준 이름으로 강제 매핑
-					const schRegionMap = {
-						"강원특별자치도": "강원도", "전북특별자치도": "전라북도", "서울": "서울특별시", "부산": "부산광역시", "대구": "대구광역시", "인천": "인천광역시", "광주": "광주광역시", "대전": "대전광역시", "울산": "울산광역시", "세종": "세종특별자치시", "경기": "경기도", "충북": "충청북도", "충남": "충청남도", "전북": "전라북도", "전남": "전라남도", "경북": "경상북도", "경남": "경상남도", "제주": "제주특별자치도", "제주도": "제주특별자치도"
-					};
+                .then(res => res.json())
+                .then(data => {
+                    const schRegionMap = {
+                        "강원특별자치도": "강원도", "전북특별자치도": "전라북도", "서울": "서울특별시", "부산": "부산광역시", "대구": "대구광역시", "인천": "인천광역시", "광주": "광주광역시", "대전": "대전광역시", "울산": "울산광역시", "세종": "세종특별자치시", "경기": "경기도", "충북": "충청북도", "충남": "충청남도", "전북": "전라북도", "전남": "전라남도", "경북": "경상북도", "경남": "경상남도", "제주": "제주특별자치도", "제주도": "제주특별자치도"
+                    };
 
-					schoolData = {};
-					Object.keys(data).forEach(key => {
-						let newKey = schRegionMap[key.trim()] || key.trim();
-						schoolData[newKey] = data[key];
-					});
-				
-					console.log(`🐞 [디버깅 - Fetch] school.json 로드 완료.`);
-					applyDataToUI(defaultStats, true, ""); // 최신 데이터로 화면 새로고침
-				})
-				.catch(err => console.error('학교 데이터 실패.', err));
+                    schoolData = {};
+                    Object.keys(data).forEach(key => {
+                        let newKey = schRegionMap[key.trim()] || key.trim();
+                        schoolData[newKey] = data[key];
+                    });
+                
+                    console.log(`🐞 [디버깅 - Fetch] school.json 로드 완료.`);
+                    // 👇 [수정] defaultStats 대신 getRegionData("전국")으로 최신 데이터를 뽑아서 UI에 반영합니다!
+                    applyDataToUI(getRegionData("전국"), true, "전국"); 
+                })
+                .catch(err => console.error('학교 데이터 실패.', err));
 
             window.addEventListener('resize', () => {
                 if(mapMain && !mainView.classList.contains('hidden')) { mapMain.invalidateSize(); if(geojsonMain) mapMain.fitBounds(geojsonMain.getBounds(), { animate: false }); }
@@ -1380,21 +1384,19 @@
                 const types = ['초등학교', '중학교', '고등학교', '대학교', '특수학교'];
                 const colors = ['#3b82f6', '#10b981', '#f97316', '#a855f7', '#ec4899'];
                 
-                // 현재 슬라이더의 연도 가져오기 (예: "2025년")
                 const currentYear = document.getElementById('yearSlider').value + "년";
 
-                // 특정 교급의 지역별 배열 17개를 쭈욱 뽑아주는 헬퍼 함수
-                const getSchoolArrayForChart = (schType) => {
+                const getSchoolArrayForChart = (schType, metric="학교수") => {
                     let arr = [];
                     regionsList.forEach(region => {
                         let val = 0;
                         if (region === "전남광주통합특별시") {
-                            let v1 = (schoolData["광주광역시"] && schoolData["광주광역시"][schType] && schoolData["광주광역시"][schType][currentYear]) ? schoolData["광주광역시"][schType][currentYear]["학교수"] || 0 : 0;
-                            let v2 = (schoolData["전라남도"] && schoolData["전라남도"][schType] && schoolData["전라남도"][schType][currentYear]) ? schoolData["전라남도"][schType][currentYear]["학교수"] || 0 : 0;
+                            let v1 = (schoolData["광주광역시"] && schoolData["광주광역시"][schType] && schoolData["광주광역시"][schType][currentYear]) ? schoolData["광주광역시"][schType][currentYear][metric] || 0 : 0;
+                            let v2 = (schoolData["전라남도"] && schoolData["전라남도"][schType] && schoolData["전라남도"][schType][currentYear]) ? schoolData["전라남도"][schType][currentYear][metric] || 0 : 0;
                             val = v1 + v2;
                         } else {
                             if (schoolData[region] && schoolData[region][schType] && schoolData[region][schType][currentYear]) {
-                                val = schoolData[region][schType][currentYear]["학교수"] || 0;
+                                val = schoolData[region][schType][currentYear][metric] || 0;
                             }
                         }
                         arr.push(val);
@@ -1404,15 +1406,22 @@
 
                 if (isAllView) {
                     types.forEach((type, idx) => {
-                        let typeDataArr = getSchoolArrayForChart(type);
+                        let typeDataArr = getSchoolArrayForChart(type, "학교수");
                         datasets.push({ label: type, data: typeDataArr, backgroundColor: colors[idx], borderRadius: 0, barPercentage: 0.5 });
                         typeDataArr.forEach((val, i) => totalDataArray[i] += val);
                     });
                 } else {
                     const idx = types.indexOf(title);
-                    let typeDataArr = getSchoolArrayForChart(title);
+                    let typeDataArr = getSchoolArrayForChart(title, "학교수");
                     datasets = [{ label: title, data: typeDataArr, backgroundColor: colors[idx] || '#3b82f6', borderRadius: 0, barPercentage: 0.5 }];
                     totalDataArray = [...typeDataArr];
+                    
+                    // 👇 [추가] 특정 교급 선택 시 하단에 '데이터 상세 표' 생성 👇
+                    tableHeaders = ['시도명', '기준 연도', '학교수 (개교)', '학생수 (명)'];
+                    let studentArr = getSchoolArrayForChart(title, "학생수");
+                    regionsList.forEach((r, i) => {
+                        tableRows.push([r, currentYear, typeDataArr[i].toLocaleString(), `<span class="text-brand-dark">${studentArr[i].toLocaleString()}</span>`]);
+                    });
                 }
                 mapDataExtracted = true;
 
@@ -1576,7 +1585,15 @@
             const mapDataObj = {};
             regionsList.forEach((r, i) => { mapDataObj[r] = currentMale[i] + currentFemale[i]; });
             updateTrendMapColors(mapDataObj);
-        }
+
+            // 👇 [추가] 만약 현재 보고 있는 화면이 학교 관련 통계라면, 차트와 표를 즉시 다시 그립니다!
+            const currentTitle = document.getElementById('trendViewTitle').textContent;
+            const schoolItems = ['학교 전체보기', '초등학교', '중학교', '고등학교', '대학교', '특수학교'];
+            if (schoolItems.includes(currentTitle)) {
+                renderCharts(currentTitle);
+            }
+
+        } // slideYear 함수 끝
 
         function toggleAiChat() { document.getElementById('aiChatWindow').classList.toggle('hidden'); }
         function openAiRecommenderModal() { document.getElementById('aiModal').classList.remove('hidden'); document.getElementById('aiModal').classList.add('flex'); }
