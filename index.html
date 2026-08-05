@@ -1807,7 +1807,11 @@
 					// 시군구별 학교수는 시설수 비율에 맞춰 추정 분배 (데이터 한계 보완)
 					schoolCount = Math.floor(facCount * (provSchool / provFac)) || 1; 
 				}
-			}
+			}// 🔍 [디버깅 로그 출력] F12 콘솔창에서 이 값들을 꼭 확인해 보세요!
+			console.log(`[디버깅] 모드: ${mode} | 선택지역: ${regionName}`);
+			console.log(` - 추출된 인구(pop):`, pop, `| 기준 전체인구(natPop/provPop):`, mode==='province'? natPop : provPop);
+			console.log(` - 추출된 시설수(facCount):`, facCount, `| 기준 전체시설(natFac/provFac):`, mode==='province'? natFac : provFac);
+			console.log(` - 추출된 학교수(schoolCount):`, schoolCount, `| 기준 전체학교(natSchool/provSchool):`, mode==='province'? natSchool : provSchool);
 
 			// ----------------------------------------------------
 			// 4. 공식 적용: (선택지역 / 기준지역) * 100
