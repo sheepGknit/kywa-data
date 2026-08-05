@@ -1191,6 +1191,7 @@
 					model: 'gemini-2.5-flash',
 					contents: prompt,
 				});
+                console.log('AI 지역분석결과 : ',response);
 
 				if (response && response.text) {
 					insightEl.textContent = response.text.trim();
@@ -2006,7 +2007,7 @@
 		}
 		
 		// --- [6] 비교 분석 실행 (차트 그리기 & 표 채우기) ---
-		function runComparison() {
+		async function runComparison() {
 			const mode = currentCompareMode;
 
 			let nameA, nameB;
@@ -2063,53 +2064,131 @@
 			});
 			document.getElementById('compareTableBody').innerHTML = trHtml;
 
-			// AI 인사이트 생성 (Mock 로직)
 			let insight = `<i class="ph ph-spinner animate-spin"></i> AI가 두 지역의 지표를 비교 분석하고 있습니다...`;
-			document.getElementById('compareInsightText').innerHTML = insight;
-			
-			setTimeout(() => {
-				const diff = dataA.reduce((sum, val, i) => sum + (val - dataB[i]), 0);
-				if (diff > 10) insight = `<span class="text-brand-yellow font-bold">${nameA}</span>는 ${nameB} 대비 전반적인 인프라 및 전문인력 지표가 우수합니다. 우수 사례를 타 지역으로 확산하는 벤치마킹 모델로 활용 가능합니다.`;
-				else if (diff < -10) insight = `<span class="text-brand-yellow font-bold">${nameA}</span>는 수요(인구) 대비 프로그램 및 인프라 공급이 ${nameB}에 비해 부족합니다. 예산 우선 투입을 통한 정책 사각지대 해소가 시급합니다.`;
-				else insight = `<span class="text-brand-yellow font-bold">${nameA}</span>와 ${nameB}는 전반적으로 균형 잡힌 정책 인프라를 보유하고 있습니다. 세부 프로그램 내용의 다각화가 필요합니다.`;
-				document.getElementById('compareInsightText').innerHTML = insight;
-			}, 800);
+			// AI 인사이트 생성 (Gemini API 연동)
+			document.getElementById('compareInsightText').innerHTML = `<i class="ph ph-spinner animate-spin"></i> AI가 <span class="text-brand-yellow font-bold">${nameA}</span>와 <span class="text-brand-yellow font-bold">${nameB}</span>의 지표를 실시간으로 비교 분석 중입니다...`;
+
+			try {
+				// 💡 API 키 입력
+				const API_KEY = "YOUR_GEMINI_API_KEY"; 
+
+				if (!API_KEY || API_KEY === "YOUR_GEMINI_API_KEY") {
+					document.getElementById('compareInsightText').innerHTML = `<span class="text-brand-yellow font-bold">${nameA}</span>와 <span class="text-brand-yellow font-bold">${nameB}</span>의 비교가 완료되었습니다. (API 키를 입력하면 세부 정책 분석이 출력됩니다.)`;
+				} else {
+					const { GoogleGenAI } = await import("@google/genai");
+					const ai = new GoogleGenAI({ apiKey: API_KEY });
+
+					const prompt = `
+						너는 대한민국 청소년 정책 및 인프라 비교 분석 전문가야.
+						아래 두 지역의 평가 지표 데이터를 비교하여, 주요 격차 원인과 정책적 제언을 2~3문장 이내로 핵심만 요약해줘.
+
+						- 비교 모드: ${mode === 'province' ? '시·도 간 비교' : '시·군·구 간 비교'}
+						- 기준 지역 (A): ${nameA} [청소년인구 비중: ${dataA[0]}%, 수련시설 비중: ${dataA[1]}%, 정책사업 비중: ${dataA[2]}%]
+						- 비교 대상 (B): ${nameB} [청소년인구 비중: ${dataB[0]}%, 수련시설 비중: ${dataB[1]}%, 정책사업 비중: ${dataB[2]}%]
+
+						[요구사항]
+						- 마크다운 서식 없이 순수 텍스트로 작성할 것.
+						- 강조가 필요한 지역명이나 핵심 단어는 <span class="text-brand-yellow font-bold">지역명</span> 태그를 사용할 것.
+					`;
+
+					const response = await ai.models.generateContent({
+						model: 'gemini-2.5-flash',
+						contents: prompt,
+					});
+
+					if (response && response.text) {
+						document.getElementById('compareInsightText').innerHTML = response.text.trim();
+					} else {
+						document.getElementById('compareInsightText').textContent = `${nameA}와 ${nameB}의 인프라 및 인구 지표 비교 분석이 완료되었습니다.`;
+					}
+				}
+			} catch (error) {
+				console.error("AI 지표 비교 분석 실패:", error);
+				document.getElementById('compareInsightText').textContent = `${nameA}와 ${nameB}의 비교 데이터를 분석하는 도중 오류가 발생했습니다.`;
+			}
 		}
 
 
 
-        function generateAiRecommendation() {
-            const interest = document.getElementById('aiInterest').value;
-            const age = document.getElementById('aiAge').value;
-            const area = document.getElementById('aiArea').value;
+        // --- [진짜 AI 연동형] AI 맞춤형 청소년활동 추천 생성 함수 ---
+		async function generateAiRecommendation() {
+			const area = document.getElementById('aiArea').value;
+			const interest = document.getElementById('aiInterest').value;
+			const age = document.getElementById('aiAge').value;
+			const goal = document.getElementById('aiGoal').value;
 
-            document.getElementById('aiResultContainer').classList.remove('hidden');
-            document.getElementById('aiResultContent').innerHTML = `<div class="flex items-center gap-2 text-brand-dark font-bold"><i class="ph ph-spinner-gap animate-spin text-brand-yellow text-lg"></i> AI가 전국 청소년시설 데이터를 탐색 중입니다...</div>`;
-            
-            setTimeout(() => {
-                document.getElementById('aiResultContent').innerHTML = `
-                    <div class="mb-3 text-sm text-gray-700">
-                        <span class="font-bold text-brand-dark">'${area}'</span> 지역의 <span class="font-bold text-brand-dark">'${interest}'</span> 분야, <span class="font-bold text-brand-dark">'${age}'</span> 맞춤 추천입니다.
-                    </div>
-                    <div class="space-y-3">
-                        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm relative overflow-hidden">
-                            <div class="absolute top-0 left-0 w-1 h-full bg-brand-yellow"></div>
-                            <div class="flex justify-between items-start mb-1">
-                                <h4 class="font-bold text-brand-dark text-[15px] leading-tight flex-1">[에코-코딩] 지구를 구하는 AI 로봇 만들기</h4>
-                            </div>
-                            <p class="text-[11px] text-gray-500 mb-2 font-bold"><i class="ph-fill ph-buildings text-gray-400"></i> ${area} 청소년센터</p>
-                            <p class="text-[12px] text-gray-600 mb-2 bg-gray-50 p-2 rounded-lg border border-gray-100 leading-relaxed">
-                                환경 문제 해결을 주제로 AI 기초를 배우고, 직접 재활용품 분리수거 로봇을 제작합니다.
-                            </p>
-                            <div class="flex justify-between items-center">
-                                <div class="text-[11px] text-gray-500 font-bold"><i class="ph-fill ph-phone text-brand-yellow"></i> 02-3153-5900</div>
-                                <button class="text-[12px] text-brand-yellow font-bold hover:text-amber-500 transition-colors">상세보기 &rarr;</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }, 1500);
-        }
+			const container = document.getElementById('aiResultContainer');
+			const content = document.getElementById('aiResultContent');
+
+			container.classList.remove('hidden');
+			content.innerHTML = `<div class="flex items-center gap-2 text-brand-dark font-bold py-4"><i class="ph ph-spinner-gap animate-spin text-brand-yellow text-xl"></i> AI가 '${area}'의 실데이터와 관심사를 분석하여 맞춤 프로그램을 생성 중입니다...</div>`;
+
+			// 선택 지역의 실제 등록 프로그램 최대 5개 추출하여 프롬프트 참고 자료로 전달
+			const matchedPrograms = programsData.filter(p => (p.sidoNm === area || area.includes(p.sidoNm))).slice(0, 5);
+			const programContext = matchedPrograms.length > 0 
+				? matchedPrograms.map(p => `- 프로그램명: ${p.activityName} / 운영기관: ${p.facilityName || '시설 미정'}`).join('\n')
+				: '등록된 세부 프로그램 정보 없음';
+
+			try {
+				// 💡 API 키 입력
+				const API_KEY = "YOUR_GEMINI_API_KEY"; 
+
+				if (!API_KEY || API_KEY === "YOUR_GEMINI_API_KEY") {
+					content.innerHTML = `<div class="p-4 bg-amber-50 text-amber-800 rounded-xl font-bold text-xs">API 키가 설정되지 않았습니다. 코드 내부의 API_KEY 변수에 실제 키를 입력해주세요.</div>`;
+					return;
+				}
+
+				const { GoogleGenAI } = await import("@google/genai");
+				const ai = new GoogleGenAI({ apiKey: API_KEY });
+
+				const prompt = `
+					너는 대한민국 청소년활동 맞춤형 추천 전문가야.
+					사용자의 입력 정보와 해당 지역에 실제로 등록된 프로그램 목록을 참고해서, 맞춤형 추천 프로그램 1~2개를 생성해줘.
+
+					[사용자 입력 정보]
+					- 희망 지역: ${area}
+					- 관심 분야: ${interest}
+					- 연령대: ${age}
+					- 희망/목표: ${goal || '없음'}
+
+					[지역 실제 등록 프로그램 참고 데이터]
+					${programContext}
+
+					[출력 요구사항]
+					마크다운 코드블록(\`\`\`html) 없이 아래 구조의 순수 HTML 태그 형태로만 출력해줘:
+
+					<div class="mb-3 text-sm text-gray-700">
+						<span class="font-bold text-brand-dark">'${area}'</span> 지역 <span class="font-bold text-brand-dark">'${interest}'</span> 분야, <span class="font-bold text-brand-dark">'${age}'</span> 맞춤 분석 결과입니다.
+					</div>
+					<div class="space-y-3">
+						<div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm relative overflow-hidden">
+							<div class="absolute top-0 left-0 w-1 h-full bg-brand-yellow"></div>
+							<h4 class="font-bold text-brand-dark text-[15px] mb-1">[추천 프로그램 이름]</h4>
+							<p class="text-[11px] text-gray-500 mb-2 font-bold"><i class="ph-fill ph-buildings text-gray-400"></i> [운영 기관명]</p>
+							<p class="text-[12px] text-gray-600 mb-2 bg-gray-50 p-2 rounded-lg border border-gray-100 leading-relaxed">
+								[추천 이유 및 프로그램 세부 설명]
+							</p>
+							<div class="text-[11px] text-brand-dark font-bold"><i class="ph-bold ph-check-circle text-brand-yellow"></i> [기대 효과 및 참여 팁]</div>
+						</div>
+					</div>
+				`;
+
+				const response = await ai.models.generateContent({
+					model: 'gemini-2.5-flash',
+					contents: prompt,
+				});
+
+				if (response && response.text) {
+					content.innerHTML = response.text.replace(/```html|```/g, '').trim();
+				} else {
+					content.innerHTML = `<div class="text-xs text-gray-500">추천 결과를 생성하지 못했습니다. 다시 시도해 주세요.</div>`;
+				}
+
+			} catch (error) {
+				console.error("AI 추천 생성 실패:", error);
+				content.innerHTML = `<div class="text-xs text-red-500 font-bold p-3">AI 추천 생성 중 오류가 발생했습니다. (키 확인 또는 네트워크 상태 점검 필요)</div>`;
+			}
+		}
     </script>
 </body>
 </html>
