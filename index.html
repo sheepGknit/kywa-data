@@ -747,7 +747,7 @@
 
 			const seed = regionName.length + (regionName.charCodeAt(0) % 10) || 5; 
 
-			// 4. 🌟 [핵심 수정] programs.json 기반으로 특정 지역의 활동 유형별 개수를 정확히 집계하는 로직
+			// 4. 🌟 [핵심 수정] programs.json 기반으로 특정 지역의 활동 유형별 개수를 정확히 집계하는 로직 (양방향 통합 대응)
 			const getActivityCountByRegion = (targetType) => {
 				if (!programsData || programsData.length === 0) return 0;
 
@@ -765,10 +765,15 @@
 
 					if (mappedType === targetType) {
 						let sido = (item.sidoNm || "").trim();
+						
 						if (regionName === "전국") {
 							count++;
 						} else if (regionName === "전남광주통합특별시") {
-							if (sido === "광주광역시" || sido === "전라남도") count++;
+							// '전남광주통합특별시'를 조회할 때 광주, 전남, 통합 명칭 모두 포용
+							if (sido === "광주광역시" || sido === "전라남도" || sido === "전남광주통합특별시") count++;
+						} else if (regionName === "광주광역시" || regionName === "전라남도") {
+							// 개별 '광주'나 '전남'을 조회할 때 통합 명칭으로 적힌 데이터도 함께 포용
+							if (sido === regionName || sido === "전남광주통합특별시") count++;
 						} else {
 							if (sido === regionName) count++;
 						}
@@ -989,6 +994,7 @@
 					
 					// 🗺️ 지역명 표준화 매핑 딕셔너리
 					const progRegionMap = {
+                        "전남광주통합특별시":"전남광주통합특별시",
 						"강원특별자치도": "강원도",
 						"전북특별자치도": "전라북도",
 						"강원": "강원도",
