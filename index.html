@@ -705,71 +705,108 @@
         };
 
         function getRegionData(regionName) {
-            // 1. 인구 데이터 가져오기
-            let actualPop = 0;
-            if (regionName === "전남광주통합특별시") {
-                let pop1 = (popData["광주광역시"] && popData["광주광역시"]["소계"]) ? popData["광주광역시"]["소계"]["총인구수"]["2026.06월"] || 0 : 0;
-                let pop2 = (popData["전라남도"] && popData["전라남도"]["소계"]) ? popData["전라남도"]["소계"]["총인구수"]["2026.06월"] || 0 : 0;
-                actualPop = pop1 + pop2;
-            } else if (regionName === "전국") { // 👇 전국 데이터 예외 처리
-                actualPop = (popData["전국"] && popData["전국"]["전국"]) ? popData["전국"]["전국"]["총인구수"]["2026.06월"] || 0 : 0;
-            } else if (popData[regionName] && popData[regionName]["소계"]) {
-                actualPop = popData[regionName]["소계"]["총인구수"]["2026.06월"] || 0;
-            }
+			// 1. 인구 데이터 가져오기
+			let actualPop = 0;
+			if (regionName === "전남광주통합특별시") {
+				let pop1 = (popData["광주광역시"] && popData["광주광역시"]["소계"]) ? popData["광주광역시"]["소계"]["총인구수"]["2026.06월"] || 0 : 0;
+				let pop2 = (popData["전라남도"] && popData["전라남도"]["소계"]) ? popData["전라남도"]["소계"]["총인구수"]["2026.06월"] || 0 : 0;
+				actualPop = pop1 + pop2;
+			} else if (regionName === "전국") {
+				actualPop = (popData["전국"] && popData["전국"]["전국"]) ? popData["전국"]["전국"]["총인구수"]["2026.06월"] || 0 : 0;
+			} else if (popData[regionName] && popData[regionName]["소계"]) {
+				actualPop = popData[regionName]["소계"]["총인구수"]["2026.06월"] || 0;
+			}
 
-            // 2. 시설 데이터 가져오기
-            let rIdx = regionsList.indexOf(regionName);
-            const getFacCount = (type) => {
-                if (regionName === "전국") { // 👇 전국 시설 합계 예외 처리
-                    return facilityDataStore[type].reduce((a, b) => a + b, 0);
-                }
-                if (regionName === "전남광주통합특별시") {
-                    const idx1 = regionsList.indexOf("광주광역시");
-                    const idx2 = regionsList.indexOf("전라남도");
-                    return (facilityDataStore[type][idx1] || 0) + (facilityDataStore[type][idx2] || 0);
-                }
-                return rIdx !== -1 ? facilityDataStore[type][rIdx] : 0;
-            };
+			// 2. 시설 데이터 가져오기
+			let rIdx = regionsList.indexOf(regionName);
+			const getFacCount = (type) => {
+				if (regionName === "전국") {
+					return facilityDataStore[type].reduce((a, b) => a + b, 0);
+				}
+				if (regionName === "전남광주통합특별시") {
+					const idx1 = regionsList.indexOf("광주광역시");
+					const idx2 = regionsList.indexOf("전라남도");
+					return (facilityDataStore[type][idx1] || 0) + (facilityDataStore[type][idx2] || 0);
+				}
+				return rIdx !== -1 ? facilityDataStore[type][rIdx] : 0;
+			};
 
-            // 3. 학교 데이터 가져오기
-            const targetYear = "2025년"; 
-            const getSchCount = (schType) => {
-                if (regionName === "전남광주통합특별시") {
-                    let s1 = (schoolData["광주광역시"] && schoolData["광주광역시"][schType] && schoolData["광주광역시"][schType][targetYear]) ? schoolData["광주광역시"][schType][targetYear]["학교수"] || 0 : 0;
-                    let s2 = (schoolData["전라남도"] && schoolData["전라남도"][schType] && schoolData["전라남도"][schType][targetYear]) ? schoolData["전라남도"][schType][targetYear]["학교수"] || 0 : 0;
-                    return s1 + s2;
-                }
-                if (schoolData[regionName] && schoolData[regionName][schType] && schoolData[regionName][schType][targetYear]) {
-                    return schoolData[regionName][schType][targetYear]["학교수"] || 0;
-                }
-                return 0;
-            };
+			// 3. 학교 데이터 가져오기
+			const targetYear = "2025년"; 
+			const getSchCount = (schType) => {
+				if (regionName === "전남광주통합특별시") {
+					let s1 = (schoolData["광주광역시"] && schoolData["광주광역시"][schType] && schoolData["광주광역시"][schType][targetYear]) ? schoolData["광주광역시"][schType][targetYear]["학교수"] || 0 : 0;
+					let s2 = (schoolData["전라남도"] && schoolData["전라남도"][schType] && schoolData["전라남도"][schType][targetYear]) ? schoolData["전라남도"][schType][targetYear]["학교수"] || 0 : 0;
+					return s1 + s2;
+				}
+				if (schoolData[regionName] && schoolData[regionName][schType] && schoolData[regionName][schType][targetYear]) {
+					return schoolData[regionName][schType][targetYear]["학교수"] || 0;
+				}
+				return 0;
+			};
 
-            const seed = regionName.length + (regionName.charCodeAt(0) % 10) || 5; 
+			const seed = regionName.length + (regionName.charCodeAt(0) % 10) || 5; 
 
-            // 4. 지도자 데이터 (전국일 경우 고정값 반환)
-            const lead1_val = regionName === "전국" ? 79793 : seed * 120 + 300;
-            const lead2_val = regionName === "전국" ? 47020 : seed * 90 + 200;
+			// 4. 🌟 [핵심 수정] programs.json 기반으로 특정 지역의 활동 유형별 개수를 정확히 집계하는 로직
+			const getActivityCountByRegion = (targetType) => {
+				if (!programsData || programsData.length === 0) return 0;
 
-            return {
-                pop: actualPop, 
-                schAge: Math.floor(actualPop * 0.7), 
-                std: Math.floor(actualPop * 0.65),
-                
-                fac1: getFacCount('청소년수련관'), fac2: getFacCount('청소년문화의집'), fac3: getFacCount('청소년수련원'), 
-                fac4: getFacCount('청소년특화시설'), fac5: getFacCount('청소년야영장'), fac6: getFacCount('유스호스텔'),
-                
-                sch1: getSchCount('초등학교'), sch2: getSchCount('중학교'), sch3: getSchCount('고등학교'),
-                sch4: getSchCount('대학교'), sch5: getSchCount('특수학교'),
-                
-                act1: regionName==="전국"?1204:seed * 100 + 200, act2: regionName==="전국"?342:seed * 10 + 20, 
-                act3: regionName==="전국"?510:seed * 20 + 30, act4: regionName==="전국"?350:seed * 15 + 10,
-                act5: regionName==="전국"?890:seed * 30 + 50, act6: regionName==="전국"?1450:seed * 50 + 100, 
-                act7: regionName==="전국"?262:seed * 5 + 10, act8: regionName==="전국"?45:seed * 2, act9: regionName==="전국"?542:seed * 25 + 20,
-                
-                lead1: lead1_val, lead2: lead2_val
-            };
-        }
+				let count = 0;
+				programsData.forEach(item => {
+					let pType = item.programType;
+					let mappedType = pType;
+					
+					// 맵핑 규칙 적용
+					if (pType === '신고연계 프로그램') mappedType = '수련활동신고제';
+					else if (pType === '인증연계(실시) 프로그램' || pType === '인증연계 프로그램') mappedType = '수련활동인증제';
+					else if (pType === '활동 프로그램') mappedType = '참여활동(특별회의,참여위원회)';
+					else if (pType === '유스내비 프로그램') mappedType = '그룹활동';
+					else if (pType === '방과후 아카데미') mappedType = '청소년방과후아카데미';
+
+					if (mappedType === targetType) {
+						let sido = (item.sidoNm || "").trim();
+						if (regionName === "전국") {
+							count++;
+						} else if (regionName === "전남광주통합특별시") {
+							if (sido === "광주광역시" || sido === "전라남도") count++;
+						} else {
+							if (sido === regionName) count++;
+						}
+					}
+				});
+				return count;
+			};
+
+			// 5. 지도자 데이터
+			const lead1_val = regionName === "전국" ? 79793 : seed * 120 + 300;
+			const lead2_val = regionName === "전국" ? 47020 : seed * 90 + 200;
+
+			return {
+				pop: actualPop, 
+				schAge: Math.floor(actualPop * 0.7), 
+				std: Math.floor(actualPop * 0.65),
+				
+				fac1: getFacCount('청소년수련관'), fac2: getFacCount('청소년문화의집'), fac3: getFacCount('청소년수련원'), 
+				fac4: getFacCount('청소년특화시설'), fac5: getFacCount('청소년야영장'), fac6: getFacCount('유스호스텔'),
+				
+				sch1: getSchCount('초등학교'), sch2: getSchCount('중학교'), sch3: getSchCount('고등학교'),
+				sch4: getSchCount('대학교'), sch5: getSchCount('특수학교'),
+				
+				// 👇 programs.json 기반 실시간 카운트 연동
+				act1: getActivityCountByRegion('청소년자원봉사활동'),
+				act2: getActivityCountByRegion('국제청소년성취포상제'),
+				act3: getActivityCountByRegion('청소년자기도전포상제'),
+				act4: getActivityCountByRegion('청소년방과후아카데미'),
+				act5: getActivityCountByRegion('수련활동인증제'),
+				act6: getActivityCountByRegion('수련활동신고제'),
+				act7: getActivityCountByRegion('참여활동(특별회의,참여위원회)'),
+				act8: getActivityCountByRegion('국제교류'),
+				act9: getActivityCountByRegion('그룹활동'),
+				
+				lead1: lead1_val, 
+				lead2: lead2_val
+			};
+		}
 
         function applyDataToUI(d, isDefault, regionName) {
             console.log(`🖥️ [디버깅 - applyDataToUI] 갱신 대상: ${isDefault ? '전국기본값' : regionName}`);
