@@ -2180,8 +2180,11 @@ async function updateDetailPanel(province, municipality) {
 				// 💡 API 키 입력
 				const API_KEY = "AQ.Ab8RN6IhZPKU-lX1GmWpO6usO15l7RJUbR8SA2UtaBYyeYBstg"; 
 
+                console.log(API_KEY)
+
 				if (!API_KEY || API_KEY === "AQ.Ab8RN6IhZPKU-lX1GmWpO6usO15l7RJUbR8SA2UtaBYyeYBstg") {
 					document.getElementById('compareInsightText').innerHTML = `<span class="text-brand-yellow font-bold">${nameA}</span>와 <span class="text-brand-yellow font-bold">${nameB}</span>의 비교가 완료되었습니다. (API 키를 입력하면 세부 정책 분석이 출력됩니다.)`;
+                    console.log(nameA,nameB)
 				} else {
 					
 					const prompt = `
