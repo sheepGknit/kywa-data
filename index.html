@@ -1350,7 +1350,7 @@ async function updateDetailPanel(province, municipality) {
 					html = `<div class="p-8 text-center text-gray-400 font-bold mt-10">해당 지역에 등록된 청소년 시설 데이터가 없습니다.</div>`;
 				} else {
 					filteredFacilities.forEach((fac) => {
-						const facilityName = fac.sisulNm || fac.fcltNm || '시설명 없음';
+						const facilityName = fac.facilityName || fac.sisulNm || fac.fcltNm || '시설명 없음';
 						
 						let type = '청소년시설';
 						if (fac.sisulType === '수련관') type = '청소년수련관';
@@ -1387,7 +1387,7 @@ async function updateDetailPanel(province, municipality) {
 				let filteredPolicies = programsData.filter(item => {
 					let matchSido = false;
 					if (province === "전남광주통합특별시") {
-						matchSido = (item.sidoNm === "광주광역시" || item.sidoNm === "전라남도");
+						matchSido = (item.sidoNm === "광주광역시" || item.sidoNm === "전라남도"|| item.sidoNm === "전남광주통합특별시");
 					} else {
 						matchSido = (item.sidoNm === province);
 					}
