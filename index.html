@@ -972,15 +972,18 @@
         }
 
         function showMainView() {
-            detailView.classList.add('opacity-0'); trendView.classList.add('opacity-0');
-            setTimeout(() => {
-                detailView.classList.add('hidden'); trendView.classList.add('hidden');
-                mainView.classList.remove('hidden'); mainView.classList.remove('opacity-0');
-                
-                if (mapDetail) { mapDetail.remove(); mapDetail = null; }
-                setTimeout(() => { if(mapMain) { mapMain.invalidateSize(); if(geojsonMain) mapMain.fitBounds(geojsonMain.getBounds(), { animate: false }); } }, 100);
-            }, 500);
-        }
+			detailView.classList.add('opacity-0'); trendView.classList.add('opacity-0');
+			setTimeout(() => {
+				detailView.classList.add('hidden'); trendView.classList.add('hidden');
+				mainView.classList.remove('hidden'); mainView.classList.remove('opacity-0');
+				
+				// 👇 [추가] 메인 홈 화면으로 돌아올 때 전국 통합 기본 데이터를 다시 정확하게 복원합니다!
+				applyDataToUI(getRegionData("전국"), true, "전국");
+
+				if (mapDetail) { mapDetail.remove(); mapDetail = null; }
+				setTimeout(() => { if(mapMain) { mapMain.invalidateSize(); if(geojsonMain) mapMain.fitBounds(geojsonMain.getBounds(), { animate: false }); } }, 100);
+			}, 500);
+		}
 
         function resetDetailMunicipality() {
             if(!geojsonDetail) return;
@@ -1892,7 +1895,7 @@
 			// 상세 표 데이터 채우기 (부동소수점 오차 방지)
 			document.getElementById('thNameA').textContent = nameA;
 			document.getElementById('thNameB').textContent = nameB;
-			const labels = ['청소년 인구(수요)', '수련시설(인프라)', '학교/교육 인프라'];
+			const labels = ['청소년 인구(수요)', '수련시설(인프라)', '정책사업(프로그램)'];
 			let trHtml = '';
 			dataA.forEach((val, i) => {
 				// 👇 [수정] 뺄셈 결과에 바로 .toFixed(1)을 씌운 뒤 숫자로 변환하여 깔끔하게 정리
