@@ -649,7 +649,8 @@
         const facilityDataStore = {
             '청소년수련관': [],'청소년문화의집': [], '청소년수련원': [],
             '청소년특화시설': [], '청소년야영장': [], '유스호스텔': []
-        };
+        };// 👇 [추가] 시도별 종사자 수를 담을 배열 (17개 지역)
+        let workerDataStore = new Array(17).fill(0);
 
         // --- [수정] programs.json 기반으로 17개 시도별 개수를 자동 집계하는 함수 ---
 		function getDynamicActivityData(activityType) {
@@ -1215,19 +1216,43 @@
 			}
 
 			// 2. 시설 및 프로그램 데이터 추출
-			let filteredFacilities = sisulData.filter(item => {
-				if (province === "전남광주통합특별시") {
-					return item.ctpvNm === "광주광역시" || item.ctpvNm === "전라남도";
-				}
-				return item.ctpvNm === province;
-			});
+			let filteredPolicies = programsData.filter(item => {
+					let matchSido = false;
+					let sido = (item.sidoNm || "").trim();
+
+					// 🌟 전남광주 통합 양방향 매칭 처리
+					if (province === "전남광주통합특별시") {
+						matchSido = (sido === "광주광역시" || sido === "전라남도" || sido === "전남광주통합특별시");
+					} else if (province === "광주광역시" || province === "전라남도") {
+						matchSido = (sido === province || sido === "전남광주통합특별시");
+					} else {
+						matchSido = (sido === province);
+					}
+					
+					if (!matchSido) return false;
+
+					if (municipality !== '전체') {
+						return item.sggNm === municipality;
+					}
+					return true;
+				});
 			if (!isAll) filteredFacilities = filteredFacilities.filter(item => item.sggNm === municipality);
 
 			const fac = filteredFacilities.length;
 			const ratio = regionalPop > 0 ? ((fac / regionalPop) * 10000).toFixed(1) : "0.0";
 
 			let localPrograms = programsData.filter(item => {
-				let matchSido = (province === "전남광주통합특별시") ? (item.sidoNm === "광주광역시" || item.sidoNm === "전라남도") : (item.sidoNm === province);
+				let matchSido = false;
+				let sido = (item.sidoNm || "").trim();
+
+				if (province === "전남광주통합특별시") {
+					matchSido = (sido === "광주광역시" || sido === "전라남도" || sido === "전남광주통합특별시");
+				} else if (province === "광주광역시" || province === "전라남도") {
+					matchSido = (sido === province || sido === "전남광주통합특별시");
+				} else {
+					matchSido = (sido === province);
+				}
+
 				if (!matchSido) return false;
 				if (!isAll) return item.sggNm === municipality;
 				return true;
@@ -1419,10 +1444,15 @@
 
 				let filteredPrograms = programsData.filter(item => {
 					let matchSido = false;
+					let sido = (item.sidoNm || "").trim();
+
+					// 🌟 전남광주 통합 양방향 매칭 처리
 					if (province === "전남광주통합특별시") {
-						matchSido = (item.sidoNm === "광주광역시" || item.sidoNm === "전라남도");
+						matchSido = (sido === "광주광역시" || sido === "전라남도" || sido === "전남광주통합특별시");
+					} else if (province === "광주광역시" || province === "전라남도") {
+						matchSido = (sido === province || sido === "전남광주통합특별시");
 					} else {
-						matchSido = (item.sidoNm === province);
+						matchSido = (sido === province);
 					}
 					
 					if (!matchSido) return false;
