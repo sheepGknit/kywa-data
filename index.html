@@ -1271,10 +1271,6 @@ async function updateDetailPanel(province, municipality) {
             try {
                 const API_KEY = "AQ.Ab8RN6IhZPKU-lX1GmWpO6usO15l7RJUbR8SA2UtaBYyeYBstg"; 
                 
-                if (!API_KEY || API_KEY === "YOUR_API_KEY") {
-                    insightEl.innerHTML = `<span class="text-brand-yellow font-bold">${targetRegionName}</span>: 청소년 인구 ${regionalPop.toLocaleString()}명, 수련시설 ${fac}개소, 프로그램 ${localPrograms.length}개가 운영 중인 지역입니다.`;
-                    return;
-                }
 
                 const { GoogleGenAI } = await import("@google/genai");
                 const ai = new GoogleGenAI({ apiKey: API_KEY });
@@ -2182,41 +2178,36 @@ async function updateDetailPanel(province, municipality) {
 
                 console.log(API_KEY)
 
-				if (!API_KEY || API_KEY === "YOUR_API_KEY") {
-					document.getElementById('compareInsightText').innerHTML = `<span class="text-brand-yellow font-bold">${nameA}</span>와 <span class="text-brand-yellow font-bold">${nameB}</span>의 비교가 완료되었습니다. (API 키를 입력하면 세부 정책 분석이 출력됩니다.)`;
-                    console.log(nameA,nameB)
-				} else {
-					
-					const prompt = `
-						너는 대한민국 청소년 정책 및 인프라 비교 분석 전문가야.
-						아래 두 지역의 평가 지표 데이터를 비교하여, 주요 격차 원인과 정책적 제언을 2~3문장 이내로 핵심만 요약해줘.
+                const prompt = `
+                    너는 대한민국 청소년 정책 및 인프라 비교 분석 전문가야.
+                    아래 두 지역의 평가 지표 데이터를 비교하여, 주요 격차 원인과 정책적 제언을 2~3문장 이내로 핵심만 요약해줘.
 
-						- 비교 모드: ${mode === 'province' ? '시·도 간 비교' : '시·군·구 간 비교'}
-						- 기준 지역 (A): ${nameA} [청소년인구 비중: ${dataA[0]}%, 수련시설 비중: ${dataA[1]}%, 정책사업 비중: ${dataA[2]}%]
-						- 비교 대상 (B): ${nameB} [청소년인구 비중: ${dataB[0]}%, 수련시설 비중: ${dataB[1]}%, 정책사업 비중: ${dataB[2]}%]
+                    - 비교 모드: ${mode === 'province' ? '시·도 간 비교' : '시·군·구 간 비교'}
+                    - 기준 지역 (A): ${nameA} [청소년인구 비중: ${dataA[0]}%, 수련시설 비중: ${dataA[1]}%, 정책사업 비중: ${dataA[2]}%]
+                    - 비교 대상 (B): ${nameB} [청소년인구 비중: ${dataB[0]}%, 수련시설 비중: ${dataB[1]}%, 정책사업 비중: ${dataB[2]}%]
 
-						[요구사항]
-						- 마크다운 서식 없이 순수 텍스트로 작성할 것.
-						- 강조가 필요한 지역명이나 핵심 단어는 <span class="text-brand-yellow font-bold">지역명</span> 태그를 사용할 것.
-					`;
-                    // 🌟 에러가 나던 GoogleGenAI 임포트 대신 확실한 fetch 방식으로 교체
-                    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            contents: [{ parts: [{ text: prompt }] }]
-                        })
-                    });
+                    [요구사항]
+                    - 마크다운 서식 없이 순수 텍스트로 작성할 것.
+                    - 강조가 필요한 지역명이나 핵심 단어는 <span class="text-brand-yellow font-bold">지역명</span> 태그를 사용할 것.
+                `;
+                // 🌟 에러가 나던 GoogleGenAI 임포트 대신 확실한 fetch 방식으로 교체
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }]
+                    })
+                });
 
-                    const result = await res.json();
-                    const aiText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                const result = await res.json();
+                const aiText = result.candidates?.[0]?.content?.parts?.[0]?.text;
 
-                    if (aiText) {
-                        document.getElementById('compareInsightText').innerHTML = aiText.trim();
-                    } else {
-                        document.getElementById('compareInsightText').textContent = `${nameA}와 ${nameB}의 인프라 및 인구 지표 비교 분석이 완료되었습니다.`;
-                    }
+                if (aiText) {
+                    document.getElementById('compareInsightText').innerHTML = aiText.trim();
+                } else {
+                    document.getElementById('compareInsightText').textContent = `${nameA}와 ${nameB}의 인프라 및 인구 지표 비교 분석이 완료되었습니다.`;
                 }
+                
 			} catch (error) {
 				console.error("AI 지표 비교 분석 실패:", error);
 				document.getElementById('compareInsightText').textContent = `${nameA}와 ${nameB}의 비교 데이터를 분석하는 도중 오류가 발생했습니다.`;
@@ -2247,11 +2238,6 @@ async function updateDetailPanel(province, municipality) {
 			try {
 				// 💡 API 키 입력
 				const API_KEY = "AQ.Ab8RN6IhZPKU-lX1GmWpO6usO15l7RJUbR8SA2UtaBYyeYBstg"; 
-
-				if (!API_KEY || API_KEY === "YOUR_API_KEY") {
-					content.innerHTML = `<div class="p-4 bg-amber-50 text-amber-800 rounded-xl font-bold text-xs">API 키가 설정되지 않았습니다. 코드 내부의 API_KEY 변수에 실제 키를 입력해주세요.</div>`;
-					return;
-				}
 
 				const { GoogleGenAI } = await import("@google/genai");
 				const ai = new GoogleGenAI({ apiKey: API_KEY });
