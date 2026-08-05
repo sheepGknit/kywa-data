@@ -1215,30 +1215,27 @@
 					regionalPop = popData[province][targetKey]["총인구수"]["2026.06월"] || 0;
 				}
 			}
+            // 2. 시설 및 프로그램 데이터 추출
+            let filteredFacilities = programsData.filter(item => {
+                let matchSido = false;
+                let sido = (item.sidoNm || "").trim();
 
-			// 2. 시설 및 프로그램 데이터 추출
-			let filteredPolicies = programsData.filter(item => {
-					let matchSido = false;
-					let sido = (item.sidoNm || "").trim();
+                // 🌟 전남광주 통합 양방향 매칭 처리
+                if (province === "전남광주통합특별시") {
+                    matchSido = (sido === "광주광역시" || sido === "전라남도" || sido === "전남광주통합특별시");
+                } else if (province === "광주광역시" || province === "전라남도") {
+                    matchSido = (sido === province || sido === "전남광주통합특별시");
+                } else {
+                    matchSido = (sido === province);
+                }
+                
+                if (!matchSido) return false;
 
-					// 🌟 전남광주 통합 양방향 매칭 처리
-					if (province === "전남광주통합특별시") {
-						matchSido = (sido === "광주광역시" || sido === "전라남도" || sido === "전남광주통합특별시");
-					} else if (province === "광주광역시" || province === "전라남도") {
-						matchSido = (sido === province || sido === "전남광주통합특별시");
-					} else {
-						matchSido = (sido === province);
-					}
-					
-					if (!matchSido) return false;
-
-					if (municipality !== '전체') {
-						return item.sggNm === municipality;
-					}
-					return true;
-				});
-			if (!isAll) filteredFacilities = filteredFacilities.filter(item => item.sggNm === municipality);
-
+                if (municipality !== '전체') {
+                    return item.sggNm === municipality;
+                }
+                return true;
+            });
 			const fac = filteredFacilities.length;
 			const ratio = regionalPop > 0 ? ((fac / regionalPop) * 10000).toFixed(1) : "0.0";
 
