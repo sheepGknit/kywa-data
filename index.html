@@ -6,6 +6,14 @@
     <title>청소년활동 데이터 플랫폼</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
+	<!-- Google GenAI SDK -->
+	<script type="importmap">
+	  {
+		"imports": {
+		  "@google/genai": "https://esm.run/@google/genai"
+		}
+	  }
+	</script>
     <script>
         tailwind.config = {
             theme: {
@@ -567,9 +575,6 @@
         let comboChartInstance = null;
         let currentDetailTab = 'facility';
         
-        let sisulData = [];
-        let popData = {}; 
-		let schoolData = {};
 		const districtData = {
           "서울특별시": ["종로구", "중구", "용산구", "성동구", "광진구", "동대문구", "중랑구", "성북구", "강북구", "도봉구", "노원구", "은평구", "서대문구", "마포구", "양천구", "강서구", "구로구", "금천구", "영등포구", "동작구", "관악구", "서초구", "강남구", "송파구", "강동구"],
           "부산광역시": ["중구", "서구", "동구", "영도구", "부산진구", "동래구", "남구", "북구", "해운대구", "사하구", "금정구", "강서구", "연제구", "수영구", "사상구", "기장군"],
@@ -590,6 +595,10 @@
           "제주특별자치도": ["제주시", "서귀포시"]
         };
 
+        let sisulData = [];
+        let popData = {}; 
+		let schoolData = {};
+		let programsData = [];
         const URL_PROVINCES = 'https://raw.githubusercontent.com/southkorea/southkorea-maps/master/kostat/2013/json/skorea_provinces_geo_simple.json';
         const URL_MUNICIPALITIES = 'https://raw.githubusercontent.com/southkorea/southkorea-maps/master/kostat/2013/json/skorea_municipalities_geo_simple.json';
         let provincesData = null;
@@ -642,17 +651,40 @@
             '청소년특화시설': [], '청소년야영장': [], '유스호스텔': []
         };
 
-        const activityDataStore = {
-            '청소년방과후아카데미': [45, 18, 12, 15, 9, 11, 8, 3, 65, 14, 12, 16, 22, 25, 32, 40, 5],
-            '청소년자원봉사활동': [180, 55, 42, 50, 32, 28, 20, 12, 220, 45, 38, 55, 75, 82, 95, 110, 15],
-            '국제청소년성취포상제': [55, 15, 12, 14, 8, 7, 5, 2, 45, 12, 10, 15, 20, 22, 25, 35, 5],
-            '청소년자기도전포상제': [85, 25, 18, 22, 12, 14, 9, 4, 75, 20, 15, 25, 30, 35, 40, 50, 8],
-            '수련활동인증제': [120, 40, 30, 35, 20, 18, 15, 8, 150, 35, 28, 40, 55, 60, 75, 90, 12],
-            '수련활동신고제': [210, 70, 50, 60, 35, 32, 25, 15, 280, 65, 55, 75, 95, 105, 120, 140, 18],
-            '참여활동(특별회의,참여위원회)': [40, 12, 9, 11, 6, 5, 4, 2, 30, 8, 7, 10, 14, 15, 18, 22, 4],
-            '국제교류': [45, 15, 10, 12, 8, 7, 5, 2, 35, 8, 6, 9, 10, 11, 14, 16, 4],
-            '그룹활동': [542, 190, 150, 170, 105, 95, 80, 35, 410, 95, 85, 105, 120, 130, 150, 175, 45]
-        };
+        // --- [수정] programs.json 기반으로 17개 시도별 개수를 자동 집계하는 함수 ---
+		function getDynamicActivityData(activityType) {
+			let counts = new Array(regionsList.length).fill(0);
+			
+			if (!programsData || programsData.length === 0) return counts;
+
+			programsData.forEach(item => {
+				let pType = item.programType;
+				let mappedType = pType;
+				
+				// 맵핑 규칙 적용
+				if (pType === '신고연계 프로그램') mappedType = '수련활동신고제';
+				else if (pType === '인증연계(실시) 프로그램' || pType === '인증연계 프로그램') mappedType = '수련활동인증제';
+				else if (pType === '활동 프로그램') mappedType = '참여활동(특별회의,참여위원회)';
+				else if (pType === '유스내비 프로그램') mappedType = '그룹활동';
+				else if (pType === '방과후 아카데미') mappedType = '청소년방과후아카데미';
+
+				if (mappedType === activityType) {
+					let sido = (item.sidoNm || "").trim();
+					// 전남광주통합특별시 처리
+					if (sido === "광주광역시" || sido === "전라남도") {
+						let integratedIdx = regionsList.indexOf("전남광주통합특별시");
+						if (integratedIdx !== -1) counts[integratedIdx]++;
+					}
+					
+					let idx = regionsList.indexOf(sido);
+					if (idx !== -1) {
+						counts[idx]++;
+					}
+				}
+			});
+
+			return counts;
+		}
 
         const leaderDataByRegionStore = {
             '청소년지도사 인원': [1200, 350, 280, 310, 220, 180, 150, 50, 1450, 210, 190, 240, 260, 270, 290, 310, 80],
@@ -911,6 +943,14 @@
                 })
                 .catch(err => console.error('학교 데이터 실패.', err));
 
+			// 5. 프로그램 데이터 로드 (programs.json)
+			fetch('data/programs.json')
+				.then(res => res.json())
+				.then(data => {
+					programsData = Array.isArray(data) ? data : (data.records || []);
+					console.log(`🐞 [디버깅 - Fetch] programs.json 로드 완료. 총 ${programsData.length}개 프로그램`);
+				})
+				.catch(err => console.error('프로그램 데이터 실패.', err));
             window.addEventListener('resize', () => {
                 if(mapMain && !mainView.classList.contains('hidden')) { mapMain.invalidateSize(); if(geojsonMain) mapMain.fitBounds(geojsonMain.getBounds(), { animate: false }); }
                 if(mapDetail && !detailView.classList.contains('hidden')) { mapDetail.invalidateSize(); if(geojsonDetail && geojsonDetail.getBounds().isValid()) mapDetail.fitBounds(geojsonDetail.getBounds(), { animate: false }); }
@@ -1078,59 +1118,96 @@
             }
         }
 
-        function updateDetailPanel(province, municipality) {
-            const isAll = (municipality === '전체');
-            const nameSeed = municipality.length + (municipality.charCodeAt(0) % 10) || 5;
-            
-            document.getElementById('aiRegionalInsightText').innerHTML = `
-                <i class="ph ph-spinner animate-spin inline-block mr-1"></i> AI가 <span class="text-brand-yellow font-bold">${isAll ? province : municipality}</span> 데이터를 분석 중입니다...
-            `;
-            
-            setTimeout(() => {
-                const insights = [
-                    `${isAll ? province : municipality}는 디지털/AI 코딩 관련 활동 수요가 특히 높습니다. 창의융합형 프로그램 개설을 추천합니다.`,
-                    `현재 ${isAll ? province : municipality} 청소년들은 자기주도적 동아리 활동과 진로 탐색 프로그램에 높은 참여율을 보이고 있습니다.`,
-                    `환경/생태 보존에 대한 지역 사회의 관심이 높아지면서, ${isAll ? province : municipality} 수련시설의 관련 자원봉사활동이 빠르게 마감되고 있습니다.`
-                ];
-                document.getElementById('aiRegionalInsightText').innerHTML = insights[nameSeed % 3];
-            }, 600); 
+        // --- [진짜 AI 연동형] 지역 세부 패널 업데이트 함수 ---
+		async function updateDetailPanel(province, municipality) {
+			const isAll = (municipality === '전체');
+			const targetRegionName = isAll ? province : `${province} ${municipality}`;
+			
+			const insightEl = document.getElementById('aiRegionalInsightText');
+			insightEl.innerHTML = `<i class="ph ph-spinner animate-spin inline-block mr-1"></i> AI가 <span class="text-brand-yellow font-bold">${targetRegionName}</span>의 실시간 데이터를 분석 중입니다...`;
+			
+			// 1. 인구 데이터 추출
+			let regionalPop = 0;
+			if (province === "전남광주통합특별시" && isAll) {
+				let p1 = popData["광주광역시"] ? (popData["광주광역시"]["소계"]["총인구수"]["2026.06월"] || 0) : 0;
+				let p2 = popData["전라남도"] ? (popData["전라남도"]["소계"]["총인구수"]["2026.06월"] || 0) : 0;
+				regionalPop = p1 + p2;
+			} else if (popData[province]) {
+				const targetKey = isAll ? "소계" : municipality;
+				if (popData[province][targetKey]) {
+					regionalPop = popData[province][targetKey]["총인구수"]["2026.06월"] || 0;
+				}
+			}
 
-            // 1. pop_data.json에서 상세 지역의 진짜 인구수 가져오기
-            let regionalPop = 0;
-            // 👇👇 [수정] 전남광주통합특별시 인구 합산 로직 추가 👇👇
-            if (province === "전남광주통합특별시" && isAll) {
-                let p1 = popData["광주광역시"] ? (popData["광주광역시"]["소계"]["총인구수"]["2026.06월"] || 0) : 0;
-                let p2 = popData["전라남도"] ? (popData["전라남도"]["소계"]["총인구수"]["2026.06월"] || 0) : 0;
-                regionalPop = p1 + p2;
-            } else if (popData[province]) {
-                const targetKey = isAll ? "소계" : municipality;
-                if (popData[province][targetKey]) {
-                    regionalPop = popData[province][targetKey]["총인구수"]["2026.06월"] || 0;
-                }
-            }
+			// 2. 시설 데이터 추출
+			let filteredFacilities = sisulData.filter(item => {
+				if (province === "전남광주통합특별시") {
+					return item.ctpvNm === "광주광역시" || item.ctpvNm === "전라남도";
+				}
+				return item.ctpvNm === province;
+			});
 
-            // 👇👇 [수정] 전남광주 통합 필터링 로직 추가 👇👇
-            let filteredFacilities = sisulData.filter(item => {
-                if (province === "전남광주통합특별시") {
-                    return item.ctpvNm === "광주광역시" || item.ctpvNm === "전라남도";
-                }
-                return item.ctpvNm === province;
-            });
+			if (!isAll) {
+				filteredFacilities = filteredFacilities.filter(item => item.sggNm === municipality);
+			}
 
-            if (!isAll) {
-                filteredFacilities = filteredFacilities.filter(item => item.sggNm === municipality);
-            }
+			const fac = filteredFacilities.length;
+			const ratio = regionalPop > 0 ? ((fac / regionalPop) * 10000).toFixed(1) : "0.0";
 
-            const fac = filteredFacilities.length;
-            const ratio = regionalPop > 0 ? ((fac / regionalPop) * 10000).toFixed(1) : "0.0";
-            console.log(`📊 [디버깅 - 상세 패널 업데이트] 시도: ${province}, 시군구: ${municipality}, 필터링된 시설 수: ${fac}개`);
+			// 3. 해당 지역에 등록된 프로그램 개수 파악
+			let localPrograms = programsData.filter(item => {
+				let matchSido = (province === "전남광주통합특별시") ? (item.sidoNm === "광주광역시" || item.sidoNm === "전라남도") : (item.sidoNm === province);
+				if (!matchSido) return false;
+				if (!isAll) return item.sggNm === municipality;
+				return true;
+			});
 
-            document.getElementById('detailStatPop').textContent = regionalPop.toLocaleString() + '명';
-            document.getElementById('detailStatFac').textContent = fac + '개소'; 
-            document.getElementById('detailStatRatio').textContent = ratio;
+			document.getElementById('detailStatPop').textContent = regionalPop.toLocaleString() + '명';
+			document.getElementById('detailStatFac').textContent = fac + '개소'; 
+			document.getElementById('detailStatRatio').textContent = ratio;
 
-            renderTabContent(province, municipality, nameSeed, filteredFacilities);
-        }
+			// 4. 탭 콘텐츠 렌더링 먼저 수행
+			renderTabContent(province, municipality, targetRegionName.length, filteredFacilities);
+
+			// 5. 🤖 진짜 Gemini API 호출하여 리포트 생성
+			try {
+				// 💡 사용하실 Gemini API 키를 여기에 입력하세요
+				const API_KEY = "YOUR_GEMINI_API_KEY"; 
+				
+				if (!API_KEY || API_KEY === "YOUR_GEMINI_API_KEY") {
+					insightEl.innerHTML = `<span class="text-brand-yellow font-bold">${targetRegionName}</span>: 청소년 인구 ${regionalPop.toLocaleString()}명, 수련시설 ${fac}개소, 등록된 연계 프로그램 ${localPrograms.length}개가 운영 중인 지역입니다.`;
+					return;
+				}
+
+				// 동적 모듈 임포트
+				const { GoogleGenAI } = await import("@google/genai");
+				const ai = new GoogleGenAI({ apiKey: API_KEY });
+
+				const prompt = `
+					너는 대한민국 청소년정책 데이터 분석 전문가야. 
+					아래 지역 데이터를 바탕으로 이 지역의 청소년활동 현황과 정책적 제언을 2문장 이내로 핵심만 요약해줘. (마크다운 없이 순수 텍스트로)
+					- 지역명: ${targetRegionName}
+					- 청소년 인구: ${regionalPop.toLocaleString()}명
+					- 청소년수련시설 수: ${fac}개소 (1만명당 비율: ${ratio})
+					- 등록된 활동/프로그램 수: ${localPrograms.length}개
+				`;
+
+				const response = await ai.models.generateContent({
+					model: 'gemini-2.5-flash',
+					contents: prompt,
+				});
+
+				if (response && response.text) {
+					insightEl.textContent = response.text.trim();
+				} else {
+					insightEl.textContent = `${targetRegionName} 지역은 청소년 인구 ${regionalPop.toLocaleString()}명, 수련시설 ${fac}개소가 밀집해 있으며 활발한 활동 인프라를 갖추고 있습니다.`;
+				}
+
+			} catch (error) {
+				console.error("AI 분석 리포트 생성 실패:", error);
+				insightEl.innerHTML = `<span class="text-brand-yellow font-bold">${targetRegionName}</span> 지역은 청소년 인구 ${regionalPop.toLocaleString()}명 및 수련시설 ${fac}개소가 운영 중입니다.`;
+			}
+		}
 
         function switchDetailTab(tabId) {
             currentDetailTab = tabId;
@@ -1208,38 +1285,123 @@
                     });
                 }
             } else if (currentDetailTab === 'policy') {
-                const policies = ['청소년방과후아카데미', '국제청소년성취포상제', '수련활동인증제'];
-                for(let i=0; i< (seed%3 + 2); i++) {
-                    html += `
-                        <div class="bg-gray-50 p-4 border border-gray-200 rounded-xl mb-3 flex gap-4 items-start">
-                            <div class="w-10 h-10 rounded-full bg-brand-yellow flex items-center justify-center text-brand-dark shrink-0"><i class="ph-bold ph-flag-banner text-lg"></i></div>
-                            <div>
-                                <h3 class="font-bold text-brand-dark text-[14px] mb-1">[${prefix}] ${policies[i%3]} '꿈터'</h3>
-                                <p class="text-xs text-gray-600 leading-relaxed mb-2">취약계층 청소년을 대상으로 방과후 학습 지원, 전문 체험 활동 및 급식을 제공하는 종합 돌봄 정책사업입니다.</p>
-                                <span class="text-[10px] text-gray-500 bg-white px-2 py-1 rounded border border-gray-200">운영기관: ${prefix} 청소년수련관</span>
-                            </div>
-                        </div>
-                    `;
-                }
+				// 1. 현재 선택된 지역(province, municipality)에 맞는 프로그램 필터링
+				let filteredPolicies = programsData.filter(item => {
+					let matchSido = false;
+					if (province === "전남광주통합특별시") {
+						matchSido = (item.sidoNm === "광주광역시" || item.sidoNm === "전라남도");
+					} else {
+						matchSido = (item.sidoNm === province);
+					}
+					
+					if (!matchSido) return false;
+
+					// 시군구가 '전체'가 아니라면 시군구까지 일치하는지 확인
+					if (municipality !== '전체') {
+						return item.sggNm === municipality;
+					}
+					return true;
+				});
+
+				console.log(`🏛️ [운영 정책사업] 시도: ${province}, 시군구: ${municipality} | 매칭된 정책 수: ${filteredPolicies.length}개`);
+
+				if (filteredPolicies.length === 0) {
+					html = `<div class="p-8 text-center text-gray-400 font-bold mt-10">해당 지역에 등록된 운영 정책사업 데이터가 없습니다.</div>`;
+				} else {
+					filteredPolicies.forEach((prog) => {
+						let typeBadge = prog.programType || '정책사업';
+						let facility = prog.facilityName || `${prefix} 청소년시설`;
+						let dateStr = prog.activityDate ? `<i class="ph-bold ph-calendar-blank"></i> ${prog.activityDate}` : '';
+						let capacity = prog.capacity ? `정원: ${prog.capacity}명` : '';
+
+						html += `
+							<div class="bg-gray-50 p-4 border border-gray-200 rounded-xl mb-3 flex gap-4 items-start hover:border-brand-yellow transition-colors">
+								<div class="w-10 h-10 rounded-full bg-brand-yellow flex items-center justify-center text-brand-dark shrink-0 font-bold">
+									<i class="ph-bold ph-flag-banner text-lg"></i>
+								</div>
+								<div class="flex-1">
+									<div class="flex items-center gap-2 mb-1">
+										<span class="px-2 py-0.5 bg-brand-dark text-white text-[10px] font-bold rounded">${typeBadge}</span>
+										<h3 class="font-bold text-brand-dark text-[14px]">${prog.activityName}</h3>
+									</div>
+									<p class="text-xs text-gray-600 leading-relaxed mb-2">
+										지역 청소년을 대상으로 지원하는 종합 돌봄 및 역량 강화 프로그램입니다.
+									</p>
+									<div class="flex flex-wrap items-center gap-3 text-[11px] text-gray-500 bg-white px-3 py-1.5 rounded-lg border border-gray-200">
+										<span><i class="ph-fill ph-buildings text-brand-dark"></i> 운영기관: ${facility}</span>
+										${dateStr ? `<span>${dateStr}</span>` : ''}
+										${capacity ? `<span>• ${capacity}</span>` : ''}
+									</div>
+								</div>
+							</div>
+						`;
+					});
+				}
             } else if (currentDetailTab === 'activity') {
-                const activities = ['지구온난화 방지 에코 캠페인 기획단', '디지털 메타버스 크리에이터 양성과정', '우리동네 역사 알리미 자원봉사'];
-                for(let i=0; i< (seed%3 + 3); i++) {
-                    html += `
-                        <div class="bg-white p-4 border border-gray-200 rounded-xl mb-3 relative overflow-hidden group">
-                            <div class="absolute left-0 top-0 w-1 h-full bg-seoul-red"></div>
-                            <div class="flex justify-between items-start mb-2 pl-2">
-                                <h3 class="font-bold text-brand-dark text-[14px]">${activities[i%3]}</h3>
-                                <span class="px-2 py-1 bg-red-50 text-seoul-red text-[10px] font-black rounded border border-red-100">D-${i+2} 마감임박</span>
-                            </div>
-                            <p class="text-xs text-gray-500 pl-2 mb-3"><i class="ph-bold ph-calendar-blank"></i> 2026.09.01 ~ 11.30 (매주 토)</p>
-                            <div class="flex justify-between items-center pl-2">
-                                <span class="text-[11px] font-bold text-gray-600 bg-gray-100 px-2 py-0.5 rounded">대상: 중~고등학생</span>
-                                <button class="text-[11px] font-bold text-brand-yellow hover:text-amber-500 transition-colors">신청하기 &rarr;</button>
-                            </div>
-                        </div>
-                    `;
-                }
-            }
+				// 1. programType을 기존 대시보드 항목으로 변환해주는 맵핑 함수
+				const mapProgramTypeToDashboard = (pType) => {
+					if (pType === '신고연계 프로그램') return '수련활동신고제';
+					if (pType === '인증연계(실시) 프로그램' || pType === '인증연계 프로그램') return '수련활동인증제';
+					if (pType === '활동 프로그램') return '참여활동(특별회의,참여위원회)';
+					if (pType === '유스내비 프로그램') return '그룹활동';
+					if (pType === '방과후 아카데미') return '청소년방과후아카데미';
+					return pType;
+				};
+
+				// 2. 현재 선택된 지역(province, municipality)에 맞는 프로그램 필터링
+				let filteredPrograms = programsData.filter(item => {
+					let matchSido = false;
+					if (province === "전남광주통합특별시") {
+						matchSido = (item.sidoNm === "광주광역시" || item.sidoNm === "전라남도");
+					} else {
+						matchSido = (item.sidoNm === province);
+					}
+					
+					if (!matchSido) return false;
+
+					// 시군구가 '전체'가 아니라면 시군구까지 일치하는지 확인
+					if (municipality !== '전체') {
+						return item.sggNm === municipality;
+					}
+					return true;
+				});
+
+				console.log(`🎯 [신청 가능 활동] 시도: ${province}, 시군구: ${municipality} | 매칭된 프로그램 수: ${filteredPrograms.length}개`);
+
+				if (filteredPrograms.length === 0) {
+					html = `<div class="p-8 text-center text-gray-400 font-bold mt-10">해당 지역에 등록된 신청 가능 프로그램이 없습니다.</div>`;
+				} else {
+					filteredPrograms.forEach((prog, i) => {
+						let mappedType = mapProgramTypeToDashboard(prog.programType);
+						let statusText = prog.recruitmentStatus || '접수중';
+						let capacityText = prog.capacity ? `정원 ${prog.capacity}명` : '';
+						let feeText = prog.fee ? `참가비: ${prog.fee}` : '';
+						let facility = prog.facilityName || '기관명 미지정';
+						let dateStr = prog.activityDate || '일정 미정';
+
+						html += `
+							<div class="bg-white p-4 border border-gray-200 rounded-xl mb-3 relative overflow-hidden group hover:border-brand-yellow transition-colors">
+								<div class="absolute left-0 top-0 w-1 h-full bg-seoul-red"></div>
+								<div class="flex justify-between items-start mb-1 pl-2">
+									<div class="flex items-center gap-2">
+										<span class="px-2 py-0.5 bg-gray-100 text-gray-600 text-[10px] font-bold rounded">${mappedType}</span>
+										<h3 class="font-bold text-brand-dark text-[14px]">${prog.activityName}</h3>
+									</div>
+									<span class="px-2 py-1 bg-red-50 text-seoul-red text-[10px] font-black rounded border border-red-100 whitespace-nowrap">${statusText}</span>
+								</div>
+								<p class="text-xs text-gray-500 pl-2 mb-2 flex items-center gap-2">
+									<span><i class="ph-bold ph-calendar-blank"></i> ${dateStr}</span>
+									${capacityText ? `<span>• ${capacityText}</span>` : ''}
+									${feeText ? `<span>• ${feeText}</span>` : ''}
+								</p>
+								<div class="flex justify-between items-center pl-2 pt-1 border-t border-gray-100">
+									<span class="text-[11px] font-bold text-gray-600"><i class="ph-fill ph-buildings text-gray-400"></i> ${facility} (${prog.sidoNm} ${prog.sggNm})</span>
+									<button class="text-[11px] font-bold text-brand-yellow hover:text-amber-500 transition-colors">상세보기 &rarr;</button>
+								</div>
+							</div>
+						`;
+					});
+				}
             container.innerHTML = html;
         }
 
