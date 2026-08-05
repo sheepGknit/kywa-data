@@ -1119,12 +1119,13 @@
         }
 
         // --- [수정된 지역 세부 패널 업데이트 함수] ---
+		// --- [API 키 직접 입력 버전] 지역 세부 패널 업데이트 함수 ---
 		async function updateDetailPanel(province, municipality) {
 			const isAll = (municipality === '전체');
 			const targetRegionName = isAll ? province : `${province} ${municipality}`;
 			
 			const insightEl = document.getElementById('aiRegionalInsightText');
-			insightEl.innerHTML = `<i class="ph ph-spinner animate-spin inline-block mr-1"></i> AI가 <span class="text-brand-yellow font-bold">${targetRegionName}</span>의 실시간 데이터를 분석 중입니다...`;
+			insightEl.innerHTML = `<i class="ph ph-spinner animate-spin inline-block mr-1"></i> AI가 <span class="text-brand-yellow font-bold">${targetRegionName}</span>의 데이터를 분석 중입니다...`;
 			
 			// 1. 인구 데이터 추출
 			let regionalPop = 0;
@@ -1164,8 +1165,19 @@
 
 			renderTabContent(province, municipality, targetRegionName.length, filteredFacilities);
 
-			// 3. 🤖 Vercel 서버리스 함수로 프롬프트 전송 (API 키 노출 원천 차단)
+			// 3. 🤖 브라우저에서 직접 Gemini API 호출
 			try {
+				// 💡 여기에 발급받으신 Gemini API 키를 직접 넣어주세요!
+				const API_KEY = "AQ.Ab8RN6IhZPKU-lX1GmWpO6usO15l7RJUbR8SA2UtaBYyeYBstg"; 
+				
+				if (!API_KEY || API_KEY === "AQ.Ab8RN6IhZPKU-lX1GmWpO6usO15l7RJUbR8SA2UtaBYyeYBstg") {
+					insightEl.innerHTML = `<span class="text-brand-yellow font-bold">${targetRegionName}</span>: 청소년 인구 ${regionalPop.toLocaleString()}명, 수련시설 ${fac}개소, 프로그램 ${localPrograms.length}개가 운영 중인 지역입니다.`;
+					return;
+				}
+
+				const { GoogleGenAI } = await import("@google/genai");
+				const ai = new GoogleGenAI({ apiKey: API_KEY });
+
 				const prompt = `
 					너는 대한민국 청소년정책 데이터 분석 전문가야. 
 					아래 지역 데이터를 바탕으로 이 지역의 청소년활동 현황과 정책적 제언을 2문장 이내로 핵심만 요약해줘. (마크다운 없이 순수 텍스트로)
@@ -1175,16 +1187,13 @@
 					- 등록된 활동/프로그램 수: ${localPrograms.length}개
 				`;
 
-				const res = await fetch('/api/gemini', {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ prompt })
+				const response = await ai.models.generateContent({
+					model: 'gemini-2.5-flash',
+					contents: prompt,
 				});
 
-				const data = await res.json();
-
-				if (res.ok && data.text) {
-					insightEl.textContent = data.text.trim();
+				if (response && response.text) {
+					insightEl.textContent = response.text.trim();
 				} else {
 					insightEl.textContent = `${targetRegionName} 지역은 청소년 인구 ${regionalPop.toLocaleString()}명, 수련시설 ${fac}개소가 밀집해 있으며 활발한 활동 인프라를 갖추고 있습니다.`;
 				}
