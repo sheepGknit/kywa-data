@@ -1118,7 +1118,7 @@
             }
         }
 
-        // --- [진짜 AI 연동형] 지역 세부 패널 업데이트 함수 ---
+        // --- [수정된 지역 세부 패널 업데이트 함수] ---
 		async function updateDetailPanel(province, municipality) {
 			const isAll = (municipality === '전체');
 			const targetRegionName = isAll ? province : `${province} ${municipality}`;
@@ -1139,22 +1139,18 @@
 				}
 			}
 
-			// 2. 시설 데이터 추출
+			// 2. 시설 및 프로그램 데이터 추출
 			let filteredFacilities = sisulData.filter(item => {
 				if (province === "전남광주통합특별시") {
 					return item.ctpvNm === "광주광역시" || item.ctpvNm === "전라남도";
 				}
 				return item.ctpvNm === province;
 			});
-
-			if (!isAll) {
-				filteredFacilities = filteredFacilities.filter(item => item.sggNm === municipality);
-			}
+			if (!isAll) filteredFacilities = filteredFacilities.filter(item => item.sggNm === municipality);
 
 			const fac = filteredFacilities.length;
 			const ratio = regionalPop > 0 ? ((fac / regionalPop) * 10000).toFixed(1) : "0.0";
 
-			// 3. 해당 지역에 등록된 프로그램 개수 파악
 			let localPrograms = programsData.filter(item => {
 				let matchSido = (province === "전남광주통합특별시") ? (item.sidoNm === "광주광역시" || item.sidoNm === "전라남도") : (item.sidoNm === province);
 				if (!matchSido) return false;
@@ -1166,23 +1162,10 @@
 			document.getElementById('detailStatFac').textContent = fac + '개소'; 
 			document.getElementById('detailStatRatio').textContent = ratio;
 
-			// 4. 탭 콘텐츠 렌더링 먼저 수행
 			renderTabContent(province, municipality, targetRegionName.length, filteredFacilities);
 
-			// 5. 🤖 진짜 Gemini API 호출하여 리포트 생성
+			// 3. 🤖 Vercel 서버리스 함수로 프롬프트 전송 (API 키 노출 원천 차단)
 			try {
-				// 💡 사용하실 Gemini API 키를 여기에 입력하세요
-				const API_KEY = "AQ.Ab8RN6IhZPKU-lX1GmWpO6usO15l7RJUbR8SA2UtaBYyeYBstg"; 
-				
-				if (!API_KEY || API_KEY === "AQ.Ab8RN6IhZPKU-lX1GmWpO6usO15l7RJUbR8SA2UtaBYyeYBstg") {
-					insightEl.innerHTML = `<span class="text-brand-yellow font-bold">${targetRegionName}</span>: 청소년 인구 ${regionalPop.toLocaleString()}명, 수련시설 ${fac}개소, 등록된 연계 프로그램 ${localPrograms.length}개가 운영 중인 지역입니다.`;
-					return;
-				}
-
-				// 동적 모듈 임포트
-				const { GoogleGenAI } = await import("@google/genai");
-				const ai = new GoogleGenAI({ apiKey: API_KEY });
-
 				const prompt = `
 					너는 대한민국 청소년정책 데이터 분석 전문가야. 
 					아래 지역 데이터를 바탕으로 이 지역의 청소년활동 현황과 정책적 제언을 2문장 이내로 핵심만 요약해줘. (마크다운 없이 순수 텍스트로)
@@ -1192,13 +1175,16 @@
 					- 등록된 활동/프로그램 수: ${localPrograms.length}개
 				`;
 
-				const response = await ai.models.generateContent({
-					model: 'gemini-2.5-flash',
-					contents: prompt,
+				const res = await fetch('/api/gemini', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ prompt })
 				});
 
-				if (response && response.text) {
-					insightEl.textContent = response.text.trim();
+				const data = await res.json();
+
+				if (res.ok && data.text) {
+					insightEl.textContent = data.text.trim();
 				} else {
 					insightEl.textContent = `${targetRegionName} 지역은 청소년 인구 ${regionalPop.toLocaleString()}명, 수련시설 ${fac}개소가 밀집해 있으며 활발한 활동 인프라를 갖추고 있습니다.`;
 				}
@@ -1464,6 +1450,7 @@
                 timelineUI.style.display = 'none'; summaryUI.classList.remove('grid'); summaryUI.classList.add('hidden');
                 document.getElementById('schoolTabGroup').style.display = 'flex'; updateSchoolTabUI(title);
             }
+            // 👇 [수정] 다른 아이들과 똑같이 깔끔하게 한 줄로 분리했습니다!
             else if (activityItems.includes(title)) {
                 timelineUI.style.display = 'none'; summaryUI.classList.remove('grid'); summaryUI.classList.add('hidden');
                 document.getElementById('activityTabGroup').style.display = 'flex'; updateActivityTabUI(title);
@@ -1625,13 +1612,15 @@
 
                 if (isAllView) {
                     types.forEach((type, idx) => {
-                        datasets.push({ label: type, data: activityDataStore[type], backgroundColor: colors[idx], borderRadius: 0, barPercentage: 0.5 });
-                        activityDataStore[type].forEach((val, i) => totalDataArray[i] += val);
+                        let typeDataArr = getDynamicActivityData(type);
+                        datasets.push({ label: type, data: typeDataArr, backgroundColor: colors[idx], borderRadius: 0, barPercentage: 0.5 });
+                        typeDataArr.forEach((val, i) => totalDataArray[i] += val);
                     });
                 } else {
                     const idx = types.indexOf(title);
-                    datasets = [{ label: title, data: activityDataStore[title], backgroundColor: colors[idx] || '#3b82f6', borderRadius: 0, barPercentage: 0.5 }];
-                    totalDataArray = [...activityDataStore[title]];
+                    let typeDataArr = getDynamicActivityData(title);
+                    datasets = [{ label: title, data: typeDataArr, backgroundColor: colors[idx] || '#3b82f6', borderRadius: 0, barPercentage: 0.5 }];
+                    totalDataArray = [...typeDataArr];
                 }
                 mapDataExtracted = true;
 
@@ -1639,8 +1628,7 @@
                     type: 'bar', data: { labels: regionsList, datasets: datasets },
                     options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 20 } }, scales: { x: { stacked: isAllView, ticks: { font: { size: 12, weight: 'bold', family: "'Pretendard', sans-serif" }, maxRotation: 45, minRotation: 45 }, grid: { display: false } }, y: { stacked: isAllView, beginAtZero: true, grid: { color: '#f1f5f9' }, border: { display: false } } }, plugins: { legend: { display: isAllView, position: 'bottom', labels: { boxWidth: 10, font: { size: 11, family: "'Pretendard', sans-serif" } } } } }
                 });
-            }
-            else if (leaderItems.includes(title)) {
+            } else if (leaderItems.includes(title)) {
                 const yearsList = ['2022년', '2023년', '2024년', '2025년', '2026년'];
                 
                 if (title === '청소년지도자 전체보기') {
