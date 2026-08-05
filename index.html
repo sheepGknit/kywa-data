@@ -1241,51 +1241,50 @@
         }
 
         function renderTabContent(province, municipality, seed, filteredFacilities = []) {
-            const container = document.getElementById('detailTabContent');
-            let html = '';
-            const prefix = municipality === '전체' ? province : municipality;
+			const container = document.getElementById('detailTabContent');
+			let html = '';
+			const prefix = municipality === '전체' ? province : municipality;
 
-            if (currentDetailTab === 'facility') {
-                console.log(`📝 [디버깅 - 시설 리스트 렌더링] 그려질 개수: ${filteredFacilities.length}개`);
-                if (filteredFacilities.length === 0) {
-                    html = `<div class="p-8 text-center text-gray-400 font-bold mt-10">해당 지역에 등록된 청소년 시설 데이터가 없습니다.</div>`;
-                } else {
-                    filteredFacilities.forEach((fac) => {
-                        const facilityName = fac.sisulNm || fac.fcltNm || '시설명 없음';
-                        
-                        let type = '청소년시설';
-                        if (fac.sisulType === '수련관') type = '청소년수련관';
-                        else if (fac.sisulType === '문화의집') type = '청소년문화의집';
-                        else if (fac.sisulType === '수련원') type = '청소년수련원';
-                        else if (fac.sisulType === '특화시설') type = '청소년특화시설';
-                        else if (fac.sisulType === '야영장') type = '청소년야영장';
-                        else if (fac.sisulType === '유스호스텔') type = '유스호스텔';
-                        else if (facilityName.includes('수련관')) type = '청소년수련관';
-                        else if (facilityName.includes('문화의집')) type = '청소년문화의집';
-                        else if (facilityName.includes('수련원')) type = '청소년수련원';
+			if (currentDetailTab === 'facility') {
+				console.log(`📝 [디버깅 - 시설 리스트 렌더링] 그려질 개수: ${filteredFacilities.length}개`);
+				if (filteredFacilities.length === 0) {
+					html = `<div class="p-8 text-center text-gray-400 font-bold mt-10">해당 지역에 등록된 청소년 시설 데이터가 없습니다.</div>`;
+				} else {
+					filteredFacilities.forEach((fac) => {
+						const facilityName = fac.sisulNm || fac.fcltNm || '시설명 없음';
+						
+						let type = '청소년시설';
+						if (fac.sisulType === '수련관') type = '청소년수련관';
+						else if (fac.sisulType === '문화의집') type = '청소년문화의집';
+						else if (fac.sisulType === '수련원') type = '청소년수련원';
+						else if (fac.sisulType === '특화시설') type = '청소년특화시설';
+						else if (fac.sisulType === '야영장') type = '청소년야영장';
+						else if (fac.sisulType === '유스호스텔') type = '유스호스텔';
+						else if (facilityName.includes('수련관')) type = '청소년수련관';
+						else if (facilityName.includes('문화의집')) type = '청소년문화의집';
+						else if (facilityName.includes('수련원')) type = '청소년수련원';
 
-                        const address = fac.lctnRoadNm || fac.lctnLotnoAddr || '주소 정보 없음';
-                        const phone = fac.telno || '전화번호 미등록';
+						const address = fac.lctnRoadNm || fac.lctnLotnoAddr || '주소 정보 없음';
+						const phone = fac.telno || '전화번호 미등록';
 
-                        html += `
-                            <div class="bg-white p-4 border border-gray-100 rounded-xl shadow-sm mb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-brand-yellow transition-colors">
-                                <div>
-                                    <div class="flex items-center gap-2 mb-1">
-                                        <span class="px-2 py-0.5 bg-gray-100 text-gray-600 text-[10px] font-bold rounded">${type}</span>
-                                        <h3 class="font-bold text-brand-dark text-[15px]">${facilityName}</h3>
-                                    </div>
-                                    <p class="text-xs text-gray-500 flex items-center gap-1"><i class="ph-fill ph-map-pin text-gray-400"></i> ${address}</p>
-                                </div>
-                                <div class="text-right flex sm:flex-col gap-3 sm:gap-1 items-center sm:items-end">
-                                    <span class="text-xs font-medium text-gray-600"><i class="ph-fill ph-phone text-brand-yellow"></i> ${phone}</span>
-                                    <button class="text-xs bg-brand-dark text-white px-3 py-1.5 rounded-lg hover:bg-brand-light transition-colors">상세보기</button>
-                                </div>
-                            </div>
-                        `;
-                    });
-                }
-            } else if (currentDetailTab === 'policy') {
-				// 1. 현재 선택된 지역(province, municipality)에 맞는 프로그램 필터링
+						html += `
+							<div class="bg-white p-4 border border-gray-100 rounded-xl shadow-sm mb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-brand-yellow transition-colors">
+								<div>
+									<div class="flex items-center gap-2 mb-1">
+										<span class="px-2 py-0.5 bg-gray-100 text-gray-600 text-[10px] font-bold rounded">${type}</span>
+										<h3 class="font-bold text-brand-dark text-[15px]">${facilityName}</h3>
+									</div>
+									<p class="text-xs text-gray-500 flex items-center gap-1"><i class="ph-fill ph-map-pin text-gray-400"></i> ${address}</p>
+								</div>
+								<div class="text-right flex sm:flex-col gap-3 sm:gap-1 items-center sm:items-end">
+									<span class="text-xs font-medium text-gray-600"><i class="ph-fill ph-phone text-brand-yellow"></i> ${phone}</span>
+									<button class="text-xs bg-brand-dark text-white px-3 py-1.5 rounded-lg hover:bg-brand-light transition-colors">상세보기</button>
+								</div>
+							</div>
+						`;
+					});
+				}
+			} else if (currentDetailTab === 'policy') {
 				let filteredPolicies = programsData.filter(item => {
 					let matchSido = false;
 					if (province === "전남광주통합특별시") {
@@ -1296,7 +1295,6 @@
 					
 					if (!matchSido) return false;
 
-					// 시군구가 '전체'가 아니라면 시군구까지 일치하는지 확인
 					if (municipality !== '전체') {
 						return item.sggNm === municipality;
 					}
@@ -1337,8 +1335,7 @@
 						`;
 					});
 				}
-            } else if (currentDetailTab === 'activity') {
-				// 1. programType을 기존 대시보드 항목으로 변환해주는 맵핑 함수
+			} else if (currentDetailTab === 'activity') {
 				const mapProgramTypeToDashboard = (pType) => {
 					if (pType === '신고연계 프로그램') return '수련활동신고제';
 					if (pType === '인증연계(실시) 프로그램' || pType === '인증연계 프로그램') return '수련활동인증제';
@@ -1348,7 +1345,6 @@
 					return pType;
 				};
 
-				// 2. 현재 선택된 지역(province, municipality)에 맞는 프로그램 필터링
 				let filteredPrograms = programsData.filter(item => {
 					let matchSido = false;
 					if (province === "전남광주통합특별시") {
@@ -1359,7 +1355,6 @@
 					
 					if (!matchSido) return false;
 
-					// 시군구가 '전체'가 아니라면 시군구까지 일치하는지 확인
 					if (municipality !== '전체') {
 						return item.sggNm === municipality;
 					}
@@ -1402,9 +1397,11 @@
 						`;
 					});
 				}
-            container.innerHTML = html;
-            }
-        }
+			}
+
+			// 👇 [핵심 수정] if-else 문이 모두 끝난 바깥 공통 영역에서 컨테이너에 최종 HTML을 반영합니다!
+			container.innerHTML = html;
+		}
 
         function updateFacilityTabUI(activeTitle) {
             document.querySelectorAll(".fac-tab").forEach(btn => {
