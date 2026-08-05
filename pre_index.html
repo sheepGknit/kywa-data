@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>청소년 데이터 웹앱 - 통합 지원 시스템</title>
+    
+    <!-- Tailwind CSS (디자인 전용) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Pretendard 폰트 설정 -->
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        * {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+        }
+    </style>
+
+    <!-- 팀원 전용 스타일시트 연결 -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-100 flex h-screen overflow-hidden">
+
+    <!-- 1. 좌측 사이드바 영역 -->
+    <aside class="w-64 bg-slate-900 text-white flex flex-col shadow-xl z-10 shrink-0">
+        
+        <!-- 사이드바 상단 로고/타이틀 -->
+        <div class="p-5 border-b border-slate-800 flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-lg">
+                Y
+            </div>
+            <div>
+                <h1 class="font-bold text-base leading-tight">청소년 지원 시스템</h1>
+                <p class="text-xs text-slate-400">Youth Support Admin</p>
+            </div>
+        </div>
+
+        <!-- 네비게이션 메뉴 목록 -->
+        <nav class="flex-1 p-4 space-y-1.5 overflow-y-auto">
+            <div class="px-3 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                메인 메뉴
+            </div>
+
+            <!-- ⭐ 사이드바 버튼 1: 청소년 통계 대시보드 -->
+            <a 
+                href="youth_data.html" 
+                target="mainContentFrame"
+                onclick="setActiveNav(this)"
+                class="nav-link flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-medium transition-all bg-blue-600 text-white shadow-md shadow-blue-900/40"
+            >
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z" />
+                </svg>
+                📊 청소년 통계 대시보드
+            </a>
+
+            <!-- ⭐ 사이드바 버튼 2: AI 프로그램 기획 생성기 -->
+            <a 
+                href="youth_program.html" 
+                target="mainContentFrame"
+                onclick="setActiveNav(this)"
+                class="nav-link flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-all"
+            >
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                </svg>
+                💡 AI 프로그램 기획기
+            </a>
+
+            <!-- ⭐ 사이드바 버튼 3: 팀원이 담당하는 페이지 B -->
+            <a 
+                href="new_program.html" 
+                target="mainContentFrame"
+                onclick="setActiveNav(this)"
+                class="nav-link flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-all"
+            >
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+                📁 활동 프로그램 관리
+            </a>
+        </nav>
+
+        <!-- 사이드바 하단 사용자 정보 영역 -->
+        <div class="p-4 border-t border-slate-800 flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full bg-slate-700 flex items-center justify-center font-semibold text-xs text-slate-300">
+                지도사
+            </div>
+            <div class="overflow-hidden">
+                <p class="text-sm font-medium text-slate-200 truncate">김청소년 지도사</p>
+                <p class="text-xs text-slate-500 truncate">youth@center.go.kr</p>
+            </div>
+        </div>
+    </aside>
+
+    <!-- 2. 우측 중앙 메인 화면 영역 (iframe 창문) -->
+    <main class="flex-1 flex flex-col h-full bg-gray-50 overflow-hidden">
+        
+        <!-- 상단 헤더 툴바 -->
+        <header class="bg-white border-b border-gray-200 h-14 px-6 flex items-center justify-between shrink-0">
+            <div class="flex items-center gap-2 text-sm text-gray-500">
+                <span>시스템 메인</span>
+                <span>&gt;</span>
+                <span id="currentPageTitle" class="font-bold text-gray-800">📊 청소년 통계 대시보드</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    KOSIS API 연결됨
+                </span>
+            </div>
+        </header>
+
+        <!-- ⭐ 메인 iframe: 사이드바 메뉴를 클릭하면 이 안에서 지정된 html 페이지가 뜸 -->
+        <div class="flex-1 w-full h-full p-2 relative">
+            <iframe 
+                name="mainContentFrame" 
+                id="mainContentFrame"
+                src="youth_data.html" 
+                class="w-full h-full border-0 rounded-xl bg-white shadow-sm"
+                title="메인 콘텐츠 영역"
+            ></iframe>
+        </div>
+
+    </main>
+
+    <!-- 외부 JS 연결 -->
+    <script src="script.js"></script>
+
+</body>
+</html>
