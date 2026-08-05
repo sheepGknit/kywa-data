@@ -1028,6 +1028,7 @@
 						};
 					});
 
+                    applyDataToUI(getRegionData("전국"), true, "전국");
 					console.log(`🐞 [디버깅 - Fetch] programs.json 로드 및 표준화 완료. 총 ${programsData.length}개 프로그램`);
 				})
 				.catch(err => console.error('프로그램 데이터 실패.', err));
