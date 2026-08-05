@@ -541,7 +541,7 @@
                             </p>
                         </div>
                         <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
-                            <h4 class="font-bold text-brand-dark text-sm mb-3">지표 상세 데이터 (100점 만점)</h4>
+                            <h4 class="font-bold text-brand-dark text-sm mb-3">지표 상세 데이터 (%)</h4>
                             <table class="w-full text-xs text-left text-gray-600">
                                 <thead class="bg-gray-50 text-gray-500 border-b border-gray-200">
                                     <tr><th class="py-2 px-2">평가 지표</th><th class="py-2 px-2" id="thNameA">A 지역</th><th class="py-2 px-2" id="thNameB">B 지역</th></tr>
@@ -1739,71 +1739,98 @@
             document.getElementById('compDistB').value = '전체'; 
         }
 
-		// --- [5] 실제 데이터 기반 지표 계산 함수로 변경 ---
+		// --- [5] '비중(%)' 기반 실제 데이터 연동 지표 계산 함수 ---
 		function generateMockIndicators(regionName, mode) {
-			// 1. 전국 평균 또는 기준점 대비 상대 평가를 위한 기본값 설정
-			// mode가 'province'(시도)인지 'district'(시군구)인지에 따라 데이터 조회 방식 다름
-			
-			let pop = 0;
-			let facCount = 0;
-			let schoolCount = 0;
+			const targetYear = "2025년";
+			const targetPopMonth = "2026.06월";
 
-			if (regionName === '전체') {
-				// 전체(전국 평균)일 경우 기준 점수 반환
-				return [65, 60, 62]; 
-			}
-
-			// --- (A) 인구 데이터 추출 ---
-			if (regionName === "전남광주통합특별시") {
-				let p1 = (popData["광주광역시"] && popData["광주광역시"]["소계"]) ? popData["광주광역시"]["소계"]["총인구수"]["2026.06월"] || 0 : 0;
-				let p2 = (popData["전라남도"] && popData["전라남도"]["소계"]) ? popData["전라남도"]["소계"]["총인구수"]["2026.06월"] || 0 : 0;
-				pop = p1 + p2;
-			} else if (popData[regionName]) {
-				// 시도 단위 또는 시군구 단위 확인
-				if (popData[regionName]["소계"]) {
-					pop = popData[regionName]["소계"]["총인구수"]["2026.06월"] || 0;
-				} else if (popData[currentProvince] && popData[currentProvince][regionName]) {
-					pop = popData[currentProvince][regionName]["총인구수"]["2026.06월"] || 0;
+			// ----------------------------------------------------
+			// 1. 전국(National) 데이터 총합 구하기
+			// ----------------------------------------------------
+			let natPop = (popData["전국"] && popData["전국"]["전국"]) ? popData["전국"]["전국"]["총인구수"][targetPopMonth] || 1 : 8000000;
+			let natFac = sisulData.length || 1;
+			let natSchool = 0;
+			regionsList.forEach(r => {
+				if(r !== "전남광주통합특별시" && schoolData[r]) {
+					Object.keys(schoolData[r]).forEach(t => natSchool += schoolData[r][t]?.[targetYear]?.["학교수"] || 0);
 				}
-			}
-			if (pop === 0) pop = 50000; // 데이터가 없을 경우 기본 방어 코드
-			console.log(pop)
-
-			// --- (B) 수련시설 데이터 추출 ---
-			let matchedFacs = sisulData.filter(item => {
-				if (regionName === "전남광주통합특별시") return item.ctpvNm === "광주광역시" || item.ctpvNm === "전라남도";
-				if (regionsList.includes(regionName)) return item.ctpvNm === regionName;
-				return item.sggNm === regionName; // 시군구인 경우
 			});
-			facCount = matchedFacs.length;
-			console.log(facCount)
+			if(natSchool === 0) natSchool = 11750; // 방어코드
 
-			// --- (C) 학교 데이터 추출 ---
-			let targetYear = "2025년";
-			if (regionsList.includes(regionName) || regionName === "전남광주통합특별시") {
-				let provKey = regionName === "전남광주통합특별시" ? "광주광역시" : regionName;
-				if (schoolData[provKey]) {
-					Object.keys(schoolData[provKey]).forEach(schType => {
-						if (schoolData[provKey][schType][targetYear]) {
-							schoolCount += schoolData[provKey][schType][targetYear]["학교수"] || 0;
-						}
-					});
-				}
+			// ----------------------------------------------------
+			// 2. 현재 선택된 광역시·도(Province) 데이터 총합 구하기
+			// ----------------------------------------------------
+			let currentProv = document.getElementById('compDistProv') ? document.getElementById('compDistProv').value : "서울특별시";
+			let provPop = 0, provFac = 0, provSchool = 0;
+
+			if (currentProv === "전남광주통합특별시") {
+				provPop = (popData["광주광역시"]?.["소계"]?.["총인구수"]?.[targetPopMonth] || 0) + (popData["전라남도"]?.["소계"]?.["총인구수"]?.[targetPopMonth] || 0);
+				provFac = sisulData.filter(i => i.ctpvNm === "광주광역시" || i.ctpvNm === "전라남도").length;
+				["광주광역시", "전라남도"].forEach(p => {
+					if(schoolData[p]) Object.keys(schoolData[p]).forEach(t => provSchool += schoolData[p][t]?.[targetYear]?.["학교수"] || 0);
+				});
 			} else {
-				// 시군구인 경우 대략적인 추정치 혹은 균등 분배 반영
-				schoolCount = Math.floor(facCount * 1.5) + 5;
+				provPop = popData[currentProv]?.["소계"]?.["총인구수"]?.[targetPopMonth] || 1;
+				provFac = sisulData.filter(i => i.ctpvNm === currentProv).length || 1;
+				if(schoolData[currentProv]) {
+					Object.keys(schoolData[currentProv]).forEach(t => provSchool += schoolData[currentProv][t]?.[targetYear]?.["학교수"] || 0);
+				}
 			}
-			console.log(schoolCount)
+			if(provPop === 0) provPop = 1; if(provFac === 0) provFac = 1; if(provSchool === 0) provSchool = 1;
 
-			// --- (D) 100점 만점 기준으로 점수 환산 (정규화) ---
-			// 인구 점수 (최대 50만 명 기준 100점 스케일)
-			let scorePop = Math.min(100, Math.max(20, Math.round((pop / 300000) * 100)));
-			// 시설 인프라 점수 (시설 수 기준)
-			let scoreFac = Math.min(100, Math.max(25, Math.round((facCount / 15) * 100)));
-			// 학교/교육 인프라 점수
-			let scoreSchool = Math.min(100, Math.max(30, Math.round((schoolCount / 50) * 100)));
+			// ----------------------------------------------------
+			// 3. 선택된 지역(regionName)의 데이터 가져오기
+			// ----------------------------------------------------
+			let pop = 0, facCount = 0, schoolCount = 0;
 
-			return [scorePop, scoreFac, scoreSchool];
+			if (mode === 'province') {
+				if (regionName === '전체') {
+					// 전국 평균 (17개 시도)
+					pop = natPop / 17; facCount = natFac / 17; schoolCount = natSchool / 17;
+				} else {
+					if (regionName === "전남광주통합특별시") {
+						pop = provPop; facCount = provFac; schoolCount = provSchool; // 위에서 구한 값 그대로 사용
+					} else {
+						pop = popData[regionName]?.["소계"]?.["총인구수"]?.[targetPopMonth] || 0;
+						facCount = sisulData.filter(i => i.ctpvNm === regionName).length;
+						if(schoolData[regionName]) Object.keys(schoolData[regionName]).forEach(t => schoolCount += schoolData[regionName][t]?.[targetYear]?.["학교수"] || 0);
+					}
+				}
+			} else if (mode === 'district') {
+				let distCount = districtData[currentProv] ? districtData[currentProv].length : 1;
+				if (regionName === '전체') {
+					// 해당 시도의 평균 (시군구 1개당 평균)
+					pop = provPop / distCount; facCount = provFac / distCount; schoolCount = provSchool / distCount;
+				} else {
+					pop = popData[currentProv]?.[regionName]?.["총인구수"]?.[targetPopMonth] || 0;
+					facCount = sisulData.filter(i => i.sggNm === regionName).length;
+					// 시군구별 학교수는 시설수 비율에 맞춰 추정 분배 (데이터 한계 보완)
+					schoolCount = Math.floor(facCount * (provSchool / provFac)) || 1; 
+				}
+			}
+
+			// ----------------------------------------------------
+			// 4. 공식 적용: (선택지역 / 기준지역) * 100
+			// ----------------------------------------------------
+			let scorePop = 0, scoreFac = 0, scoreSchool = 0;
+
+			if (mode === 'province') {
+				scorePop = (pop / natPop) * 100;
+				scoreFac = (facCount / natFac) * 100;
+				scoreSchool = (schoolCount / natSchool) * 100;
+			} else {
+				// district (시군구) 모드
+				scorePop = (pop / provPop) * 100;
+				scoreFac = (facCount / provFac) * 100;
+				scoreSchool = (schoolCount / provSchool) * 100;
+			}
+
+			// 소수점 1자리까지만 깔끔하게 표시
+			return [
+				Number(scorePop.toFixed(1)), 
+				Number(scoreFac.toFixed(1)), 
+				Number(scoreSchool.toFixed(1))
+			];
 		}
 		
 		// --- [6] 비교 분석 실행 (차트 그리기 & 표 채우기) ---
@@ -1845,7 +1872,7 @@
 						{ label: nameB, data: dataB, backgroundColor: 'rgba(59, 130, 246, 0.4)', borderColor: '#3b82f6', borderWidth: 2, pointBackgroundColor: '#3b82f6', fill: true }
 					]
 				},
-				options: { responsive: true, maintainAspectRatio: false, scales: { r: { angleLines: { color: '#e2e8f0' }, grid: { color: '#e2e8f0' }, pointLabels: { font: { size: 11, family: "'Pretendard', sans-serif", weight: 'bold' }, color: '#475569' }, ticks: { display: false, min: 0, max: 100 } } }, plugins: { legend: { position: 'bottom', labels: { font: { size: 12, family: "'Pretendard', sans-serif" } } } } }
+				options: { responsive: true, maintainAspectRatio: false, scales: { r: { angleLines: { color: '#e2e8f0' }, grid: { color: '#e2e8f0' }, pointLabels: { font: { size: 11, family: "'Pretendard', sans-serif", weight: 'bold' }, color: '#475569' }, ticks: { display: false, min: 0 } } }, plugins: { legend: { position: 'bottom', labels: { font: { size: 12, family: "'Pretendard', sans-serif" } } } } }
 			});
 
 			// 상세 표 데이터 채우기
@@ -1856,7 +1883,7 @@
 			dataA.forEach((val, i) => {
 				let diff = val - dataB[i];
 				let diffHtml = diff > 0 ? `<span class="text-blue-500 font-bold">(+${diff})</span>` : (diff < 0 ? `<span class="text-red-500 font-bold">(${diff})</span>` : '-');
-				trHtml += `<tr class="border-b border-gray-100"><td class="py-2 px-2 font-bold bg-white">${labels[i]}</td><td class="py-2 px-2">${val}점 ${diffHtml}</td><td class="py-2 px-2 bg-gray-50">${dataB[i]}점</td></tr>`;
+				trHtml += `<tr class="border-b border-gray-100"><td class="py-2 px-2 font-bold bg-white">${labels[i]}</td><td class="py-2 px-2">${val}% ${diffHtml}</td><td class="py-2 px-2 bg-gray-50">${dataB[i]}%</td></tr>`;
 			});
 			document.getElementById('compareTableBody').innerHTML = trHtml;
 
