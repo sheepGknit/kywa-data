@@ -1740,12 +1740,11 @@
         }
 
 		// --- [5] '비중(%)' 기반 실제 데이터 연동 지표 계산 함수 ---
-		// --- [5] 확실하게 데이터를 찾아내는 개선된 지표 계산 함수 ---
+		// --- [5] 시군구 및 시도 데이터를 완벽하게 찾아내는 지표 계산 함수 ---
 		function generateMockIndicators(regionName, mode) {
 			const targetYear = "2025년";
 			const targetPopMonth = "2026.06월";
 
-			// 🛡️ [방어 코드] 만약 mode가 전달되지 않았다면 UI 상태를 보고 판단
 			if (!mode) {
 				const provModeUI = document.getElementById('compProvModeUI');
 				mode = (provModeUI && !provModeUI.classList.contains('hidden')) ? 'province' : 'district';
@@ -1753,61 +1752,78 @@
 
 			let currentProv = document.getElementById('compDistProv') ? document.getElementById('compDistProv').value : "서울특별시";
 
-			// ----------------------------------------------------
 			// 1. 기준이 되는 전체(전국 또는 시도) 데이터 총합 구하기
-			// ----------------------------------------------------
 			let natPop = (popData["전국"] && popData["전국"]["전국"]) ? popData["전국"]["전국"]["총인구수"][targetPopMonth] || 1 : 10000000;
 			let natFac = sisulData.length || 1;
 			let natSchool = 11750;
 
 			let provPop = 0, provFac = 0, provSchool = 0;
-			if (popData[currentProv] && popData[currentProv]["소계"]) {
-				provPop = popData[currentProv]["소계"]["총인구수"][targetPopMonth] || 1;
+			
+			// 시도 총인구 안전하게 가져오기
+			if (currentProv === "전남광주통합특별시") {
+				let p1 = popData["광주광역시"]?.["소계"]?.["총인구수"]?.[targetPopMonth] || 0;
+				let p2 = popData["전라남도"]?.["소계"]?.["총인구수"]?.[targetPopMonth] || 0;
+				provPop = p1 + p2;
+				provFac = sisulData.filter(i => i.ctpvNm === "광주광역시" || i.ctpvNm === "전라남도").length;
+				["광주광역시", "전라남도"].forEach(p => {
+					if(schoolData[p]) Object.keys(schoolData[p]).forEach(t => provSchool += schoolData[p][t]?.[targetYear]?.["학교수"] || 0);
+				});
 			} else {
-				provPop = 1000000; // 방어값
-			}
-			provFac = sisulData.filter(i => i.ctpvNm === currentProv).length || 1;
-			if(schoolData[currentProv]) {
-				Object.keys(schoolData[currentProv]).forEach(t => provSchool += schoolData[currentProv][t]?.[targetYear]?.["학교수"] || 0);
+				provPop = popData[currentProv]?.["소계"]?.["총인구수"]?.[targetPopMonth] || 100000;
+				provFac = sisulData.filter(i => i.ctpvNm === currentProv).length || 1;
+				if(schoolData[currentProv]) {
+					Object.keys(schoolData[currentProv]).forEach(t => provSchool += schoolData[currentProv][t]?.[targetYear]?.["학교수"] || 0);
+				}
 			}
 			if(provSchool === 0) provSchool = 1000;
 
-			// ----------------------------------------------------
-			// 2. 선택된 지역(regionName)의 데이터 안전하게 추출하기
-			// ----------------------------------------------------
 			let pop = 0, facCount = 0, schoolCount = 0;
 
+			// 2. 선택된 지역(regionName)의 데이터 추출
 			if (mode === 'province') {
 				if (regionName === '전체') {
 					pop = natPop / 17; facCount = natFac / 17; schoolCount = natSchool / 17;
 				} else {
-					// 🔍 시도 인구 추출 (데이터 구조 유연하게 대응)
-					if (popData[regionName] && popData[regionName]["소계"]) {
-						pop = popData[regionName]["소계"]["총인구수"][targetPopMonth] || 0;
-					}
-					facCount = sisulData.filter(i => i.ctpvNm === regionName).length;
-					if(schoolData[regionName]) {
-						Object.keys(schoolData[regionName]).forEach(t => schoolCount += schoolData[regionName][t]?.[targetYear]?.["학교수"] || 0);
+					if (regionName === "전남광주통합특별시") {
+						pop = provPop; facCount = provFac; schoolCount = provSchool;
+					} else {
+						pop = popData[regionName]?.["소계"]?.["총인구수"]?.[targetPopMonth] || 0;
+						facCount = sisulData.filter(i => i.ctpvNm === regionName).length;
+						if(schoolData[regionName]) {
+							Object.keys(schoolData[regionName]).forEach(t => schoolCount += schoolData[regionName][t]?.[targetYear]?.["학교수"] || 0);
+						}
 					}
 				}
 			} else {
-				// district (시군구) 모드
+				// 🏠 [시군구 비교 모드]
 				let distCount = districtData[currentProv] ? districtData[currentProv].length : 1;
 				if (regionName === '전체') {
 					pop = provPop / distCount; facCount = provFac / distCount; schoolCount = provSchool / distCount;
 				} else {
-					// 🔍 시군구 인구 추출 (popData 내부 구조 확인)
-					if (popData[currentProv] && popData[currentProv][regionName]) {
-						pop = popData[currentProv][regionName]["총인구수"][targetPopMonth] || 0;
+					// 🔍 시군구 인구 추출 (다양한 키 값 대응)
+					if (popData[currentProv]) {
+						if (popData[currentProv][regionName]) {
+							pop = popData[currentProv][regionName]["총인구수"]?.[targetPopMonth] || 0;
+						} else {
+							// 혹시 키 이름에 공백이나 오타가 있을 경우를 대비한 검색
+							let foundKey = Object.keys(popData[currentProv]).find(k => k.includes(regionName));
+							if (foundKey) {
+								pop = popData[currentProv][foundKey]["총인구수"]?.[targetPopMonth] || 0;
+							}
+						}
 					}
-					facCount = sisulData.filter(i => i.sggNm === regionName).length;
+					// 시군구 시설 수 추출
+					if (currentProv === "전남광주통합특별시") {
+						facCount = sisulData.filter(i => (i.ctpvNm === "광주광역시" || i.ctpvNm === "전라남도") && i.sggNm === regionName).length;
+					} else {
+						facCount = sisulData.filter(i => i.ctpvNm === currentProv && i.sggNm === regionName).length;
+					}
+					// 시군구별 학교수는 시도 전체 학교수에서 시설 비율만큼 안분
 					schoolCount = Math.floor(facCount * (provSchool / provFac)) || 1;
 				}
 			}
 
-			// ----------------------------------------------------
 			// 3. 비중(%) 계산
-			// ----------------------------------------------------
 			let scorePop = 0, scoreFac = 0, scoreSchool = 0;
 
 			if (mode === 'province') {
@@ -1820,8 +1836,7 @@
 				scoreSchool = provSchool > 0 ? (schoolCount / provSchool) * 100 : 0;
 			}
 
-			// 디버깅 로그 확인용
-			console.log(`[성공] 모드: ${mode} | 선택지역: ${regionName} | 인구: ${pop} | 시설: ${facCount} | 학교: ${schoolCount}`);
+			console.log(`[시군구 디버깅] 모드: ${mode} | 시도: ${currentProv} | 선택구: ${regionName} | 인구: ${pop} | 시설: ${facCount}`);
 
 			return [
 				Number(scorePop.toFixed(1)), 
@@ -1879,7 +1894,8 @@
 			const labels = ['청소년 인구(수요)', '수련시설(인프라)', '정책사업(프로그램)'];
 			let trHtml = '';
 			dataA.forEach((val, i) => {
-				let diff = val - dataB[i];
+				let diff = (val - dataB[i]).toFixed(1);
+				
 				let diffHtml = diff > 0 ? `<span class="text-blue-500 font-bold">(+${diff})</span>` : (diff < 0 ? `<span class="text-red-500 font-bold">(${diff})</span>` : '-');
 				trHtml += `<tr class="border-b border-gray-100"><td class="py-2 px-2 font-bold bg-white">${labels[i]}</td><td class="py-2 px-2">${val}% ${diffHtml}</td><td class="py-2 px-2 bg-gray-50">${dataB[i]}%</td></tr>`;
 			});
