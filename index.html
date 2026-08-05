@@ -1271,7 +1271,7 @@ async function updateDetailPanel(province, municipality) {
             try {
                 const API_KEY = "AQ.Ab8RN6IhZPKU-lX1GmWpO6usO15l7RJUbR8SA2UtaBYyeYBstg"; 
                 
-                if (!API_KEY || API_KEY === "AQ.Ab8RN6IhZPKU-lX1GmWpO6usO15l7RJUbR8SA2UtaBYyeYBstg") {
+                if (!API_KEY || API_KEY === "YOUR_API_KEY") {
                     insightEl.innerHTML = `<span class="text-brand-yellow font-bold">${targetRegionName}</span>: 청소년 인구 ${regionalPop.toLocaleString()}명, 수련시설 ${fac}개소, 프로그램 ${localPrograms.length}개가 운영 중인 지역입니다.`;
                     return;
                 }
@@ -2182,7 +2182,7 @@ async function updateDetailPanel(province, municipality) {
 
                 console.log(API_KEY)
 
-				if (!API_KEY || API_KEY === "AQ.Ab8RN6IhZPKU-lX1GmWpO6usO15l7RJUbR8SA2UtaBYyeYBstg") {
+				if (!API_KEY || API_KEY === "YOUR_API_KEY") {
 					document.getElementById('compareInsightText').innerHTML = `<span class="text-brand-yellow font-bold">${nameA}</span>와 <span class="text-brand-yellow font-bold">${nameB}</span>의 비교가 완료되었습니다. (API 키를 입력하면 세부 정책 분석이 출력됩니다.)`;
                     console.log(nameA,nameB)
 				} else {
@@ -2248,7 +2248,7 @@ async function updateDetailPanel(province, municipality) {
 				// 💡 API 키 입력
 				const API_KEY = "AQ.Ab8RN6IhZPKU-lX1GmWpO6usO15l7RJUbR8SA2UtaBYyeYBstg"; 
 
-				if (!API_KEY || API_KEY === "AQ.Ab8RN6IhZPKU-lX1GmWpO6usO15l7RJUbR8SA2UtaBYyeYBstg") {
+				if (!API_KEY || API_KEY === "YOUR_API_KEY") {
 					content.innerHTML = `<div class="p-4 bg-amber-50 text-amber-800 rounded-xl font-bold text-xs">API 키가 설정되지 않았습니다. 코드 내부의 API_KEY 변수에 실제 키를 입력해주세요.</div>`;
 					return;
 				}
