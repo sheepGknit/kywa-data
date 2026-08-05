@@ -1889,14 +1889,16 @@
 			});
 
 			// 상세 표 데이터 채우기
+			// 상세 표 데이터 채우기 (부동소수점 오차 방지)
 			document.getElementById('thNameA').textContent = nameA;
 			document.getElementById('thNameB').textContent = nameB;
-			const labels = ['청소년 인구(수요)', '수련시설(인프라)', '정책사업(프로그램)'];
+			const labels = ['청소년 인구(수요)', '수련시설(인프라)', '학교/교육 인프라'];
 			let trHtml = '';
 			dataA.forEach((val, i) => {
-				let diff = (val - dataB[i]).toFixed(1);
+				// 👇 [수정] 뺄셈 결과에 바로 .toFixed(1)을 씌운 뒤 숫자로 변환하여 깔끔하게 정리
+				let diff = Number((val - dataB[i]).toFixed(1));
 				
-				let diffHtml = diff > 0 ? `<span class="text-blue-500 font-bold">(+${diff})</span>` : (diff < 0 ? `<span class="text-red-500 font-bold">(${diff})</span>` : '-');
+				let diffHtml = diff > 0 ? `<span class="text-blue-500 font-bold">(+${diff}%)</span>` : (diff < 0 ? `<span class="text-red-500 font-bold">(${diff}%)</span>` : '-');
 				trHtml += `<tr class="border-b border-gray-100"><td class="py-2 px-2 font-bold bg-white">${labels[i]}</td><td class="py-2 px-2">${val}% ${diffHtml}</td><td class="py-2 px-2 bg-gray-50">${dataB[i]}%</td></tr>`;
 			});
 			document.getElementById('compareTableBody').innerHTML = trHtml;
