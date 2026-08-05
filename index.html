@@ -1346,7 +1346,7 @@ async function updateDetailPanel(province, municipality) {
 					html = `<div class="p-8 text-center text-gray-400 font-bold mt-10">해당 지역에 등록된 청소년 시설 데이터가 없습니다.</div>`;
 				} else {
 					filteredFacilities.forEach((fac) => {
-						const facilityName = fac.sisulNm || fac.fcltNm || '시설명 없음';
+						const facilityName = fac.facilityName || fac.sisulNm || fac.fcltNm || '시설명 없음';
 						
 						let type = '청소년시설';
 						if (fac.sisulType === '수련관') type = '청소년수련관';
