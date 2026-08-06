@@ -1771,8 +1771,46 @@ async function updateDetailPanel(province, municipality) {
 
             if (mapDataExtracted) {
                 const mapDataObj = {};
-                regionsList.forEach((r, i) => { mapDataObj[r] = totalDataArray[i]; });
-                updateTrendMapColors(mapDataObj);
+                
+                // 1. 각 시도별 '청소년 인구'를 미리 구해둡니다 (비율 계산의 분모용)
+                const targetYearKey = "2026.06월"; // 기본 기준 연월
+
+                regionsList.forEach((r, i) => {
+                    let provPop = 0;
+                    if (r === "전남광주통합특별시") {
+                        let p1 = (popData["광주광역시"] && popData["광주광역시"]["소계"]) ? popData["광주광역시"]["소계"]["총인구수"][targetYearKey] || 0 : 0;
+                        let p2 = (popData["전라남도"] && popData["전라남도"]["소계"]) ? popData["전라남도"]["소계"]["총인구수"][targetYearKey] || 0 : 0;
+                        provPop = p1 + p2;
+                    } else {
+                        if (popData[r] && popData[r]["소계"]) {
+                            provPop = popData[r]["소계"]["총인구수"][targetYearKey] || 0;
+                        }
+                    }
+                    if (provPop === 0) provPop = 1; // 0으로 나누기 방지
+
+                    let numerator = totalDataArray[i]; // 해당 지역의 시설 수, 학교 수, 또는 인구 수 등
+                    let calculatedRatio = 0;
+
+                    // 2. 항목 종류에 따른 비율(%) 계산 공식 적용
+                    if (facilityItems.includes(title)) {
+                        // 청소년시설: (시도별 시설 개소수 / 시도별 청소년 인구) * 100
+                        calculatedRatio = (numerator / provPop) * 100;
+                    } 
+                    else if (schoolItems.includes(title)) {
+                        // 학교: (시도별 학교 수 / 시도별 청소년 인구) * 100
+                        calculatedRatio = (numerator / provPop) * 100;
+                    } 
+                    else {
+                        // 청소년 인구 또는 기타: (시도별 청소년 인구 / 전국 총 청소년 인구) * 100
+                        let totalNationPop = (popData["전국"] && popData["전국"]["전국"]) ? popData["전국"]["전국"]["총인구수"][targetYearKey] || 1 : 1;
+                        calculatedRatio = (numerator / totalNationPop) * 100;
+                    }
+
+                    // 소수점 둘째 자리까지 저장하여 분위(Quantile) 계산에 활용
+                    mapDataObj[r] = Number(calculatedRatio.toFixed(3));
+                });
+
+                updateTrendMapColors(mapDataObj, true); // 두 번째 인자로 백분율 표기 여부 전달
             }
 			
 			// 🌟 [추가됨] 실제로 화면에 표를 그려주는 부분
