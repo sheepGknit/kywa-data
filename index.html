@@ -1837,7 +1837,7 @@ async function updateDetailPanel(province, municipality) {
             }
         }
 
-        function updateTrendMapColors(dataObj) {
+        function updateTrendMapColors(dataObj, isPercentage = false) {
             if (!geojsonTrend) return;
             
             const values = Object.values(dataObj).filter(v => v > 0);
@@ -1862,7 +1862,10 @@ async function updateDetailPanel(province, municipality) {
                 if(rName === "광주광역시" || rName === "전라남도") rName = "전남광주통합특별시";
                 const val = dataObj[rName] || 0;
                 layer.setStyle({ fillColor: getColor(val), fillOpacity: 0.9, weight: 1, color: '#94a3b8' });
-                layer.bindTooltip(`${rName}: ${val.toLocaleString()}`, { className: 'bg-white border border-gray-200 text-brand-dark font-bold text-xs rounded shadow px-2 py-1', sticky: true });
+                
+                // 🌟 퍼센트 기호(%) 붙여서 출력
+                let displayVal = isPercentage ? `${val}%` : val.toLocaleString();
+                layer.bindTooltip(`${rName}: ${displayVal}`, { className: 'bg-white border border-gray-200 text-brand-dark font-bold text-xs rounded shadow px-2 py-1', sticky: true });
             });
         }
 
