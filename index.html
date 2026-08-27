@@ -2221,6 +2221,8 @@ async function updateDetailPanel(province, municipality) {
 
 				const { GoogleGenAI } = await import("@google/genai");
 				const ai = new GoogleGenAI({ apiKey: API_KEY });
+				console.log('기준 지역 (A): ${nameA} [청소년인구 비중: ${dataA[0]}%, 수련시설 비중: ${dataA[1]}%, 정책사업 비중: ${dataA[2]}%]')
+				console.log('비교 대상 (B): ${nameB} [청소년인구 비중: ${dataB[0]}%, 수련시설 비중: ${dataB[1]}%, 정책사업 비중: ${dataB[2]}%]')
 
 				const prompt = `
 					너는 대한민국 청소년 정책 및 인프라 비교 분석 전문가야.
