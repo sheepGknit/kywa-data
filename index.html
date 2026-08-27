@@ -1420,9 +1420,9 @@
 					filteredPolicies.forEach((prog) => {
 						let typeBadge = prog.programType || '정책사업';
 						let facility = prog.facilityName || `${prefix} 청소년시설`;
-						let dateStr = prog.activityDate ? `<i class="ph-bold ph-calendar-blank"></i> ${prog.activityDate}` : '';
-						let capacity = prog.capacity ? `정원: ${prog.capacity}명` : '';
-
+						let dateStr = prog.activityDate ? `<span class="flex items-center gap-1"><i class="ph-bold ph-calendar-blank"></i> ${prog.activityDate}</span>` : '';
+						let capacityStr = prog.capacity ? `<span>• 정원: ${prog.capacity}명</span>` : '';
+						
 						html += `
 							<div class="bg-gray-50 p-4 border border-gray-200 rounded-xl mb-3 flex gap-4 items-start hover:border-brand-yellow transition-colors">
 								<div class="w-10 h-10 rounded-full bg-brand-yellow flex items-center justify-center text-brand-dark shrink-0 font-bold">
@@ -1434,12 +1434,12 @@
 										<h3 class="font-bold text-brand-dark text-[14px]">${prog.activityName}</h3>
 									</div>
 									<p class="text-xs text-gray-600 leading-relaxed mb-2">
-										지역 청소년을 대상으로 지원하는 종합 돌봄 및 역량 강화 프로그램입니다.
+										${description}
 									</p>
 									<div class="flex flex-wrap items-center gap-3 text-[11px] text-gray-500 bg-white px-3 py-1.5 rounded-lg border border-gray-200">
 										<span><i class="ph-fill ph-buildings text-brand-dark"></i> 운영기관: ${facility}</span>
-										${dateStr ? <span>${dateStr}</span> : ''}
-										${capacity ? <span>• ${capacity}</span> : ''}
+										${dateStr}
+										${capacityStr}
 									</div>
 								</div>
 							</div>
@@ -1518,6 +1518,7 @@
 			// 👇 [핵심 수정] if-else 문이 모두 끝난 바깥 공통 영역에서 컨테이너에 최종 HTML을 반영합니다!
 			container.innerHTML = html;
 		}
+		
 
         function updateFacilityTabUI(activeTitle) {
             document.querySelectorAll(".fac-tab").forEach(btn => {
