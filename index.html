@@ -1278,11 +1278,8 @@
 			// 4. AI 브라우저 직접 호출
 			try {
 				const API_KEY = "AQ.Ab8RN6IhZPKU-lX1GmWpO6usO15l7RJUbR8SA2UtaBYyeYBstg"; 
-				console.log(API_KEY);
 				const { GoogleGenAI } = await import("@google/genai");
-				console.log('제미나이');
 				const ai = new GoogleGenAI({ apiKey: API_KEY });
-				console.log(ai);
 
 				const prompt = `
 					너는 대한민국 청소년정책 데이터 분석 전문가야. 
@@ -1292,13 +1289,14 @@
 					- 청소년수련시설 수: ${fac}개소 (1만명당 비율: ${ratio})
 					- 등록된 활동/프로그램 수: ${localPrograms.length}개
 				`;
-				
 				console.log(prompt);
-
+				
 				const response = await ai.models.generateContent({
 					model: 'gemini-3.6-flash',
 					contents: prompt,
 				});
+				
+				console.log(response);
 
 				if (response && response.text) {
 					insightEl.textContent = response.text.trim();
