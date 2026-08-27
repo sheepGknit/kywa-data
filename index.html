@@ -1294,6 +1294,7 @@
 					model: 'gemini-3.6-flash',
 					contents: prompt,
 				});
+				console.log(prompt);
 
 				if (response && response.text) {
 					insightEl.textContent = response.text.trim();
