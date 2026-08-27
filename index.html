@@ -1485,8 +1485,8 @@
 					filteredPrograms.forEach((prog, i) => {
 						let mappedType = mapProgramTypeToDashboard(prog.programType);
 						let statusText = prog.recruitmentStatus || '접수중';
-						let capacityText = prog.capacity ? `<span>• ${capacityText}</span>` : '';
-						let feeText = prog.fee ? `<span>• ${feeText}</span>` : '';
+						let capacityText = prog.capacity ? `정원 ${prog.capacity}명` : '';
+						let feeText = prog.fee ? `참가비: ${prog.fee}` : '';
 						let facility = prog.facilityName || '기관명 미지정';
 						let dateStr = prog.activityDate || '일정 미정';
 
@@ -1502,8 +1502,8 @@
 								</div>
 								<p class="text-xs text-gray-500 pl-2 mb-2 flex items-center gap-2">
 									<span><i class="ph-bold ph-calendar-blank"></i> ${dateStr}</span>
-									${capacityText}
-									${feeText}
+									${capacityText? `<span>• ${capacityText}</span>` : ''}
+									${feeText? `<span>• ${feeText}</span>` : ''}
 								</p>
 								<div class="flex justify-between items-center pl-2 pt-1 border-t border-gray-100">
 									<span class="text-[11px] font-bold text-gray-600"><i class="ph-fill ph-buildings text-gray-400"></i> ${facility} (${prog.sidoNm} ${prog.sggNm})</span>
