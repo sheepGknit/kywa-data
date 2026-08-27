@@ -1193,6 +1193,7 @@
                 });
             }
         }
+		
 		async function updateDetailPanel(province, municipality) {
 			const isAll = (municipality === '전체');
 			const targetRegionName = isAll ? province : `${province} ${municipality}`;
@@ -1295,6 +1296,7 @@
 					model: 'gemini-3.6-flash',
 					contents: prompt,
 				});
+				
 				
 				console.log(response);
 
@@ -1436,8 +1438,8 @@
 									</p>
 									<div class="flex flex-wrap items-center gap-3 text-[11px] text-gray-500 bg-white px-3 py-1.5 rounded-lg border border-gray-200">
 										<span><i class="ph-fill ph-buildings text-brand-dark"></i> 운영기관: ${facility}</span>
-										${dateStr ? `<span>${dateStr}</span>` : ''}
-										${capacity ? `<span>• ${capacity}</span>` : ''}
+										${dateStr ? <span>${dateStr}</span> : ''}
+										${capacity ? <span>• ${capacity}</span> : ''}
 									</div>
 								</div>
 							</div>
