@@ -1193,7 +1193,7 @@
                 });
             }
         }
-async function updateDetailPanel(province, municipality) {
+		async function updateDetailPanel(province, municipality) {
             const isAll = (municipality === '전체');
             const targetRegionName = isAll ? province : `${province} ${municipality}`;
             
@@ -1322,17 +1322,25 @@ async function updateDetailPanel(province, municipality) {
             
             // 👇👇 [수정] 탭 전환 시에도 전남광주 필터링 유지 👇👇
             let filteredFacilities = sisulData.filter(item => {
-                if (currentProvince === "전남광주통합특별시") {
-                    return item.ctpvNm === "광주광역시" || item.ctpvNm === "전라남도";
-                }
-                return item.ctpvNm === currentProvince;
-            });
-            
-            if (!isAll) {
-                filteredFacilities = filteredFacilities.filter(item => item.sggNm === currentMunicipality);
-            }
+				if (currentProvince === "전남광주통합특별시") {
+					return item.ctpvNm === "광주광역시" || item.ctpvNm === "전라남도";
+				}
+				return item.ctpvNm === currentProvince;
+			});
 
-            renderTabContent(currentProvince, currentMunicipality, (currentMunicipality.length || 5), filteredFacilities);
+			if (!isAll) {
+				filteredFacilities = filteredFacilities.filter(item => item.sggNm === currentMunicipality);
+			}
+
+			// 🌟 시설 이름 기준 중복 제거 (Map 객체 활용)
+			const uniqueFacilities = Array.from(
+				new Map(filteredFacilities.map(fac => {
+					const name = fac.facilityName || fac.sisulNm || fac.fcltNm || '';
+					return [name, fac];
+				})).values()
+			);
+
+			renderTabContent(currentProvince, currentMunicipality, (currentMunicipality.length || 5), uniqueFacilities);
         }
 
         function renderTabContent(province, municipality, seed, filteredFacilities = []) {
@@ -2234,7 +2242,6 @@ async function updateDetailPanel(province, municipality) {
 					- 마크다운 서식 없이 순수 텍스트로 작성할 것.
 					- 강조가 필요한 지역명이나 핵심 단어는 <span class="text-brand-yellow font-bold">지역명</span> 태그를 사용할 것.
 				`;
-				console.log(prompt);
 
 				const response = await ai.models.generateContent({
 					model: 'gemini-3.6-flash',
