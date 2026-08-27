@@ -1378,6 +1378,18 @@
 						const address = fac.lctnRoadNm || fac.lctnLotnoAddr || '주소 정보 없음';
 						const phone = fac.telno || '전화번호 미등록';
 
+						// 🌟 1. 홈페이지 URL 추출 및 프로토콜(http) 보정
+						// (공공데이터 특성상 website 또는 hmpg 키를 사용할 수 있으므로 둘 다 확인)
+						let websiteUrl = fac.website || fac.hmpg || '';
+						if (websiteUrl && !websiteUrl.startsWith('http')) {
+							websiteUrl = 'http://' + websiteUrl;
+						}
+
+						// 🌟 2. 버튼 클릭 액션 정의 (URL이 있으면 새 창, 없으면 알림창)
+						const clickAction = websiteUrl 
+							? `window.open('${websiteUrl}', '_blank')` 
+							: `alert('해당 기관의 홈페이지 정보가 등록되어 있지 않습니다.')`;
+
 						html += `
 							<div class="bg-white p-4 border border-gray-100 rounded-xl shadow-sm mb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-brand-yellow transition-colors">
 								<div>
@@ -1389,7 +1401,8 @@
 								</div>
 								<div class="text-right flex sm:flex-col gap-3 sm:gap-1 items-center sm:items-end">
 									<span class="text-xs font-medium text-gray-600"><i class="ph-fill ph-phone text-brand-yellow"></i> ${phone}</span>
-									<button class="text-xs bg-brand-dark text-white px-3 py-1.5 rounded-lg hover:bg-brand-light transition-colors">상세보기</button>
+									<!-- 🌟 3. 상세보기 버튼에 onclick 이벤트 추가 -->
+									<button onclick="${clickAction}" class="text-xs bg-brand-dark text-white px-3 py-1.5 rounded-lg hover:bg-brand-light transition-colors">상세보기</button>
 								</div>
 							</div>
 						`;
