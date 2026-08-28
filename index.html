@@ -238,6 +238,8 @@
                 <div class="flex items-center gap-3">
                     <h1 id="detailRegionTitle" class="text-3xl font-black text-brand-dark tracking-tight">서울특별시</h1>
                     <span id="detailSubRegionTitle" class="text-2xl font-bold text-gray-400">전체</span>
+                    <!-- 👇 여기에 격차 지수 등급 뱃지가 추가됩니다 -->
+                    <span id="detailGapBadge" class="hidden px-3 py-1 text-sm font-black rounded-full shadow-sm ml-2"></span>
                 </div>
             </div>
             <div class="text-right hidden sm:block">
@@ -285,12 +287,14 @@
                         <span class="text-gray-500 text-xs font-bold mb-1">수련시설 현황</span>
                         <span class="text-xl lg:text-2xl font-black text-gray-800" id="detailStatFac">0개소</span>
                     </div>
+                    <!-- 👇 시설과 프로그램의 1만명당 지표를 함께 보여주도록 수정 -->
                     <div class="bg-brand-dark rounded-2xl p-4 shadow-md border border-gray-700 flex flex-col justify-center items-center relative overflow-hidden">
                         <div class="absolute top-0 w-full h-1 bg-brand-yellow"></div>
-                        <span class="text-gray-300 text-[11px] font-bold mb-1 text-center">청소년 1만명당 시설수</span>
-                        <div class="flex items-end gap-1">
-                            <span class="text-2xl font-black text-brand-yellow" id="detailStatRatio">0.0</span>
-                            <span class="text-sm text-gray-400 font-bold mb-0.5">개</span>
+                        <span class="text-gray-300 text-[11px] font-bold mb-1 text-center">청소년 1만명당 인프라</span>
+                        <div class="flex items-end gap-3">
+                            <div class="text-center"><span class="text-xs text-gray-400 mr-1">시설</span><span class="text-xl font-black text-brand-yellow" id="detailStatRatio">0.0</span></div>
+                            <div class="w-px h-5 bg-gray-600 mb-1"></div>
+                            <div class="text-center"><span class="text-xs text-gray-400 mr-1">활동</span><span class="text-xl font-black text-emerald-400" id="detailProgRatio">0.0</span></div>
                         </div>
                     </div>
                 </div>
@@ -1307,7 +1311,9 @@
 
 			const fac = filteredFacilities.length;
 			const ratio = regionalPop > 0 ? ((fac / regionalPop) * 10000).toFixed(1) : "0.0";
+            const progRatio = regionalPop > 0 ? ((progCount / regionalPop) * 10000).toFixed(1) : "0.0";
 
+            
 			// 정책사업 및 신청 가능 활동 데이터 추출을 위한 프로그램 필터
 			let localPrograms = programsData.filter(item => {
 				let matchSido = false;
@@ -1326,10 +1332,35 @@
 				return true;
 			});
 
-			// 상단 통계 수치 반영
-			document.getElementById('detailStatPop').textContent = regionalPop.toLocaleString() + '명';
-			document.getElementById('detailStatFac').textContent = fac + '개소'; 
-			document.getElementById('detailStatRatio').textContent = ratio;
+
+            
+            // 🌟 [추가] 수요-공급 격차 지수 산출 및 뱃지 UI 업데이트
+            // 수요(인구/10000) 대비 공급(시설 + 프로그램 가중치) 점수를 계산하여 지수화
+            const supplyScore = fac + (progCount * 0.2); 
+            const demandScore = regionalPop > 0 ? (regionalPop / 10000) : 1;
+            const gapIndex = supplyScore / demandScore;
+
+            let badgeText = "", badgeClass = "";
+            if (regionalPop === 0) {
+                badgeText = "데이터 없음"; badgeClass = "bg-gray-200 text-gray-600 border-gray-300";
+            } else if (gapIndex < 1.5) {
+                badgeText = "🚨 우선지원지역"; badgeClass = "bg-red-100 text-seoul-red border border-red-200 animate-pulse";
+            } else if (gapIndex < 3.0) {
+                badgeText = "⚠️ 관심지역"; badgeClass = "bg-orange-100 text-orange-600 border border-orange-200";
+            } else {
+                badgeText = "✅ 양호지역"; badgeClass = "bg-emerald-100 text-emerald-600 border border-emerald-200";
+            }
+
+            const badgeEl = document.getElementById('detailGapBadge');
+            badgeEl.textContent = badgeText;
+            badgeEl.className = `px-3 py-1 text-xs font-black rounded-full shadow-sm ml-2 border ${badgeClass} fade-in`;
+            badgeEl.classList.remove('hidden');
+
+            document.getElementById('detailStatPop').textContent = regionalPop.toLocaleString() + '명';
+            document.getElementById('detailStatFac').textContent = fac + '개소'; 
+            document.getElementById('detailStatRatio').textContent = ratio;
+            document.getElementById('detailProgRatio').textContent = progRatio;
+
 
 			// 현재 활성화된 탭에 맞춰 콘텐츠 렌더링 (시설 탭일 경우 방금 정제한 filteredFacilities 전달)
 			renderTabContent(province, municipality, targetRegionName.length, filteredFacilities);
@@ -1341,13 +1372,26 @@
 				const ai = new GoogleGenAI({ apiKey: API_KEY });
 
 				const prompt = `
-					너는 대한민국 청소년정책 데이터 분석 전문가야. 
-					아래 지역 데이터를 바탕으로 이 지역의 청소년활동 현황과 정책적 제언을 2문장 이내로 핵심만 요약해줘. (마크다운 없이 순수 텍스트로)
-					- 지역명: ${targetRegionName}
-					- 청소년 인구: ${regionalPop.toLocaleString()}명
-					- 청소년수련시설 수: ${fac}개소 (1만명당 비율: ${ratio})
-					- 등록된 활동/프로그램 수: ${localPrograms.length}개
-				`;
+                    너는 대한민국 청소년정책 데이터 분석 전문가야. 
+                    아래 산출된 지역 지표를 바탕으로 이 지역의 청소년활동 현황과 정책적 제언을 분석해줘.
+
+                    - 지역명: ${targetRegionName}
+                    - 수요-공급 판단: ${badgeText.replace(/[^가-힣]/g, '')}
+                    - 청소년 인구(수요): ${regionalPop.toLocaleString()}명
+                    - 청소년수련시설 수(공급): ${fac}개소 (1만명당 시설수: ${ratio})
+                    - 운영 프로그램 수(공급): ${progCount}개 (1만명당 활동수: ${progRatio})
+
+                    [출력 요구사항]
+                    반드시 아래 5가지 목차로만 출력하고, 마크다운 코드블록(\`\`\`html) 없이 순수 HTML 태그(div, p, span 등)로만 렌더링되게 작성해줘. 내용은 가독성 있게 핵심만 요약해.
+
+                    <div class="space-y-2 text-[13px] leading-relaxed">
+                        <p><strong><span class="text-brand-yellow">1. 핵심진단:</span></strong> [이 지역이 왜 우선지원/관심/양호인지 종합 진단 1문장]</p>
+                        <p><strong><span class="text-brand-yellow">2. 근거수치:</span></strong> [위 제공된 1만명당 공급 지표 등 수치 설명 1문장]</p>
+                        <p><strong><span class="text-brand-yellow">3. 비교해석:</span></strong> [단순 건수가 아닌 수요(인구) 대비 공급(시설/프로그램)의 불균형 해석 1문장]</p>
+                        <p><strong><span class="text-brand-yellow">4. 정책대안:</span></strong> [이 지역에 시설을 늘려야 할지, 프로그램을 보완해야 할지 등 구체적 처방 1문장]</p>
+                        <p><strong><span class="text-brand-yellow">5. 유의사항:</span></strong> [해당 지표 활용 시 주의할 점 1문장]</p>
+                    </div>
+                `;
 				console.log(prompt);
 				
 				const response = await ai.models.generateContent({
@@ -1356,7 +1400,7 @@
 				});
 				
 				
-				console.log(response);
+				console.log('AI 지역분석결과 : ', response);
 
 				if (response && response.text) {
 					insightEl.textContent = response.text.trim();
