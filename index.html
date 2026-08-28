@@ -427,6 +427,12 @@
                             <span class="text-[10px] text-gray-400 ml-1">높음</span>
                         </div>
                     </div>
+					<!-- 👇👇 [추가됨] 수식 표기 영역 👇👇 -->
+					<div class="w-full bg-white border border-gray-200 rounded px-2 py-1.5 text-[10.5px] text-gray-500 font-medium">
+						<span class="text-brand-yellow font-bold mr-1"><i class="ph-bold ph-calculator"></i> 산출식</span> 
+						<span id="trendMapFormula">계산식을 불러오는 중...</span>
+					</div>
+					<!-- 👆👆 [추가 끝] 👆👆 -->
                     <div id="trendMap" class="flex-1 bg-white"></div>
                 </div>
 
@@ -1806,7 +1812,7 @@
             }
             else if (activityItems.includes(title)) {
                 const isAllView = title === '청소년활동 전체보기';
-                const types = ['청소년방과후아카데미', '수련활동인증제', '수련활동신고제', '국제교류', '그룹활동', '그 외 청소년활동'];
+                const types = ['청소년방과후아카데미', '청소년자원봉사활동', '국제청소년성취포상제', '청소년자기도전포상제', '수련활동인증제', '수련활동신고제', '참여활동(특별회의,참여위원회)', '국제교류', '그룹활동'];
                 const colors = ['#f43f5e', '#f97316', '#84cc16', '#10b981', '#06b6d4', '#3b82f6', '#8b5cf6', '#d946ef', '#64748b'];
 
                 if (isAllView) {
@@ -1896,6 +1902,22 @@
                 });
 
                 updateTrendMapColors(mapDataObj, true); // 두 번째 인자로 백분율 표기 여부 전달
+				
+				const formulaEl = document.getElementById('trendMapFormula');
+                if (formulaEl) {
+                    if (facilityItems.includes(title)) {
+                        formulaEl.innerHTML = `(지역 내 <b>시설 개소수</b> ÷ 지역 내 <b>청소년 인구</b>) × 100`;
+                    } else if (schoolItems.includes(title)) {
+                        formulaEl.innerHTML = `(지역 내 <b>학교수</b> ÷ 지역 내 <b>청소년 인구</b>) × 100`;
+                    } else if (activityItems.includes(title)) {
+                        formulaEl.innerHTML = `(지역 내 <b>프로그램 수</b> ÷ 전국 <b>총 청소년 인구</b>) × 100`;
+                    } else if (leaderItems.includes(title)) {
+                        formulaEl.innerHTML = `(지역 내 <b>지도자/상담사 수</b> ÷ 전국 <b>총 청소년 인구</b>) × 100`;
+                    } else {
+                        formulaEl.innerHTML = `(지역 내 <b>청소년 인구</b> ÷ 전국 <b>총 청소년 인구</b>) × 100`;
+                    }
+                }
+                // 👆👆 [추가 끝] 👆👆
             }
 			
 			// 🌟 [추가됨] 실제로 화면에 표를 그려주는 부분
