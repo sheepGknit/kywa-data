@@ -181,14 +181,10 @@
                     </button>
                     <div class="accordion-content bg-brand-dark/50 px-3 text-sm text-gray-300">
                         <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('청소년방과후아카데미')"><span>청소년방과후아카데미</span><span class="font-bold text-white" id="act_val_4">0개</span></div>
-                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('청소년자원봉사활동')"><span>청소년자원봉사활동</span><span class="font-bold text-white" id="act_val_1">0개</span></div>
-                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('국제청소년성취포상제')"><span>국제청소년성취포상제</span><span class="font-bold text-white" id="act_val_2">0개</span></div>
-                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('청소년자기도전포상제')"><span>청소년자기도전포상제</span><span class="font-bold text-white" id="act_val_3">0개</span></div>
                         <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('수련활동인증제')"><span>수련활동인증제</span><span class="font-bold text-white" id="act_val_5">0개</span></div>
                         <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('수련활동신고제')"><span>수련활동신고제</span><span class="font-bold text-white" id="act_val_6">0개</span></div>
-                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('참여활동(특별회의,참여위원회)')"><span>참여활동(특별회의,참여위원회)</span><span class="font-bold text-white" id="act_val_7">0개</span></div>
-                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('국제교류')"><span>국제교류</span><span class="font-bold text-white" id="act_val_8">0개</span></div>
                         <div class="py-3 px-2 flex justify-between pb-4 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('그룹활동')"><span>그룹활동</span><span class="font-bold text-white" id="act_val_9">0개</span></div>
+						<div class="py-3 px-2 flex justify-between pb-4 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('기타활동')"><span>다양한 청소년 활동</span><span class="font-bold text-white" id="act_val_9">0개</span></div>
                     </div>
                 </div>
 
@@ -396,14 +392,11 @@
             <div id="activityTabGroup" class="hidden flex flex-wrap gap-2 mb-4">
                 <button onclick="filterActivity('청소년활동 전체보기')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-brand-yellow text-brand-dark font-black shadow-[0_0_10px_rgba(253,186,26,0.4)]">전체보기</button>
                 <button onclick="filterActivity('청소년방과후아카데미')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">방과후아카데미</button>
-                <button onclick="filterActivity('청소년자원봉사활동')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">자원봉사</button>
-                <button onclick="filterActivity('국제청소년성취포상제')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">국제포상제</button>
-                <button onclick="filterActivity('청소년자기도전포상제')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">자기도전포상제</button>
                 <button onclick="filterActivity('수련활동인증제')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">활동인증제</button>
                 <button onclick="filterActivity('수련활동신고제')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">활동신고제</button>
                 <button onclick="filterActivity('참여활동(특별회의,참여위원회)')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">참여활동</button>
-                <button onclick="filterActivity('국제교류')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">국제교류</button>
                 <button onclick="filterActivity('그룹활동')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">그룹활동</button>
+                <button onclick="filterActivity('기타활동')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">다양한 청소년 활동</button>
             </div>
 
             <div id="leaderTabGroup" class="hidden flex gap-2 mb-4">
@@ -789,7 +782,7 @@
 					// 맵핑 규칙 적용
 					if (pType === '신고연계 프로그램') mappedType = '수련활동신고제';
 					else if (pType === '인증연계(실시) 프로그램' || pType === '인증연계 프로그램') mappedType = '수련활동인증제';
-					else if (pType === '활동 프로그램') mappedType = '참여활동(특별회의,참여위원회)';
+					else if (pType === '활동 프로그램') mappedType = '기타활동';
 					else if (pType === '유스내비 프로그램') mappedType = '그룹활동';
 					else if (pType === '방과후 아카데미') mappedType = '청소년방과후아카데미';
 
@@ -1524,7 +1517,7 @@
 				const mapProgramTypeToDashboard = (pType) => {
 					if (pType === '신고연계 프로그램') return '수련활동신고제';
 					if (pType === '인증연계(실시) 프로그램' || pType === '인증연계 프로그램') return '수련활동인증제';
-					if (pType === '활동 프로그램') return '참여활동(특별회의,참여위원회)';
+					if (pType === '활동 프로그램') return '기타활동';
 					if (pType === '유스내비 프로그램') return '그룹활동';
 					if (pType === '방과후 아카데미') return '청소년방과후아카데미';
 					return pType;
@@ -1636,7 +1629,7 @@
             
             const facilityItems = ['청소년시설 전체보기', '청소년수련관', '청소년문화의집', '청소년수련원', '청소년특화시설', '청소년야영장', '유스호스텔'];
             const schoolItems = ['학교 전체보기', '초등학교', '중학교', '고등학교', '대학교', '특수학교'];
-            const activityItems = ['청소년활동 전체보기', '청소년방과후아카데미', '수련활동인증제', '수련활동신고제', '국제교류', '그룹활동', '그 외 청소년활동'];
+            const activityItems = ['청소년활동 전체보기', '청소년방과후아카데미', '수련활동인증제', '수련활동신고제', '국제교류', '그룹활동', '기타활동'];
             const leaderItems = ['청소년지도자 전체보기', '청소년지도사 인원', '청소년상담사 인원'];
             
             const timelineUI = document.getElementById('timelineUI');
@@ -1709,7 +1702,7 @@
 
             const facilityItems = ['청소년시설 전체보기', '청소년수련관', '청소년문화의집', '청소년수련원', '청소년특화시설', '청소년야영장', '유스호스텔'];
             const schoolItems = ['학교 전체보기', '초등학교', '중학교', '고등학교', '대학교', '특수학교'];
-            const activityItems =  ['청소년활동 전체보기', '청소년방과후아카데미', '수련활동인증제', '수련활동신고제', '국제교류', '그룹활동', '그 외 청소년활동'];
+            const activityItems =  ['청소년활동 전체보기', '청소년방과후아카데미', '수련활동인증제', '수련활동신고제', '국제교류', '그룹활동', '기타활동'];
             const leaderItems = ['청소년지도자 전체보기', '청소년지도사 인원', '청소년상담사 인원'];
             
             let datasets = [];
@@ -1812,7 +1805,7 @@
             }
             else if (activityItems.includes(title)) {
                 const isAllView = title === '청소년활동 전체보기';
-                const types = ['청소년방과후아카데미', '청소년자원봉사활동', '국제청소년성취포상제', '청소년자기도전포상제', '수련활동인증제', '수련활동신고제', '참여활동(특별회의,참여위원회)', '국제교류', '그룹활동'];
+                const types = ['청소년방과후아카데미', '수련활동인증제', '수련활동신고제', '그룹활동', '기타활동'];
                 const colors = ['#f43f5e', '#f97316', '#84cc16', '#10b981', '#06b6d4', '#3b82f6', '#8b5cf6', '#d946ef', '#64748b'];
 
                 if (isAllView) {
