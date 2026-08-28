@@ -722,8 +722,8 @@
         let defaultStats = {
             pop: 0, schAge: 0, std: 0,
             fac1: 0, fac2: 0, fac3: 0, fac4: 0, fac5: 0, fac6: 0,
-            sch1: 6120, sch2: 3250, sch3: 2380,
-            act1: 1204, act2: 342, act3: 510, act4: 350, act5: 890, act6: 1450, act7: 262, act8: 45, act9: 542,
+            sch1: 0, sch2: 0, sch3: 0,
+            act1: 0, act2: 0, act3: 0, act4: 0, act5: 0, act6: 0, act7: 0, act8: 0, act9: 0, act10: 0,
             lead1: 0, lead2: 0
         };
 
@@ -830,6 +830,7 @@
 				act7: getActivityCountByRegion('참여활동(특별회의,참여위원회)'),
 				act8: getActivityCountByRegion('국제교류'),
 				act9: getActivityCountByRegion('그룹활동'),
+				act10: getActivityCountByRegion('기타활동'),
 				
 				lead1: lead1_val, 
 				lead2: lead2_val
@@ -859,7 +860,7 @@
             // 👇 [수정] 대학교(sch4), 특수학교(sch5)까지 합산하여 총 학교수 표시
             setText('sumSch', (parseNum(d.sch1) + parseNum(d.sch2) + parseNum(d.sch3) + parseNum(d.sch4) + parseNum(d.sch5)).toLocaleString() + "개교");
             
-            setText('sumAct', (parseNum(d.act1) + parseNum(d.act2) + parseNum(d.act3) + parseNum(d.act4) + parseNum(d.act5) + parseNum(d.act6) + parseNum(d.act7) + parseNum(d.act8) + parseNum(d.act9)).toLocaleString() + "개");
+            setText('sumAct', (parseNum(d.act1) + parseNum(d.act2) + parseNum(d.act3) + parseNum(d.act4) + parseNum(d.act5) + parseNum(d.act6) + parseNum(d.act7) + parseNum(d.act8) + parseNum(d.act9)) + parseNum(d.act10)).toLocaleString() + "개");
             setText('sumLead', (parseNum(d.lead1) + parseNum(d.lead2)).toLocaleString() + "명");
         }
 
