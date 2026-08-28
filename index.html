@@ -1259,6 +1259,8 @@
 		async function updateDetailPanel(province, municipality) {
 			const isAll = (municipality === '전체');
 			const targetRegionName = isAll ? province : `${province} ${municipality}`;
+            // 🌟 [핵심 수정] 함수가 시작되자마자 현재 선택된 탭을 강제로 다시 그리도록 지시합니다.
+			switchDetailTab(currentDetailTab);
 			
 			const insightEl = document.getElementById('aiRegionalInsightText');
 			
@@ -1302,40 +1304,39 @@
 			});
 
 			// 시설 이름 기준 중복 제거 (Map 객체 활용)
-			filteredFacilities = Array.from(
-				new Map(filteredFacilities.map(fac => {
-					const name = fac.facilityName || fac.sisulNm || fac.fcltNm || '';
-					return [name, fac];
-				})).values()
-			);
+            filteredFacilities = Array.from(
+                new Map(filteredFacilities.map(fac => {
+                    const name = fac.facilityName || fac.sisulNm || fac.fcltNm || '';
+                    return [name, fac];
+                })).values()
+            );
 
-			const fac = filteredFacilities.length;
-			const ratio = regionalPop > 0 ? ((fac / regionalPop) * 10000).toFixed(1) : "0.0";
+            // 👇👇 [수정 1] 프로그램(localPrograms) 필터링을 위로 끌어올립니다. 👇👇
+            let localPrograms = programsData.filter(item => {
+                let matchSido = false;
+                let sido = (item.sidoNm || "").trim();
+
+                if (province === "전남광주통합특별시") {
+                    matchSido = (sido === "광주광역시" || sido === "전라남도" || sido === "전남광주통합특별시");
+                } else if (province === "광주광역시" || province === "전라남도") {
+                    matchSido = (sido === province || sido === "전남광주통합특별시");
+                } else {
+                    matchSido = (sido === province);
+                }
+
+                if (!matchSido) return false;
+                if (!isAll) return item.sggNm === municipality;
+                return true;
+            });
+            // 👆👆 끌어올림 끝 👆👆
+
+            const fac = filteredFacilities.length;
+            const progCount = localPrograms.length; // 👈 이제 progCount를 알 수 있습니다!
+            
+            const ratio = regionalPop > 0 ? ((fac / regionalPop) * 10000).toFixed(1) : "0.0";
             const progRatio = regionalPop > 0 ? ((progCount / regionalPop) * 10000).toFixed(1) : "0.0";
 
-            
-			// 정책사업 및 신청 가능 활동 데이터 추출을 위한 프로그램 필터
-			let localPrograms = programsData.filter(item => {
-				let matchSido = false;
-				let sido = (item.sidoNm || "").trim();
-
-				if (province === "전남광주통합특별시") {
-					matchSido = (sido === "광주광역시" || sido === "전라남도" || sido === "전남광주통합특별시");
-				} else if (province === "광주광역시" || province === "전라남도") {
-					matchSido = (sido === province || sido === "전남광주통합특별시");
-				} else {
-					matchSido = (sido === province);
-				}
-
-				if (!matchSido) return false;
-				if (!isAll) return item.sggNm === municipality;
-				return true;
-			});
-
-
-            
-            // 🌟 [추가] 수요-공급 격차 지수 산출 및 뱃지 UI 업데이트
-            // 수요(인구/10000) 대비 공급(시설 + 프로그램 가중치) 점수를 계산하여 지수화
+            // 🌟 수요-공급 격차 지수 산출 및 뱃지 UI 업데이트
             const supplyScore = fac + (progCount * 0.2); 
             const demandScore = regionalPop > 0 ? (regionalPop / 10000) : 1;
             const gapIndex = supplyScore / demandScore;
@@ -1362,16 +1363,16 @@
             document.getElementById('detailProgRatio').textContent = progRatio;
 
 
-			// 현재 활성화된 탭에 맞춰 콘텐츠 렌더링 (시설 탭일 경우 방금 정제한 filteredFacilities 전달)
-			renderTabContent(province, municipality, targetRegionName.length, filteredFacilities);
+            // 현재 활성화된 탭에 맞춰 콘텐츠 렌더링
+            renderTabContent(province, municipality, targetRegionName.length, filteredFacilities);
 
-			// 4. AI 브라우저 직접 호출
-			try {
-				const API_KEY = "AQ.Ab8RN6IhZPKU-lX1GmWpO6usO15l7RJUbR8SA2UtaBYyeYBstg"; 
-				const { GoogleGenAI } = await import("@google/genai");
-				const ai = new GoogleGenAI({ apiKey: API_KEY });
+            // 4. AI 브라우저 직접 호출
+            try {
+                const API_KEY = "AQ.Ab8RN6IhZPKU-lX1GmWpO6usO15l7RJUbR8SA2UtaBYyeYBstg"; 
+                const { GoogleGenAI } = await import("@google/genai");
+                const ai = new GoogleGenAI({ apiKey: API_KEY });
 
-				const prompt = `
+                const prompt = `
                     너는 대한민국 청소년정책 데이터 분석 전문가야. 
                     아래 산출된 지역 지표를 바탕으로 이 지역의 청소년활동 현황과 정책적 제언을 분석해줘.
 
@@ -1382,7 +1383,7 @@
                     - 운영 프로그램 수(공급): ${progCount}개 (1만명당 활동수: ${progRatio})
 
                     [출력 요구사항]
-                    반드시 아래 5가지 목차로만 출력하고, 마크다운 코드블록(\`\`\`html) 없이 순수 HTML 태그(div, p, span 등)로만 렌더링되게 작성해줘. 내용은 가독성 있게 핵심만 요약해.
+                    반드시 아래 5가지 목차로만 출력하고, 마크다운 코드블록(\`\`\`html) 없이 순수 HTML 태그(div, p, span, strong 등)로만 작성해줘. 내용은 가독성 있게 핵심만 요약해.
 
                     <div class="space-y-2 text-[13px] leading-relaxed">
                         <p><strong><span class="text-brand-yellow">1. 핵심진단:</span></strong> [이 지역이 왜 우선지원/관심/양호인지 종합 진단 1문장]</p>
@@ -1392,27 +1393,26 @@
                         <p><strong><span class="text-brand-yellow">5. 유의사항:</span></strong> [해당 지표 활용 시 주의할 점 1문장]</p>
                     </div>
                 `;
-				console.log(prompt);
-				
-				const response = await ai.models.generateContent({
-					model: 'gemini-3.6-flash',
-					contents: prompt,
-				});
-				
-				
-				console.log('AI 지역분석결과 : ', response);
+                
+                const response = await ai.models.generateContent({
+                    model: 'gemini-3.6-flash',
+                    contents: prompt,
+                });
+                
+                if (response && response.text) {
+                    // 👇👇 [수정 2] textContent를 innerHTML로 바꿉니다. (마크다운 찌꺼기 제거 처리 추가) 👇👇
+                    let cleanHtml = response.text.replace(/```html|```/g, '').trim();
+                    insightEl.innerHTML = cleanHtml;
+                    // 👆👆 수정 완료 👆👆
+                } else {
+                    insightEl.innerHTML = `<p>${targetRegionName} 지역은 청소년 인구 ${regionalPop.toLocaleString()}명, 수련시설 ${fac}개소가 밀집해 있으며 활발한 활동 인프라를 갖추고 있습니다.</p>`;
+                }
 
-				if (response && response.text) {
-					insightEl.textContent = response.text.trim();
-				} else {
-					insightEl.textContent = `${targetRegionName} 지역은 청소년 인구 ${regionalPop.toLocaleString()}명, 수련시설 ${fac}개소가 밀집해 있으며 활발한 활동 인프라를 갖추고 있습니다.`;
-				}
-
-			} catch (error) {
-				console.error("AI 분석 리포트 생성 실패:", error);
-				insightEl.innerHTML = `<span class="text-brand-yellow font-bold">${targetRegionName}</span> 지역은 청소년 인구 ${regionalPop.toLocaleString()}명 및 수련시설 ${fac}개소가 운영 중입니다.`;
-			}
-		}
+            } catch (error) {
+                console.error("AI 분석 리포트 생성 실패:", error);
+                insightEl.innerHTML = `<p><span class="text-brand-yellow font-bold">${targetRegionName}</span> 지역은 청소년 인구 ${regionalPop.toLocaleString()}명 및 수련시설 ${fac}개소가 운영 중입니다.</p>`;
+            }
+        }
 
         function switchDetailTab(tabId) {
             currentDetailTab = tabId;
