@@ -694,7 +694,7 @@
 
         const leaderTrendData = {
             '청소년지도사 인원': { cum: [], new: [] },
-            '청소년상담사 인원': { cum: [12000, 12900, 13900, 14950, 16050], new: [900, 1000, 1050, 1100, 1200] }
+            '청소년상담사 인원': { cum: [], new: [] }
         };
 
         let defaultStats = {
@@ -702,7 +702,7 @@
             fac1: 0, fac2: 0, fac3: 0, fac4: 0, fac5: 0, fac6: 0,
             sch1: 6120, sch2: 3250, sch3: 2380,
             act1: 1204, act2: 342, act3: 510, act4: 350, act5: 890, act6: 1450, act7: 262, act8: 45, act9: 542,
-            lead1: 0, lead2: 3120
+            lead1: 0, lead2: 0
         };
 
         function getRegionData(regionName) {
@@ -785,7 +785,7 @@
 
 			// 5. 지도자 데이터
 			const lead1_val = regionName === "전국" ? 79793 : seed * 120 + 300;
-			const lead2_val = regionName === "전국" ? 47020 : seed * 90 + 200;
+			const lead2_val = regionName === "전국" ? 79793 : seed * 120 + 300;
 
 			return {
 				pop: actualPop, 
@@ -901,35 +901,70 @@
                 })
                 .catch(err => console.error('시설 데이터 실패.', err));
             
-            // 2. 청소년 지도자 데이터 로드
+            // 2. 청소년 지도자 및 상담사 데이터 로드
             fetch('data/jidoja.json') 
                 .then(res => res.json())
                 .then(data => {
-                    const rawLeaderData = Array.isArray(data) ? data : (data.records || data.response?.body?.items?.item || []);
-                    let currentCum = 0; 
-                    
-                    rawLeaderData.forEach(row => {
+                    let jidojaData = [];
+                    let sangdamsaData = [];
+
+                    // 1) JSON 구조에 맞게 지도자와 상담사 배열 추출
+                    // 최상위가 배열인 경우 (예: [{"지도자": [...]}, {"상담사": [...]}])
+                    if (Array.isArray(data)) {
+                        data.forEach(item => {
+                            if (item["지도자"]) jidojaData = Array.isArray(item["지도자"]) ? item["지도자"] : Object.values(item["지도자"]);
+                            if (item["상담사"]) sangdamsaData = Array.isArray(item["상담사"]) ? item["상담사"] : Object.values(item["상담사"]);
+                        });
+                    } else {
+                        // 최상위가 객체인 경우 (예: {"지도자": [...], "상담사": [...]})
+                        if (data["지도자"]) jidojaData = Array.isArray(data["지도자"]) ? data["지도자"] : Object.values(data["지도자"]);
+                        if (data["상담사"]) sangdamsaData = Array.isArray(data["상담사"]) ? data["상담사"] : Object.values(data["상담사"]);
+                    }
+
+                    // 2) '지도자' (lead1) 데이터 처리
+                    let currentCum1 = 0; 
+                    jidojaData.forEach(row => {
+                        if (!row || !row["구분"]) return;
                         if (row["구분"] === "총 계") {
                             defaultStats.lead1 = row["총계"]; 
                             return; 
                         }
                         
-                        const yearStr = row["구분"]; 
-                        const yearMatch = yearStr.match(/\d+/);
+                        const yearMatch = row["구분"].match(/\d+/);
                         if (!yearMatch) return;
                         const year = parseInt(yearMatch[0], 10);
                         
                         if (year >= 22 && year <= 26) {
-                            leaderTrendData['청소년지도사 인원'].cum.push(currentCum); 
+                            leaderTrendData['청소년지도사 인원'].cum.push(currentCum1); 
                             leaderTrendData['청소년지도사 인원'].new.push(row["총계"]);  
                         }
-                        
-                        currentCum += row["총계"]; 
+                        currentCum1 += row["총계"]; 
                     });
-                    console.log(`🐞 [디버깅 - Fetch] jidoja.json 로드 완료. 차트 데이터 개수: ${leaderTrendData['청소년지도사 인원'].cum.length}개`);
+
+                    // 3) '상담사' (lead2) 데이터 처리
+                    let currentCum2 = 0;
+                    sangdamsaData.forEach(row => {
+                        if (!row || !row["구분"]) return;
+                        if (row["구분"] === "총 계") {
+                            defaultStats.lead2 = row["총계"]; 
+                            return; 
+                        }
+                        
+                        const yearMatch = row["구분"].match(/\d+/);
+                        if (!yearMatch) return;
+                        const year = parseInt(yearMatch[0], 10);
+                        
+                        if (year >= 22 && year <= 26) {
+                            leaderTrendData['청소년상담사 인원'].cum.push(currentCum2); 
+                            leaderTrendData['청소년상담사 인원'].new.push(row["총계"]);  
+                        }
+                        currentCum2 += row["총계"]; 
+                    });
+
+                    console.log(`🐞 [디버깅 - Fetch] jidoja.json 로드 완료. 지도자(${jidojaData.length}건), 상담사(${sangdamsaData.length}건)`);
                     applyDataToUI(getRegionData("전국"), true, "전국");
                 })
-                .catch(err => console.error('지도자 데이터 실패.', err));
+                .catch(err => console.error('지도자/상담사 데이터 실패.', err));
                 
             // 3. 청소년 인구 데이터 로드
             fetch('data/pop_data.json') 
