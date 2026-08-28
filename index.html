@@ -206,6 +206,12 @@
                     </div>
                 </div>
             </div>
+			<div class="mt-auto pt-4 mb-2 text-right text-[11px] text-gray-400 border-t border-gray-700/50">
+                <p class="font-bold mb-1 text-gray-300"><i class="ph-bold ph-info"></i> 데이터 출처</p>
+                <p>인구: 통계청 KOSIS (2026.06)</p>
+                <p>시설·활동·지도자: 성평등가족부, 한국청소년활동진흥원</p>
+                <p>학교: 한국교육개발원 교육통계 (2025)</p>
+            </div>
         </div>
 
         <!-- Right Panel: Main Map -->
@@ -785,7 +791,7 @@
 
 			// 5. 지도자 데이터
 			const lead1_val = regionName === "전국" ? 79793 : seed * 120 + 300;
-			const lead2_val = regionName === "전국" ? 79793 : seed * 120 + 300;
+			const lead2_val = regionName === "전국" ? 47020 : seed * 120 + 300;
 
 			return {
 				pop: actualPop, 
