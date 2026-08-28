@@ -898,8 +898,13 @@
                             item.ctpvNm = regionMap[rawName];
                         }
                         
+                        // 👇 [핵심 해결] 시군구 이름의 띄어쓰기를 완전히 제거합니다.
+                        if (item.sggNm) {
+                            item.sggNm = item.sggNm.replace(/\s+/g, '');
+                        }
+                        
                         const rIdx = regionsList.indexOf(item.ctpvNm);
-                        const facilityName = item.sisulNm || item.fcltNm || ""; 
+                        const facilityName = item.sisulNm || item.fcltNm || "";
                         
                         let type = null;
                         if(item.sisulType === '수련관') type = '청소년수련관';
@@ -1003,7 +1008,7 @@
                         "전북특별자치도": "전라북도",
                         "서울": "서울특별시", "부산": "부산광역시", "대구": "대구광역시",
                         "인천": "인천광역시", "광주": "광주광역시", "대전": "대전광역시",
-                        "울산": "울산광역시", "세종특별자치시": "세종특별자치시", "경기": "경기도",
+                        "울산": "울산광역시", "세종": "세종특별자치시", "경기": "경기도",
                         "충북": "충청북도", "충남": "충청남도", "전북": "전라북도",
                         "전남": "전라남도", "경북": "경상북도", "경남": "경상남도",
                         "제주": "제주특별자치도", "제주도": "제주특별자치도"
@@ -1013,7 +1018,12 @@
                     // 원래 데이터의 키(지역명)를 하나씩 확인해서 변환된 이름으로 다시 담아줍니다.
                     Object.keys(data).forEach(key => {
                         let newKey = popRegionMap[key.trim()] || key.trim();
-                        popData[newKey] = data[key];
+                        popData[newKey] = {};
+                        // 👇 [핵심 해결] 시군구 키값의 띄어쓰기를 모두 제거해서 담아줍니다 ("수원시 팔달구" -> "수원시팔달구")
+                        Object.keys(data[key]).forEach(subKey => {
+                            let cleanSubKey = subKey.replace(/\s+/g, ''); 
+                            popData[newKey][cleanSubKey] = data[key][subKey];
+                        });
                     });
                     // 👆👆 [수정 끝] 👆👆
 					
@@ -1082,13 +1092,15 @@
 
 					// 데이터를 순회하며 sidoNm을 대시보드 기준 표준 이름으로 강제 변환
 					programsData = rawPrograms.map(item => {
-						let currentSido = (item.sidoNm || "").trim();
-						let standardizedSido = progRegionMap[currentSido] || currentSido;
-						return {
-							...item,
-							sidoNm: standardizedSido
-						};
-					});
+                        let currentSido = (item.sidoNm || "").trim();
+                        let standardizedSido = progRegionMap[currentSido] || currentSido;
+                        return {
+                            ...item,
+                            sidoNm: standardizedSido,
+                            // 👇 [핵심 해결] 시군구 이름 띄어쓰기 완전히 제거
+                            sggNm: (item.sggNm || "").replace(/\s+/g, '')
+                        };
+                    });
 
                     applyDataToUI(getRegionData("전국"), true, "전국");
 					console.log(`🐞 [디버깅 - Fetch] programs.json 로드 및 표준화 완료. 총 ${programsData.length}개 프로그램`);
