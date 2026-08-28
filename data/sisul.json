@@ -6677,7 +6677,7 @@
   {
     "id": 268,
     "ctpvNm": "경기",
-    "sggNm": "성남시",
+    "sggNm": "성남시 수정구",
     "emdNm": "신흥동",
     "sisulNm": "(임시)수정청소년수련관",
     "founderType": "시립",
@@ -6702,7 +6702,7 @@
   {
     "id": 269,
     "ctpvNm": "경기",
-    "sggNm": "성남시",
+    "sggNm": "성남시 중원구",
     "emdNm": "하대원동",
     "sisulNm": "중원청소년수련관",
     "founderType": "시립",
@@ -6727,7 +6727,7 @@
   {
     "id": 270,
     "ctpvNm": "경기",
-    "sggNm": "성남시",
+    "sggNm": "성남시 분당구",
     "emdNm": "서현동",
     "sisulNm": "분당서현청소년수련관",
     "founderType": "시립",
@@ -6752,7 +6752,7 @@
   {
     "id": 271,
     "ctpvNm": "경기",
-    "sggNm": "성남시",
+    "sggNm": "성남시 분당구",
     "emdNm": "정자동",
     "sisulNm": "분당정자청소년수련관",
     "founderType": "시립",
@@ -6777,7 +6777,7 @@
   {
     "id": 272,
     "ctpvNm": "경기",
-    "sggNm": "성남시",
+    "sggNm": "성남시 분당구",
     "emdNm": "판교동",
     "sisulNm": "분당판교청소년수련관",
     "founderType": "시립",
@@ -6802,7 +6802,7 @@
   {
     "id": 273,
     "ctpvNm": "경기",
-    "sggNm": "성남시",
+    "sggNm": "성남시 수정구",
     "emdNm": "양지동",
     "sisulNm": "양지동청소년문화의집",
     "founderType": "시립",
@@ -6827,7 +6827,7 @@
   {
     "id": 274,
     "ctpvNm": "경기",
-    "sggNm": "성남시",
+    "sggNm": "성남시 중원구",
     "emdNm": "은행동",
     "sisulNm": "은행동청소년문화의집",
     "founderType": "시립",
@@ -6852,7 +6852,7 @@
   {
     "id": 275,
     "ctpvNm": "경기",
-    "sggNm": "성남시",
+    "sggNm": "성남시 수정구",
     "emdNm": "양지동",
     "sisulNm": "금광청소년문화의집",
     "founderType": "민간",
@@ -6877,7 +6877,7 @@
   {
     "id": 276,
     "ctpvNm": "경기",
-    "sggNm": "성남시",
+    "sggNm": "성남시 분당구",
     "emdNm": "분당구",
     "sisulNm": "분당야탑청소년수련관",
     "founderType": "시립",
@@ -6902,7 +6902,7 @@
   {
     "id": 277,
     "ctpvNm": "경기",
-    "sggNm": "수원시",
+    "sggNm": "수원시 권선구",
     "emdNm": "권선동",
     "sisulNm": "권선청소년청년센터",
     "founderType": "시립",
@@ -18477,7 +18477,7 @@
   {
     "id": 740,
     "ctpvNm": "경북",
-    "sggNm": "포항시",
+    "sggNm": "포항시 북구",
     "emdNm": "중앙동",
     "sisulNm": "포항북구청소년문화의집",
     "founderType": "시립",
@@ -18502,7 +18502,7 @@
   {
     "id": 741,
     "ctpvNm": "경북",
-    "sggNm": "포항시",
+    "sggNm": "포항시 북구",
     "emdNm": "환호동",
     "sisulNm": "포항청소년수련관",
     "founderType": "시립",
@@ -18527,7 +18527,7 @@
   {
     "id": 742,
     "ctpvNm": "경북",
-    "sggNm": "포항시",
+    "sggNm": "포항시 남구",
     "emdNm": "구룡포읍",
     "sisulNm": "구룡포청소년수련원",
     "founderType": "시립",
@@ -18552,7 +18552,7 @@
   {
     "id": 743,
     "ctpvNm": "경북",
-    "sggNm": "포항시",
+    "sggNm": "포항시 남구",
     "emdNm": "오천읍",
     "sisulNm": "포항남구청소년문화의집",
     "founderType": "시립",
