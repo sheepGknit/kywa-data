@@ -1380,6 +1380,15 @@
                 badgeText = "✅ 양호지역"; badgeClass = "bg-emerald-100 text-emerald-600 border border-emerald-200";
             }
 
+
+			// 🌟 시설 이름 기준 중복 제거 (Map 객체 활용)
+			const uniqueFacilities = Array.from(
+				new Map(filteredFacilities.map(fac => {
+					const name = fac.facilityName || fac.sisulNm || fac.fcltNm || '';
+					return [name, fac];
+				})).values()
+			);
+			
             // (기존) 🌟 수요-공급 격차 지수 산출 및 뱃지 UI 업데이트 부분 아래에 작성...
 			const badgeEl = document.getElementById('detailGapBadge');
 			badgeEl.textContent = badgeText;
