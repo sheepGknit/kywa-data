@@ -17,7 +17,7 @@ def update_empty_sggnm(programs_file, sisul_file, output_file):
             sisul_map[sisul_nm] = sgg_nm
 
     # 3. 비어있다고 판단할 조건 설정 (빈 문자열, "nan", None 등)
-    empty_values = "안양시"
+    empty_values = ["",None]
     updated_count = 0
 
     # 4. programs.json 데이터를 순회하며 조건에 맞게 값 채우기

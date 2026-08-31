@@ -2,7 +2,7 @@ import pandas as pd
 import json
 
 # 1. 데이터 로드
-with open('programs_updated.json', 'r', encoding='utf-8') as f:
+with open('programs.json', 'r', encoding='utf-8') as f:
     programs_data = json.load(f)
 with open('sisul.json', 'r', encoding='utf-8') as f:
     facilities_data = json.load(f)
