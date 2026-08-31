@@ -1357,9 +1357,22 @@
                 return true;
             });
             // 👆👆 끌어올림 끝 👆👆
+			
+			// 👇👇 [추가] 생활권 시설(수련관, 문화의집) 여부를 판별하는 조건 함수
+            const isLivingZoneFac = (item) => {
+                return item.sisulType === '수련관' || item.sisulType === '문화의집' || 
+                       (item.sisulNm && (item.sisulNm.includes('수련관') || item.sisulNm.includes('문화의집'))) ||
+                       (item.facilityName && (item.facilityName.includes('수련관') || item.facilityName.includes('문화의집')));
+            };
 
-            const fac = filteredFacilities.length;
-            const progCount = localPrograms.length; // 👈 이제 progCount를 알 수 있습니다!
+            const isLivingZoneProg = (item) => {
+                return item.facilityName && (item.facilityName.includes('수련관') || item.facilityName.includes('문화의집'));
+            };
+            // 👆👆 [추가 끝]
+
+            // 🌟 생활권 시설 및 프로그램만 개수 세기
+            const fac = filteredFacilities.filter(isLivingZoneFac).length;
+            const progCount = localPrograms.filter(isLivingZoneProg).length;
             
             const ratio = regionalPop > 0 ? ((fac / regionalPop) * 10000).toFixed(1) : "0.0";
             const progRatio = regionalPop > 0 ? ((progCount / regionalPop) * 10000).toFixed(1) : "0.0";
@@ -1380,7 +1393,6 @@
                 badgeText = "✅ 양호지역"; badgeClass = "bg-emerald-100 text-emerald-600 border border-emerald-200";
             }
 
-
 			// 🌟 시설 이름 기준 중복 제거 (Map 객체 활용)
 			const uniqueFacilities = Array.from(
 				new Map(filteredFacilities.map(fac => {
@@ -1389,84 +1401,88 @@
 				})).values()
 			);
 			
-            // (기존) 🌟 수요-공급 격차 지수 산출 및 뱃지 UI 업데이트 부분 아래에 작성...
-			const badgeEl = document.getElementById('detailGapBadge');
-			badgeEl.textContent = badgeText;
-			badgeEl.className = `px-3 py-1 text-xs font-black rounded-full shadow-sm ml-2 border ${badgeClass} fade-in`;
-			badgeEl.classList.remove('hidden');
+           // 🌟 뱃지 UI 업데이트
+            const badgeEl = document.getElementById('detailGapBadge');
+            badgeEl.textContent = badgeText;
+            badgeEl.className = `px-3 py-1 text-xs font-black rounded-full shadow-sm ml-2 border ${badgeClass} fade-in`;
+            badgeEl.classList.remove('hidden');
 
-			document.getElementById('detailStatPop').textContent = regionalPop.toLocaleString() + '명';
-			document.getElementById('detailStatFac').textContent = fac + '개소'; 
-			document.getElementById('detailStatRatio').textContent = ratio;
-			document.getElementById('detailProgRatio').textContent = progRatio;
+            document.getElementById('detailStatPop').textContent = regionalPop.toLocaleString() + '명';
+            document.getElementById('detailStatFac').textContent = fac + '개소'; // 생활권 시설 수만 표시
+            document.getElementById('detailStatRatio').textContent = ratio;
+            document.getElementById('detailProgRatio').textContent = progRatio;
 
-			// 현재 활성화된 탭에 맞춰 콘텐츠 렌더링
-			renderTabContent(province, municipality, targetRegionName.length, uniqueFacilities);
+            // 현재 활성화된 탭에 맞춰 콘텐츠 렌더링 (리스트에는 전체 시설 노출)
+            renderTabContent(province, municipality, targetRegionName.length, uniqueFacilities);
 
-			// 👇👇 [수정] AI 자동 호출을 제거하고 요청하신 고정 문구를 삽입하는 로직 👇👇
-			
-			// 1) 전국 평균 계산
-			let natPop = (popData["전국"] && popData["전국"]["전국"]) ? popData["전국"]["전국"]["총인구수"]["2026.06월"] || 10000000 : 10000000;
-			let natFac = sisulData.length || 1;
-			let natProg = programsData.length || 1;
-			let natAvgGap = (natFac + (natProg * 0.2)) / (natPop / 10000);
+            // 👇👇 [수정] 전국 평균 및 상위 % 계산 시에도 생활권 필터 적용 👇👇
+            
+            // 1) 전국 평균 계산
+            let natPop = (popData["전국"] && popData["전국"]["전국"]) ? popData["전국"]["전국"]["총인구수"]["2026.06월"] || 10000000 : 10000000;
+            let natFac = sisulData.filter(isLivingZoneFac).length || 1;
+            let natProg = programsData.filter(isLivingZoneProg).length || 1;
+            let natAvgGap = (natFac + (natProg * 0.2)) / (natPop / 10000);
 
-			// 2) 상위 % 계산을 위한 전체 배열 만들기
-			let allIndices = [];
-			if (isAll) {
-				// 시도 간 비교일 경우
-				regionsList.forEach(r => {
-					let tPop = popData[r]?.["소계"]?.["총인구수"]?.["2026.06월"] || 100000;
-					if (r === "전남광주통합특별시") tPop = (popData["광주광역시"]?.["소계"]?.["총인구수"]?.["2026.06월"]||0) + (popData["전라남도"]?.["소계"]?.["총인구수"]?.["2026.06월"]||0);
-					let tFac = sisulData.filter(i => r === "전남광주통합특별시" ? (i.ctpvNm === "광주광역시" || i.ctpvNm === "전라남도") : i.ctpvNm === r).length;
-					let tProg = programsData.filter(i => r === "전남광주통합특별시" ? (i.sidoNm === "광주광역시" || i.sidoNm === "전라남도" || i.sidoNm === "전남광주통합특별시") : i.sidoNm === r).length;
-					allIndices.push((tFac + tProg * 0.2) / (tPop > 0 ? tPop / 10000 : 1));
-				});
-			} else {
-				// 시군구 간 비교일 경우 (해당 시도 내에서)
-				let districts = districtData[province] || [];
-				if (province === "전남광주통합특별시") districts = [...(districtData["광주광역시"]||[]), ...(districtData["전라남도"]||[])];
-				
-				districts.forEach(d => {
-					let tPop = popData[province]?.[d]?.["총인구수"]?.["2026.06월"] || 10000;
-					if (!popData[province]?.[d]) {
-						let foundKey = Object.keys(popData[province]||{}).find(k => k.includes(d));
-						if (foundKey) tPop = popData[province][foundKey]["총인구수"]?.["2026.06월"] || 10000;
-					}
-					let tFac = sisulData.filter(i => (i.ctpvNm === province || (province==="전남광주통합특별시" && (i.ctpvNm==="광주광역시"||i.ctpvNm==="전라남도"))) && i.sggNm === d).length;
-					let tProg = programsData.filter(i => (i.sidoNm === province || (province==="전남광주통합특별시" && (i.sidoNm==="광주광역시"||i.sidoNm==="전라남도"||i.sidoNm==="전남광주통합특별시"))) && i.sggNm === d).length;
-					allIndices.push((tFac + tProg * 0.2) / (tPop > 0 ? tPop / 10000 : 1));
-				});
-			}
+            // 2) 상위 % 계산을 위한 전체 배열 만들기
+            let allIndices = [];
+            if (isAll) {
+                // 시도 간 비교일 경우
+                regionsList.forEach(r => {
+                    let tPop = popData[r]?.["소계"]?.["총인구수"]?.["2026.06월"] || 100000;
+                    if (r === "전남광주통합특별시") tPop = (popData["광주광역시"]?.["소계"]?.["총인구수"]?.["2026.06월"]||0) + (popData["전라남도"]?.["소계"]?.["총인구수"]?.["2026.06월"]||0);
+                    
+                    let tFac = sisulData.filter(i => (r === "전남광주통합특별시" ? (i.ctpvNm === "광주광역시" || i.ctpvNm === "전라남도") : i.ctpvNm === r) && isLivingZoneFac(i)).length;
+                    let tProg = programsData.filter(i => (r === "전남광주통합특별시" ? (i.sidoNm === "광주광역시" || i.sidoNm === "전라남도" || i.sidoNm === "전남광주통합특별시") : i.sidoNm === r) && isLivingZoneProg(i)).length;
+                    
+                    allIndices.push((tFac + tProg * 0.2) / (tPop > 0 ? tPop / 10000 : 1));
+                });
+            } else {
+                // 시군구 간 비교일 경우 (해당 시도 내에서)
+                let districts = districtData[province] || [];
+                if (province === "전남광주통합특별시") districts = [...(districtData["광주광역시"]||[]), ...(districtData["전라남도"]||[])];
+                
+                districts.forEach(d => {
+                    let tPop = popData[province]?.[d]?.["총인구수"]?.["2026.06월"] || 10000;
+                    if (!popData[province]?.[d]) {
+                        let foundKey = Object.keys(popData[province]||{}).find(k => k.includes(d));
+                        if (foundKey) tPop = popData[province][foundKey]["총인구수"]?.["2026.06월"] || 10000;
+                    }
+                    
+                    let tFac = sisulData.filter(i => (i.ctpvNm === province || (province==="전남광주통합특별시" && (i.ctpvNm==="광주광역시"||i.ctpvNm==="전라남도"))) && i.sggNm === d && isLivingZoneFac(i)).length;
+                    let tProg = programsData.filter(i => (i.sidoNm === province || (province==="전남광주통합특별시" && (i.sidoNm==="광주광역시"||i.sidoNm==="전라남도"||i.sidoNm==="전남광주통합특별시"))) && i.sggNm === d && isLivingZoneProg(i)).length;
+                    
+                    allIndices.push((tFac + tProg * 0.2) / (tPop > 0 ? tPop / 10000 : 1));
+                });
+            }
 
-			// 등수 및 상위 퍼센트 산정
-			allIndices.sort((a, b) => b - a);
-			let rank = allIndices.filter(v => v > gapIndex).length + 1; 
-			let percentile = Math.max(1, Math.round((rank / Math.max(allIndices.length, 1)) * 100));
+            // 등수 및 상위 퍼센트 산정
+            allIndices.sort((a, b) => b - a);
+            let rank = allIndices.filter(v => v > gapIndex).length + 1; 
+            let percentile = Math.max(1, Math.round((rank / Math.max(allIndices.length, 1)) * 100));
 
-			// 3) 요청하신 문구 출력
-			insightEl.innerHTML = `
-				<p>현재 지역의 <strong>'격차지수'는 <span class="text-brand-yellow text-base">${gapIndex.toFixed(2)}</span></strong> 입니다. 격차지수는</p>
-				<p class="bg-brand-dark/50 px-3 py-1.5 rounded inline-block text-gray-300 font-mono text-[11px] my-1">
-					지역의 (생활권 청소년기관 수) + (운영 프로그램 수) * 0.2 / (지역 청소년 수) *0.01
-				</p>
-				<p>로 산정 되었으며, 전국 평균은 <strong>${natAvgGap.toFixed(2)}</strong> 입니다. <span class="text-white font-bold">${targetRegionName}</span> 지역은 상위 <strong>${percentile}%</strong>에 해당합니다.</p>
-				<p class="text-[11px] text-gray-400 mt-2 border-t border-gray-600/50 pt-2">
-					실제 해당 지역 청소년들이 적극 이용 가능한 청소년 인프라를 도출하기 위해 [생활권 청소년시설]을 기반으로 함을 참고 바랍니다.
-				</p>
-			`;
+            // 3) 요청하신 문구 출력
+            insightEl.innerHTML = `
+                <p>현재 지역의 <strong>'격차지수'는 <span class="text-brand-yellow text-base">${gapIndex.toFixed(2)}</span></strong> 입니다. 격차지수는</p>
+                <p class="bg-brand-dark/50 px-3 py-1.5 rounded inline-block text-gray-300 font-mono text-[11px] my-1">
+                    지역의 (생활권 청소년기관 수) + (운영 프로그램 수) * 0.2 / (지역 청소년 수) *0.01
+                </p>
+                <p>로 산정 되었으며, 전국 평균은 <strong>${natAvgGap.toFixed(2)}</strong> 입니다. <span class="text-white font-bold">${targetRegionName}</span> 지역은 상위 <strong>${percentile}%</strong>에 해당합니다.</p>
+                <p class="text-[11px] text-gray-400 mt-2 border-t border-gray-600/50 pt-2">
+                    실제 해당 지역 청소년들이 적극 이용 가능한 청소년 인프라를 도출하기 위해 [생활권 청소년시설]을 기반으로 함을 참고 바랍니다.
+                </p>
+            `;
 
-			// 4) 나중에 모달에서 꺼내 쓸 수 있도록 AI 리포트용 전역 변수 세팅
-			window.currentReportData = {
-				regionName: targetRegionName,
-				badgeText: badgeText.replace(/[^가-힣]/g, ''),
-				pop: regionalPop,
-				fac: fac,
-				ratio: ratio,
-				prog: progCount,
-				progRatio: progRatio
-			};
-			// 👆👆 [수정 끝] 👆👆
+            // 4) 나중에 모달에서 꺼내 쓸 수 있도록 AI 리포트용 전역 변수 세팅
+            window.currentReportData = {
+                regionName: targetRegionName,
+                badgeText: badgeText.replace(/[^가-힣]/g, ''),
+                pop: regionalPop,
+                fac: fac,
+                ratio: ratio,
+                prog: progCount,
+                progRatio: progRatio
+            };
+            // 👆👆 [수정 끝] 👆👆
         }
 
         function switchDetailTab(tabId) {
