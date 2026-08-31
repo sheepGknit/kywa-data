@@ -39,7 +39,6 @@
         body { margin: 0; padding: 0; overflow-x: hidden; font-family: 'Pretendard', sans-serif; background-color: #1e293b; }
         .leaflet-container { background: transparent !important; }
         .leaflet-control-zoom, .leaflet-control-attribution { display: none !important; }
-        path.leaflet-interactive { transition: fill 0.3s ease, stroke-width 0.3s ease; }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
@@ -761,6 +760,21 @@
 			// 3. 학교 데이터 가져오기
 			const targetYear = "2025년"; 
 			const getSchCount = (schType) => {
+				// 👇 [수정됨] 전국일 경우 모든 시도의 학교 수를 합산하는 로직 추가
+				if (regionName === "전국") {
+					let total = 0;
+					regionsList.forEach(r => {
+						if (schoolData[r] && schoolData[r][schType] && schoolData[r][schType][targetYear]) {
+							total += schoolData[r][schType][targetYear]["학교수"] || 0;
+						}
+					});
+					// 혹시 데이터에 '전국' 총계가 명시되어 있다면 그것을 우선 사용
+					if (schoolData["전국"] && schoolData["전국"][schType] && schoolData["전국"][schType][targetYear]) {
+						return schoolData["전국"][schType][targetYear]["학교수"] || 0;
+					}
+					return total;
+				}
+
 				if (regionName === "전남광주통합특별시") {
 					let s1 = (schoolData["광주광역시"] && schoolData["광주광역시"][schType] && schoolData["광주광역시"][schType][targetYear]) ? schoolData["광주광역시"][schType][targetYear]["학교수"] || 0 : 0;
 					let s2 = (schoolData["전라남도"] && schoolData["전라남도"][schType] && schoolData["전라남도"][schType][targetYear]) ? schoolData["전라남도"][schType][targetYear]["학교수"] || 0 : 0;
@@ -1117,13 +1131,23 @@
                     gbFeature.geometry.coordinates.push(createIslandPolygon(131.87, 37.24, 0.06, 0.06));
                 }
 
-                geojsonMain = L.geoJson(data, {
-                    style: () => ({ fillColor: '#E5E7EB', weight: 1.5, opacity: 1, color: '#ffffff', fillOpacity: 0.9, className: 'cursor-pointer transition-colors' }),
+                // 'transition-colors' 클래스 제거
+				geojsonMain = L.geoJson(data, {
+					style: () => ({ fillColor: '#E5E7EB', weight: 1.5, opacity: 1, color: '#ffffff', fillOpacity: 0.9, className: 'cursor-pointer' }),
+					// ... 생략 ...
                     onEachFeature: (feature, layer) => {
                         layer.bindTooltip(feature.properties.name, { className: 'bg-gray-800 border-none text-white font-bold text-sm rounded-lg shadow-xl px-3 py-1.5', sticky: true, direction: 'auto' });
                         layer.on({
-                            mouseover: e => { e.target.setStyle({ fillColor: '#FDBA1A', fillOpacity: 1 }); e.target.bringToFront(); applyDataToUI(getRegionData(feature.properties.name), false, feature.properties.name); },
-                            mouseout: e => { geojsonMain.resetStyle(e.target); applyDataToUI(defaultStats, true, ""); },
+                           mouseover: e => { 
+								e.target.setStyle({ fillColor: '#FDBA1A', fillOpacity: 1 }); 
+								// e.target.bringToFront(); // 👈 이 줄을 주석 처리하거나 아예 삭제하세요.
+								applyDataToUI(getRegionData(feature.properties.name), false, feature.properties.name); 
+							},
+                            mouseout: e => { 
+								geojsonMain.resetStyle(e.target); 
+								// 👇 defaultStats 대신 getRegionData("전국")을 호출하여 동적 데이터를 가져오도록 변경
+								applyDataToUI(getRegionData("전국"), true, "전국"); 
+							},
                             click: e => { currentProvince = feature.properties.name; currentMunicipality = '전체'; showDetailView(currentProvince); }
                         });
                     }
