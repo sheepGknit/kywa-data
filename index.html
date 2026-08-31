@@ -1380,20 +1380,6 @@
                 badgeText = "✅ 양호지역"; badgeClass = "bg-emerald-100 text-emerald-600 border border-emerald-200";
             }
 
-            const badgeEl = document.getElementById('detailGapBadge');
-            badgeEl.textContent = badgeText;
-            badgeEl.className = `px-3 py-1 text-xs font-black rounded-full shadow-sm ml-2 border ${badgeClass} fade-in`;
-            badgeEl.classList.remove('hidden');
-
-            document.getElementById('detailStatPop').textContent = regionalPop.toLocaleString() + '명';
-            document.getElementById('detailStatFac').textContent = fac + '개소'; 
-            document.getElementById('detailStatRatio').textContent = ratio;
-            document.getElementById('detailProgRatio').textContent = progRatio;
-
-
-            // 현재 활성화된 탭에 맞춰 콘텐츠 렌더링
-            renderTabContent(province, municipality, targetRegionName.length, filteredFacilities);
-
             // (기존) 🌟 수요-공급 격차 지수 산출 및 뱃지 UI 업데이트 부분 아래에 작성...
 			const badgeEl = document.getElementById('detailGapBadge');
 			badgeEl.textContent = badgeText;
