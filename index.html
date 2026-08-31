@@ -1374,8 +1374,8 @@
             const fac = filteredFacilities.filter(isLivingZoneFac).length;
             const progCount = localPrograms.filter(isLivingZoneProg).length;
             
-            const ratio = regionalPop > 0 ? ((fac / regionalPop) * 10000).toFixed(1) : "0.0";
-            const progRatio = regionalPop > 0 ? ((progCount / regionalPop) * 10000).toFixed(1) : "0.0";
+            const ratio = regionalPop > 0 ? ((filteredFacilities.length / regionalPop) * 10000).toFixed(1) : "0.0";
+            const progRatio = regionalPop > 0 ? ((localPrograms.length / regionalPop) * 10000).toFixed(1) : "0.0";
 
             // 🌟 수요-공급 격차 지수 산출 및 뱃지 UI 업데이트
             const supplyScore = fac + (progCount * 0.2); 
