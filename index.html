@@ -1408,7 +1408,7 @@
             badgeEl.classList.remove('hidden');
 
             document.getElementById('detailStatPop').textContent = regionalPop.toLocaleString() + '명';
-            document.getElementById('detailStatFac').textContent = fac + '개소'; // 생활권 시설 수만 표시
+            document.getElementById('detailStatFac').textContent = uniqueFacilities.length + '개소'; // 생활권 시설 수만 표시
             document.getElementById('detailStatRatio').textContent = ratio;
             document.getElementById('detailProgRatio').textContent = progRatio;
 
