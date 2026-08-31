@@ -239,6 +239,10 @@
                     <span id="detailSubRegionTitle" class="text-2xl font-bold text-gray-400">전체</span>
                     <!-- 👇 여기에 격차 지수 등급 뱃지가 추가됩니다 -->
                     <span id="detailGapBadge" class="hidden px-3 py-1 text-sm font-black rounded-full shadow-sm ml-2"></span>
+					<!-- 👇 [추가됨] AI 지역 현황 분석 리포트 보기 버튼 -->
+					<button onclick="openRegionalAiReport()" class="ml-3 flex items-center gap-1.5 bg-brand-dark hover:bg-slate-800 text-white px-3 py-1.5 text-xs font-bold rounded-lg transition-colors shadow-sm border border-brand-yellow">
+						<i class="ph-fill ph-sparkle text-brand-yellow text-sm"></i> AI 지역 현황 분석 리포트 보기
+					</button>
                 </div>
             </div>
             <div class="text-right hidden sm:block">
@@ -253,15 +257,15 @@
             <div class="w-full lg:w-[45%] flex flex-col bg-white border-r border-gray-200">
                 <!-- AI Insight Banner -->
                 <div class="p-5 bg-gradient-to-r from-brand-dark to-slate-800 border-b border-gray-200 shrink-0 relative overflow-hidden">
-                    <div class="absolute -right-4 -top-4 opacity-10"><i class="ph-fill ph-robot text-8xl text-brand-yellow"></i></div>
-                    <div class="flex items-center gap-2 mb-2 relative z-10">
-                        <i class="ph-fill ph-sparkle text-brand-yellow text-lg"></i>
-                        <span class="text-brand-yellow font-bold text-sm tracking-wide">AI 지역 현황 분석 리포트</span>
-                    </div>
-                    <p id="aiRegionalInsightText" class="text-gray-100 text-sm leading-relaxed relative z-10 font-medium">
-                        분석 데이터를 불러오고 있습니다...
-                    </p>
-                </div>
+					<div class="absolute -right-4 -top-4 opacity-10"><i class="ph-fill ph-chart-bar text-8xl text-brand-yellow"></i></div>
+					<div class="flex items-center gap-2 mb-2 relative z-10">
+						<i class="ph-bold ph-info text-brand-yellow text-lg"></i>
+						<span class="text-brand-yellow font-bold text-sm tracking-wide">지역 인프라 격차지수 분석 결과</span>
+					</div>
+					<div id="aiRegionalInsightText" class="text-gray-200 text-[13px] leading-relaxed relative z-10 font-medium break-keep space-y-2">
+						데이터를 계산 중입니다...
+					</div>
+				</div>
                 <!-- Interactive Municipality Map -->
                 <div class="flex-1 relative bg-[#e2e8f0] min-h-[400px]">
                     <div class="absolute top-4 left-4 z-30 bg-white/90 backdrop-blur px-3 py-2 rounded-lg shadow-sm border border-gray-200">
@@ -1390,52 +1394,84 @@
             // 현재 활성화된 탭에 맞춰 콘텐츠 렌더링
             renderTabContent(province, municipality, targetRegionName.length, filteredFacilities);
 
-            // 4. AI 브라우저 직접 호출
-            try {
-                const API_KEY = "AQ.Ab8RN6IhZPKU-lX1GmWpO6usO15l7RJUbR8SA2UtaBYyeYBstg"; 
-                const { GoogleGenAI } = await import("@google/genai");
-                const ai = new GoogleGenAI({ apiKey: API_KEY });
+            // (기존) 🌟 수요-공급 격차 지수 산출 및 뱃지 UI 업데이트 부분 아래에 작성...
+			const badgeEl = document.getElementById('detailGapBadge');
+			badgeEl.textContent = badgeText;
+			badgeEl.className = `px-3 py-1 text-xs font-black rounded-full shadow-sm ml-2 border ${badgeClass} fade-in`;
+			badgeEl.classList.remove('hidden');
 
-                const prompt = `
-                    너는 대한민국 청소년정책 데이터 분석 전문가야. 
-                    아래 산출된 지역 지표를 바탕으로 이 지역의 청소년활동 현황과 정책적 제언을 분석해줘.
+			document.getElementById('detailStatPop').textContent = regionalPop.toLocaleString() + '명';
+			document.getElementById('detailStatFac').textContent = fac + '개소'; 
+			document.getElementById('detailStatRatio').textContent = ratio;
+			document.getElementById('detailProgRatio').textContent = progRatio;
 
-                    - 지역명: ${targetRegionName}
-                    - 수요-공급 판단: ${badgeText.replace(/[^가-힣]/g, '')}
-                    - 청소년 인구(수요): ${regionalPop.toLocaleString()}명
-                    - 청소년수련시설 수(공급): ${fac}개소 (1만명당 시설수: ${ratio})
-                    - 운영 프로그램 수(공급): ${progCount}개 (1만명당 활동수: ${progRatio})
+			// 현재 활성화된 탭에 맞춰 콘텐츠 렌더링
+			renderTabContent(province, municipality, targetRegionName.length, uniqueFacilities);
 
-                    [출력 요구사항]
-                    반드시 아래 5가지 목차로만 출력하고, 마크다운 코드블록(\`\`\`html) 없이 순수 HTML 태그(div, p, span, strong 등)로만 작성해줘. 내용은 가독성 있게 핵심만 요약해.
+			// 👇👇 [수정] AI 자동 호출을 제거하고 요청하신 고정 문구를 삽입하는 로직 👇👇
+			
+			// 1) 전국 평균 계산
+			let natPop = (popData["전국"] && popData["전국"]["전국"]) ? popData["전국"]["전국"]["총인구수"]["2026.06월"] || 10000000 : 10000000;
+			let natFac = sisulData.length || 1;
+			let natProg = programsData.length || 1;
+			let natAvgGap = (natFac + (natProg * 0.2)) / (natPop / 10000);
 
-                    <div class="space-y-2 text-[13px] leading-relaxed">
-                        <p><strong><span class="text-brand-yellow">1. 핵심진단:</span></strong> [이 지역이 왜 우선지원/관심/양호인지 종합 진단 1문장]</p>
-                        <p><strong><span class="text-brand-yellow">2. 근거수치:</span></strong> [위 제공된 1만명당 공급 지표 등 수치 설명 1문장]</p>
-                        <p><strong><span class="text-brand-yellow">3. 비교해석:</span></strong> [단순 건수가 아닌 수요(인구) 대비 공급(시설/프로그램)의 불균형 해석 1문장]</p>
-                        <p><strong><span class="text-brand-yellow">4. 정책대안:</span></strong> [이 지역에 시설을 늘려야 할지, 프로그램을 보완해야 할지 등 구체적 처방 1문장]</p>
-                        <p><strong><span class="text-brand-yellow">5. 유의사항:</span></strong> [해당 지표 활용 시 주의할 점 1문장]</p>
-                    </div>
-                `;
-                
-                const response = await ai.models.generateContent({
-                    model: 'gemini-3.6-flash',
-                    contents: prompt,
-                });
-                
-                if (response && response.text) {
-                    // 👇👇 [수정 2] textContent를 innerHTML로 바꿉니다. (마크다운 찌꺼기 제거 처리 추가) 👇👇
-                    let cleanHtml = response.text.replace(/```html|```/g, '').trim();
-                    insightEl.innerHTML = cleanHtml;
-                    // 👆👆 수정 완료 👆👆
-                } else {
-                    insightEl.innerHTML = `<p>${targetRegionName} 지역은 청소년 인구 ${regionalPop.toLocaleString()}명, 수련시설 ${fac}개소가 밀집해 있으며 활발한 활동 인프라를 갖추고 있습니다.</p>`;
-                }
+			// 2) 상위 % 계산을 위한 전체 배열 만들기
+			let allIndices = [];
+			if (isAll) {
+				// 시도 간 비교일 경우
+				regionsList.forEach(r => {
+					let tPop = popData[r]?.["소계"]?.["총인구수"]?.["2026.06월"] || 100000;
+					if (r === "전남광주통합특별시") tPop = (popData["광주광역시"]?.["소계"]?.["총인구수"]?.["2026.06월"]||0) + (popData["전라남도"]?.["소계"]?.["총인구수"]?.["2026.06월"]||0);
+					let tFac = sisulData.filter(i => r === "전남광주통합특별시" ? (i.ctpvNm === "광주광역시" || i.ctpvNm === "전라남도") : i.ctpvNm === r).length;
+					let tProg = programsData.filter(i => r === "전남광주통합특별시" ? (i.sidoNm === "광주광역시" || i.sidoNm === "전라남도" || i.sidoNm === "전남광주통합특별시") : i.sidoNm === r).length;
+					allIndices.push((tFac + tProg * 0.2) / (tPop > 0 ? tPop / 10000 : 1));
+				});
+			} else {
+				// 시군구 간 비교일 경우 (해당 시도 내에서)
+				let districts = districtData[province] || [];
+				if (province === "전남광주통합특별시") districts = [...(districtData["광주광역시"]||[]), ...(districtData["전라남도"]||[])];
+				
+				districts.forEach(d => {
+					let tPop = popData[province]?.[d]?.["총인구수"]?.["2026.06월"] || 10000;
+					if (!popData[province]?.[d]) {
+						let foundKey = Object.keys(popData[province]||{}).find(k => k.includes(d));
+						if (foundKey) tPop = popData[province][foundKey]["총인구수"]?.["2026.06월"] || 10000;
+					}
+					let tFac = sisulData.filter(i => (i.ctpvNm === province || (province==="전남광주통합특별시" && (i.ctpvNm==="광주광역시"||i.ctpvNm==="전라남도"))) && i.sggNm === d).length;
+					let tProg = programsData.filter(i => (i.sidoNm === province || (province==="전남광주통합특별시" && (i.sidoNm==="광주광역시"||i.sidoNm==="전라남도"||i.sidoNm==="전남광주통합특별시"))) && i.sggNm === d).length;
+					allIndices.push((tFac + tProg * 0.2) / (tPop > 0 ? tPop / 10000 : 1));
+				});
+			}
 
-            } catch (error) {
-                console.error("AI 분석 리포트 생성 실패:", error);
-                insightEl.innerHTML = `<p><span class="text-brand-yellow font-bold">${targetRegionName}</span> 지역은 청소년 인구 ${regionalPop.toLocaleString()}명 및 수련시설 ${fac}개소가 운영 중입니다.</p>`;
-            }
+			// 등수 및 상위 퍼센트 산정
+			allIndices.sort((a, b) => b - a);
+			let rank = allIndices.filter(v => v > gapIndex).length + 1; 
+			let percentile = Math.max(1, Math.round((rank / Math.max(allIndices.length, 1)) * 100));
+
+			// 3) 요청하신 문구 출력
+			insightEl.innerHTML = `
+				<p>현재 지역의 <strong>'격차지수'는 <span class="text-brand-yellow text-base">${gapIndex.toFixed(2)}</span></strong> 입니다. 격차지수는</p>
+				<p class="bg-brand-dark/50 px-3 py-1.5 rounded inline-block text-gray-300 font-mono text-[11px] my-1">
+					지역의 (생활권 청소년기관 수) + (운영 프로그램 수) * 0.2 / (지역 청소년 수) *0.01
+				</p>
+				<p>로 산정 되었으며, 전국 평균은 <strong>${natAvgGap.toFixed(2)}</strong> 입니다. <span class="text-white font-bold">${targetRegionName}</span> 지역은 상위 <strong>${percentile}%</strong>에 해당합니다.</p>
+				<p class="text-[11px] text-gray-400 mt-2 border-t border-gray-600/50 pt-2">
+					실제 해당 지역 청소년들이 적극 이용 가능한 청소년 인프라를 도출하기 위해 [생활권 청소년시설]을 기반으로 함을 참고 바랍니다.
+				</p>
+			`;
+
+			// 4) 나중에 모달에서 꺼내 쓸 수 있도록 AI 리포트용 전역 변수 세팅
+			window.currentReportData = {
+				regionName: targetRegionName,
+				badgeText: badgeText.replace(/[^가-힣]/g, ''),
+				pop: regionalPop,
+				fac: fac,
+				ratio: ratio,
+				prog: progCount,
+				progRatio: progRatio
+			};
+			// 👆👆 [수정 끝] 👆👆
         }
 
         function switchDetailTab(tabId) {
@@ -2522,5 +2558,107 @@
 			}
 		}
     </script>
+	<!-- 👇 [추가됨] AI 지역 현황 분석 리포트 모달 -->
+	<div id="aiRegionalReportModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4 fade-in">
+		<div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+			<div class="bg-brand-dark text-white px-6 py-4 flex justify-between items-center shrink-0">
+				<div class="flex items-center gap-3">
+					<div class="w-10 h-10 rounded-xl bg-brand-yellow flex items-center justify-center text-brand-dark font-black"><i class="ph-bold ph-sparkle text-2xl"></i></div>
+					<div>
+						<h3 class="font-black text-lg">AI 지역 현황 분석 리포트</h3>
+						<p class="text-xs text-gray-300" id="aiReportModalSubTitle">지역 데이터를 기반으로 AI가 실시간 분석한 정책 리포트입니다.</p>
+					</div>
+				</div>
+				<button onclick="closeRegionalAiReport()" class="text-gray-300 hover:text-white p-2 transition-colors"><i class="ph-bold ph-x text-xl"></i></button>
+			</div>
+			
+			<div class="p-6 overflow-y-auto flex-1 bg-gray-50 relative" id="aiRegionalReportContent">
+				<!-- AI 내용이 들어갈 자리 -->
+			</div>
+			<div class="px-6 py-4 bg-white border-t border-gray-200 text-right shrink-0">
+				<button onclick="closeRegionalAiReport()" class="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-xl transition-colors">닫기</button>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		// 👇 [추가됨] 모달 열기/닫기 및 AI 호출 함수
+		function openRegionalAiReport() {
+			document.getElementById('aiRegionalReportModal').classList.remove('hidden');
+			document.getElementById('aiRegionalReportModal').classList.add('flex');
+			
+			const contentEl = document.getElementById('aiRegionalReportContent');
+			const d = window.currentReportData;
+			
+			if(!d) {
+				contentEl.innerHTML = `<p class="text-gray-500">데이터를 불러오는 데 실패했습니다.</p>`;
+				return;
+			}
+
+			contentEl.innerHTML = `
+				<div class="flex flex-col items-center justify-center h-40">
+					<i class="ph ph-spinner-gap animate-spin text-4xl text-brand-yellow mb-3"></i>
+					<p class="text-brand-dark font-bold">AI가 <span class="text-brand-yellow">${d.regionName}</span>의 데이터를 분석 중입니다...</p>
+				</div>
+			`;
+
+			fetchRegionalAiReport(d);
+		}
+
+		function closeRegionalAiReport() {
+			document.getElementById('aiRegionalReportModal').classList.add('hidden');
+			document.getElementById('aiRegionalReportModal').classList.remove('flex');
+		}
+
+		async function fetchRegionalAiReport(d) {
+			try {
+				const API_KEY = "AQ.Ab8RN6IhZPKU-lX1GmWpO6usO15l7RJUbR8SA2UtaBYyeYBstg"; 
+				const { GoogleGenAI } = await import("@google/genai");
+				const ai = new GoogleGenAI({ apiKey: API_KEY });
+
+				const prompt = `
+					너는 대한민국 청소년정책 데이터 분석 전문가야. 
+					아래 산출된 지역 지표를 바탕으로 이 지역의 청소년활동 현황과 정책적 제언을 분석해줘.
+
+					- 지역명: ${d.regionName}
+					- 수요-공급 판단: ${d.badgeText}
+					- 청소년 인구(수요): ${d.pop.toLocaleString()}명
+					- 청소년수련시설 수(공급): ${d.fac}개소 (1만명당 시설수: ${d.ratio})
+					- 운영 프로그램 수(공급): ${d.prog}개 (1만명당 활동수: ${d.progRatio})
+
+					[출력 요구사항]
+					반드시 아래 5가지 목차로만 출력하고, 마크다운 코드블록 없이 순수 HTML 태그(div, p, span, strong 등)로만 작성해줘. 내용은 가독성 있게 핵심만 요약해.
+
+					<div class="space-y-4 text-[14px] leading-relaxed text-gray-700">
+						<p><strong><span class="text-brand-yellow text-lg">1. 핵심진단:</span></strong><br> [이 지역이 왜 우선지원/관심/양호인지 종합 진단 1문장]</p>
+						<p><strong><span class="text-brand-yellow text-lg">2. 근거수치:</span></strong><br> [위 제공된 1만명당 공급 지표 등 수치 설명 1문장]</p>
+						<p><strong><span class="text-brand-yellow text-lg">3. 비교해석:</span></strong><br> [단순 건수가 아닌 수요(인구) 대비 공급(시설/프로그램)의 불균형 해석 1문장]</p>
+						<p><strong><span class="text-brand-yellow text-lg">4. 정책대안:</span></strong><br> [이 지역에 시설을 늘려야 할지, 프로그램을 보완해야 할지 등 구체적 처방 1문장]</p>
+						<p><strong><span class="text-brand-yellow text-lg">5. 유의사항:</span></strong><br> [해당 지표 활용 시 주의할 점 1문장]</p>
+					</div>
+				`;
+				
+				const response = await ai.models.generateContent({
+					model: 'gemini-3.6-flash',
+					contents: prompt,
+				});
+				
+				if (response && response.text) {
+					document.getElementById('aiRegionalReportContent').innerHTML = response.text.replace(/```html|```/g, '').trim();
+				} else {
+					throw new Error("Empty response");
+				}
+
+			} catch (error) {
+				console.error("AI 분석 리포트 생성 실패:", error);
+				document.getElementById('aiRegionalReportContent').innerHTML = `
+					<div class="p-6 bg-red-50 text-red-600 rounded-xl border border-red-200">
+						<p class="font-bold mb-2"><i class="ph-bold ph-warning"></i> AI 리포트 생성 중 오류가 발생했습니다.</p>
+						<p class="text-sm">잠시 후 다시 시도해주세요.</p>
+					</div>
+				`;
+			}
+		}
+	</script>
 </body>
 </html>
