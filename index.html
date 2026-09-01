@@ -2576,9 +2576,70 @@
 				}
 
 			} catch (error) {
-				console.error("AI 추천 생성 실패:", error);
-				content.innerHTML = `<div class="text-xs text-red-500 font-bold p-3">AI 추천 생성 중 오류가 발생했습니다. (키 확인 또는 네트워크 상태 점검 필요)</div>`;
-			}
+                console.warn("AI 추천 생성 실패, 로컬 데이터 검색(Fallback)으로 대체합니다.", error);
+
+                // 🌟 1. 관심분야별 매칭 키워드 사전 정의
+                const keywordMap = {
+                    "환경 및 생태": ["환경", "생태", "에코", "탄소", "지구", "자연", "플라스틱", "기후", "업사이클링", "쓰레기", "플로깅"],
+                    "디지털 및 AI 코딩": ["디지털", "코딩", "AI", "인공지능", "로봇", "소프트웨어", "IT", "메타버스", "드론", "미디어", "앱", "SW"],
+                    "문화예술": ["문화", "예술", "미술", "음악", "공연", "디자인", "연극", "공예", "뮤지컬", "댄스", "웹툰", "사진", "영상", "창작"],
+                    "국제교류": ["국제", "글로벌", "외국어", "해외", "교류", "영어", "문화다양성", "세계"],
+                    "자기주도": ["자기주도", "기획", "리더십", "자치", "참여", "동아리", "진로", "창업", "멘토"],
+                    "봉사활동": ["봉사", "나눔", "캠페인", "기부", "지역사회", "재능기부"]
+                };
+
+                const keywords = keywordMap[interest] || [interest];
+
+                // 🌟 2. 지역 및 키워드로 프로그램 검색
+                let fallbackPrograms = programsData.filter(p => {
+                    // 지역 매칭 (전남광주통합 등 예외 처리 포함)
+                    let isAreaMatch = (p.sidoNm === area || area.includes(p.sidoNm) || (area === "전남광주통합특별시" && (p.sidoNm === "광주광역시" || p.sidoNm === "전라남도")));
+                    if (!isAreaMatch) return false;
+
+                    // 키워드 매칭 (제목에 키워드 중 하나라도 포함되어 있는지)
+                    let actName = (p.activityName || "").toLowerCase();
+                    return keywords.some(kw => actName.includes(kw.toLowerCase()));
+                });
+
+                // 🌟 3. 검색 결과 UI 렌더링
+                if (fallbackPrograms.length > 0) {
+                    // 최상위 2개만 추출
+                    const selected = fallbackPrograms.slice(0, 2);
+                    
+                    let html = `
+                        <div class="mb-3 text-sm text-gray-700">
+                            <span class="font-bold text-brand-dark">'${area}'</span> 지역 <span class="font-bold text-brand-dark">'${interest}'</span> 분야 관련 등록 프로그램입니다. 
+                            <span class="text-[10px] text-brand-yellow font-bold bg-brand-dark px-1.5 py-0.5 rounded ml-1">빠른 검색 결과</span>
+                        </div>
+                        <div class="space-y-3">
+                    `;
+
+                    selected.forEach(prog => {
+                        html += `
+                            <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm relative overflow-hidden">
+                                <div class="absolute top-0 left-0 w-1 h-full bg-brand-yellow"></div>
+                                <h4 class="font-bold text-brand-dark text-[15px] mb-1">${prog.activityName}</h4>
+                                <p class="text-[11px] text-gray-500 mb-2 font-bold"><i class="ph-fill ph-buildings text-gray-400"></i> ${prog.facilityName || '운영기관 미상'} (${prog.sggNm || ''})</p>
+                                <p class="text-[12px] text-gray-600 mb-2 bg-gray-50 p-2 rounded-lg border border-gray-100 leading-relaxed">
+                                    현재 시스템에 등록된 <strong>${interest}</strong> 관련 활동입니다. 상세 내용은 해당 운영기관 홈페이지나 e-청소년 플랫폼에서 확인하실 수 있습니다.
+                                </p>
+                                <div class="text-[11px] text-brand-dark font-bold"><i class="ph-bold ph-check-circle text-brand-yellow"></i> 팁: 기관에 문의하여 '${goal || '진로 및 역량 개발'}'에 도움이 되는지 확인해 보세요!</div>
+                            </div>
+                        `;
+                    });
+                    html += `</div>`;
+                    content.innerHTML = html;
+                } else {
+                    // 검색 결과가 없을 때
+                    content.innerHTML = `
+                        <div class="bg-gray-50 p-6 rounded-xl border border-gray-200 text-center">
+                            <i class="ph-bold ph-magnifying-glass text-2xl text-gray-400 mb-2"></i>
+                            <p class="text-sm font-bold text-brand-dark mb-1">조건에 맞는 활동을 찾지 못했습니다.</p>
+                            <p class="text-xs text-gray-500">현재 <span class="font-bold text-brand-dark">${area}</span> 지역에 <span class="font-bold text-brand-dark">${interest}</span> 관련 키워드로 등록된 프로그램이 없습니다. 다른 분야를 선택해 보세요.</p>
+                        </div>
+                    `;
+                }
+            }
 		}
     </script>
 	<!-- 👇 [추가됨] AI 지역 현황 분석 리포트 모달 -->
