@@ -1513,17 +1513,20 @@
             
             const isAll = (currentMunicipality === '전체');
             
-            // 👇👇 [수정] 탭 전환 시에도 전남광주 필터링 유지 👇👇
+            // 👇👇 [수정] 탭 전환 시에도 전남광주 필터링 유지 및 띄어쓰기 무시 👇👇
             let filteredFacilities = sisulData.filter(item => {
-				if (currentProvince === "전남광주통합특별시") {
-					return item.ctpvNm === "광주광역시" || item.ctpvNm === "전라남도";
-				}
-				return item.ctpvNm === currentProvince;
-			});
+                if (currentProvince === "전남광주통합특별시") {
+                    return item.ctpvNm === "광주광역시" || item.ctpvNm === "전라남도";
+                }
+                return item.ctpvNm === currentProvince;
+            });
 
-			if (!isAll) {
-				filteredFacilities = filteredFacilities.filter(item => item.sggNm === currentMunicipality);
-			}
+            if (!isAll) {
+                // 👇 [핵심 수정] 시군구 양쪽 모두 띄어쓰기 제거 후 비교
+                filteredFacilities = filteredFacilities.filter(item => 
+                    item.sggNm && item.sggNm.replace(/\s/g, '') === currentMunicipality.replace(/\s/g, '')
+                );
+            }
 
 			// 🌟 시설 이름 기준 중복 제거 (Map 객체 활용)
 			const uniqueFacilities = Array.from(
@@ -1604,11 +1607,12 @@
 					
 					if (!matchSido) return false;
 
-					if (municipality !== '전체') {
-						return item.sggNm === municipality;
-					}
-					return true;
-				});
+                    if (municipality !== '전체') {
+                        // 👇 [핵심 수정] 정책사업 시군구 띄어쓰기 제거 후 비교
+                        return item.sggNm && item.sggNm.replace(/\s/g, '') === municipality.replace(/\s/g, '');
+                    }
+                    return true;
+                });
 
 				console.log(`🏛️ [운영 정책사업] 시도: ${province}, 시군구: ${municipality} | 매칭된 정책 수: ${filteredPolicies.length}개`);
 
@@ -1666,11 +1670,12 @@
 					
 					if (!matchSido) return false;
 
-					if (municipality !== '전체') {
-						return item.sggNm === municipality;
-					}
-					return true;
-				});
+                    if (municipality !== '전체') {
+                        // 👇 [핵심 수정] 신청 가능 활동 시군구 띄어쓰기 제거 후 비교
+                        return item.sggNm && item.sggNm.replace(/\s/g, '') === municipality.replace(/\s/g, '');
+                    }
+                    return true;
+                });
 
 				console.log(`🎯 [신청 가능 활동] 시도: ${province}, 시군구: ${municipality} | 매칭된 프로그램 수: ${filteredPrograms.length}개`);
 
