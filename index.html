@@ -1298,21 +1298,34 @@
 			await new Promise(resolve => setTimeout(resolve, 50));
 			// 2. 인구 데이터 추출
 			let regionalPop = 0;
-			if (province === "전남광주통합특별시" && isAll) {
-				let p1 = popData["광주광역시"] ? (popData["광주광역시"]["소계"]["총인구수"]["2026.06월"] || 0) : 0;
-				let p2 = popData["전라남도"] ? (popData["전라남도"]["소계"]["총인구수"]["2026.06월"] || 0) : 0;
-				regionalPop = p1 + p2;
+			let safeMunicipality = municipality !== '전체' ? municipality.replace(/\s/g, '') : '';
+
+			if (province === "전남광주통합특별시") {
+				if (isAll) {
+					// 전체일 때는 광주와 전남의 소계를 합산
+					let p1 = popData["광주광역시"] ? (popData["광주광역시"]["소계"]["총인구수"]["2026.06월"] || 0) : 0;
+					let p2 = popData["전라남도"] ? (popData["전라남도"]["소계"]["총인구수"]["2026.06월"] || 0) : 0;
+					regionalPop = p1 + p2;
+				} else {
+					// 시군구일 때는 광주에서 먼저 찾고, 없으면 전남에서 찾기
+					if (popData["광주광역시"]) {
+						let key1 = Object.keys(popData["광주광역시"]).find(k => k.replace(/\s/g, '') === safeMunicipality);
+						if (key1) regionalPop = popData["광주광역시"][key1]["총인구수"]["2026.06월"] || 0;
+					}
+					if (regionalPop === 0 && popData["전라남도"]) {
+						let key2 = Object.keys(popData["전라남도"]).find(k => k.replace(/\s/g, '') === safeMunicipality);
+						if (key2) regionalPop = popData["전라남도"][key2]["총인구수"]["2026.06월"] || 0;
+					}
+				}
 			} else if (popData[province]) {
 				if (isAll) {
-					// 시도 전체일 경우 기존처럼 '소계' 사용
+					// 일반 시도 전체일 경우 '소계' 사용
 					if (popData[province]["소계"]) {
 						regionalPop = popData[province]["소계"]["총인구수"]["2026.06월"] || 0;
 					}
 				} else {
-					// 시군구일 경우 양쪽 띄어쓰기 모두 제거 후 매칭되는 키값 찾기
-					let safeMunicipality = municipality.replace(/\s/g, '');
+					// 일반 시도의 시군구일 경우 양쪽 띄어쓰기 모두 제거 후 매칭되는 키값 찾기
 					let foundKey = Object.keys(popData[province]).find(k => k.replace(/\s/g, '') === safeMunicipality);
-					
 					if (foundKey && popData[province][foundKey]) {
 						regionalPop = popData[province][foundKey]["총인구수"]["2026.06월"] || 0;
 					}
