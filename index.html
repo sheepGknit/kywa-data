@@ -1296,7 +1296,6 @@
 			insightEl.innerHTML = `<i class="ph ph-spinner animate-spin inline-block mr-1"></i> AI가 <span class="text-brand-yellow font-bold">${targetRegionName}</span>의 데이터를 분석 중입니다...`;
 			
 			await new Promise(resolve => setTimeout(resolve, 50));
-
 			// 2. 인구 데이터 추출
 			let regionalPop = 0;
 			if (province === "전남광주통합특별시" && isAll) {
@@ -1304,34 +1303,45 @@
 				let p2 = popData["전라남도"] ? (popData["전라남도"]["소계"]["총인구수"]["2026.06월"] || 0) : 0;
 				regionalPop = p1 + p2;
 			} else if (popData[province]) {
-				const targetKey = isAll ? "소계" : municipality;
-				if (popData[province][targetKey]) {
-					regionalPop = popData[province][targetKey]["총인구수"]["2026.06월"] || 0;
+				if (isAll) {
+					// 시도 전체일 경우 기존처럼 '소계' 사용
+					if (popData[province]["소계"]) {
+						regionalPop = popData[province]["소계"]["총인구수"]["2026.06월"] || 0;
+					}
+				} else {
+					// 시군구일 경우 양쪽 띄어쓰기 모두 제거 후 매칭되는 키값 찾기
+					let safeMunicipality = municipality.replace(/\s/g, '');
+					let foundKey = Object.keys(popData[province]).find(k => k.replace(/\s/g, '') === safeMunicipality);
+					
+					if (foundKey && popData[province][foundKey]) {
+						regionalPop = popData[province][foundKey]["총인구수"]["2026.06월"] || 0;
+					}
 				}
 			}
 
 			// 🌟 3. [핵심 수정] 프로그램이 아닌 'sisulData'를 정확하게 필터링하고 중복 제거
-			let filteredFacilities = sisulData.filter(item => {
-				let matchSido = false;
-				let ctpv = (item.ctpvNm || "").trim();
+            let filteredFacilities = sisulData.filter(item => {
+                let matchSido = false;
+                let ctpv = (item.ctpvNm || "").trim();
 
-				if (province === "전남광주통합특별시") {
-					matchSido = (ctpv === "광주광역시" || ctpv === "전라남도" || ctpv === "전남광주통합특별시");
-				} else if (province === "광주광역시" || province === "전라남도") {
-					matchSido = (ctpv === province || ctpv === "전남광주통합특별시");
-				} else {
-					matchSido = (ctpv === province);
-				}
-				
-				if (!matchSido) return false;
+                if (province === "전남광주통합특별시") {
+                    matchSido = (ctpv === "광주광역시" || ctpv === "전라남도" || ctpv === "전남광주통합특별시");
+                } else if (province === "광주광역시" || province === "전라남도") {
+                    matchSido = (ctpv === province || ctpv === "전남광주통합특별시");
+                } else {
+                    matchSido = (ctpv === province);
+                }
+                
+                if (!matchSido) return false;
 
-				if (!isAll) {
-					return item.sggNm === municipality;
-				}
-				return true;
-			});
+                if (!isAll) {
+                    // 👇 [핵심 수정] 시설 데이터 시군구 띄어쓰기 완전 제거 후 비교
+                    return item.sggNm && item.sggNm.replace(/\s/g, '') === municipality.replace(/\s/g, '');
+                }
+                return true;
+            });
 
-			// 시설 이름 기준 중복 제거 (Map 객체 활용)
+            // 시설 이름 기준 중복 제거 (Map 객체 활용)
             filteredFacilities = Array.from(
                 new Map(filteredFacilities.map(fac => {
                     const name = fac.facilityName || fac.sisulNm || fac.fcltNm || '';
@@ -1353,20 +1363,22 @@
                 }
 
                 if (!matchSido) return false;
-                if (!isAll) return item.sggNm === municipality;
+                
+                // 👇 [핵심 수정] 프로그램 데이터 시군구 띄어쓰기 완전 제거 후 비교
+                if (!isAll) {
+                    return item.sggNm && item.sggNm.replace(/\s/g, '') === municipality.replace(/\s/g, '');
+                }
                 return true;
             });
             // 👆👆 끌어올림 끝 👆👆
-			
-			// 👇👇 [추가] 생활권 시설(수련관, 문화의집) 여부를 판별하는 조건 함수
+            
+            // 👇👇 [추가] 생활권 시설(수련관, 문화의집, 청소년센터) 여부를 판별하는 조건 함수
             const isLivingZoneFac = (item) => {
-                return item.sisulType === '수련관' || item.sisulType === '문화의집' || 
-                       (item.sisulNm && (item.sisulNm.includes('수련관') || item.sisulNm.includes('문화의집'))) ||
-                       (item.facilityName && (item.facilityName.includes('수련관') || item.facilityName.includes('문화의집')));
+                return item.sisulType === '수련관' || item.sisulType === '문화의집' 
             };
 
             const isLivingZoneProg = (item) => {
-                return item.facilityName && (item.facilityName.includes('수련관') || item.facilityName.includes('문화의집')|| item.facilityName.includes('청소년센터'));
+                return item.facilityName && (item.facilityName.includes('수련관') || item.facilityName.includes('문화의집') || item.facilityName.includes('청소년센터') || item.facilityName.includes('유스센터'));
             };
             // 👆👆 [추가 끝]
 
