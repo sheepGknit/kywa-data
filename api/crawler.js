@@ -6,68 +6,91 @@ const path = require('path');
 async function scrapeEYouth() {
     console.log("🔍 e-청소년 프로그램 데이터 크롤링 시작...");
     
-    // e-청소년 활동 검색 URL (필요에 따라 쿼리파라미터 추가)
     const url = 'https://www.youth.go.kr/ypos/programs/search.do'; 
     let scrapedPrograms = [];
+    
+    // 💡 크롤링할 최대 페이지 수를 설정합니다. (원하는 만큼 수정 가능)
+    const MAX_PAGES = 10; 
 
     try {
-        // 사이트에 접속해서 HTML을 가져옵니다.
-        const response = await axios.get(url);
-        const $ = cheerio.load(response.data);
-
-        // ul 밑에 있는 모든 li(프로그램 리스트)를 순회합니다.
-        $('.act-name-box dl').each((index, element) => {
+        for (let i = 1; i <= MAX_PAGES; i++) {
+            console.log(`⏳ ${i}페이지 크롤링 중...`);
             
-            // 1. 프로그램명 및 유형 추출
-            const titleElement = $(element).find('dt');
-            const programType = titleElement.find('.label-area').text().trim(); // 예: "문화예술"
-            const activityName = titleElement.find('a').text().trim(); // 예: "청소년문화예술교육 1박2일형_중등형"
-
-            // 2. 기본 정보 초기화
-            let facilityName = "";
-            let sidoNm = "";
-            let sggNm = "";
-
-            // 3. dd 태그들을 순회하며 라벨(strong)에 맞춰 데이터 추출
-            $(element).find('dd').each((i, ddElem) => {
-                const text = $(ddElem).text().replace(/\s+/g, ' ').trim(); // 연속된 공백(엔터 등)을 하나로 압축
-                
-                if (text.includes('기관명 :')) {
-                    facilityName = text.replace('기관명 :', '').trim();
-                } 
-                else if (text.includes('지역 :')) {
-                    // 예: "지역 : 충청남도 논산시" -> "충청남도 논산시"
-                    const regionFull = text.replace('지역 :', '').trim();
-                    const regionParts = regionFull.split(' '); // 공백으로 자르기
-                    
-                    if (regionParts.length > 0) sidoNm = regionParts[0]; // 충청남도
-                    
-                    if (regionParts.length >= 2) {
-                        // "성남시 분당구" 처럼 구가 띄어쓰기 되어있을 경우를 대비해 2번째 이후 단어는 다시 합침
-                        sggNm = regionParts.slice(1).join(' '); // 논산시
-                    } else {
-                        sggNm = "전체"; // 구 정보가 없을 때의 안전장치
-                    }
+            // POST 방식으로 페이지 번호(pageIndex)를 바꿔가며 요청합니다.
+            const response = await axios.post(url, `pageIndex=${i}`, {
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
                 }
             });
-
-            // 빈 데이터가 아니라면 배열에 추가
-            if (activityName) {
-                scrapedPrograms.push({
-                    activityName,
-                    facilityName,
-                    sidoNm,
-                    sggNm,
-                    programType
-                });
+            
+            const $ = cheerio.load(response.data);
+            const list = $('.act-name-box dl');
+            
+            // 만약 해당 페이지에 데이터가 하나도 없다면 마지막 페이지에 도달한 것이므로 중단합니다.
+            if (list.length === 0) {
+                console.log(`ℹ️ ${i}페이지에 데이터가 없습니다. 크롤링을 종료합니다.`);
+                break;
             }
-        });
 
-        // 결과물을 data/programs.json 파일로 덮어쓰기 저장
+            // 프로그램 리스트 순회 및 데이터 추출
+            list.each((index, element) => {
+                const titleElement = $(element).find('dt');
+                const programType = titleElement.find('.label-area').text().trim(); 
+                const activityName = titleElement.find('a').text().trim(); 
+
+                let facilityName = "";
+                let sidoNm = "";
+                let sggNm = "";
+
+                $(element).find('dd').each((_, ddElem) => {
+                    // 연속된 공백을 하나로 압축
+                    const text = $(ddElem).text().replace(/\s+/g, ' ').trim(); 
+                    
+                    if (text.includes('기관명 :')) {
+                        facilityName = text.replace('기관명 :', '').trim();
+                    } 
+                    else if (text.includes('지역 :')) {
+                        const regionFull = text.replace('지역 :', '').trim();
+                        const regionParts = regionFull.split(' '); 
+                        
+                        if (regionParts.length > 0) sidoNm = regionParts[0]; 
+                        
+                        if (regionParts.length >= 2) {
+                            // "성남시 분당구" 처럼 구가 띄어쓰기 되어있을 경우 다시 합침
+                            sggNm = regionParts.slice(1).join(' '); 
+                        } else {
+                            sggNm = "전체"; 
+                        }
+                    }
+                });
+
+                if (activityName) {
+                    scrapedPrograms.push({
+                        activityName,
+                        facilityName,
+                        sidoNm,
+                        sggNm,
+                        programType
+                    });
+                }
+            });
+            
+            // 💡 대상 서버(e-청소년)에 과부하를 주어 IP가 차단되는 것을 막기 위해 1페이지마다 1초씩 대기합니다.
+            await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+
+        // 결과물을 프로젝트의 data/programs.json 파일로 덮어쓰기 저장
+        // (scripts 폴더의 상위 폴더(..)에 있는 data 폴더를 바라봄)
         const outputPath = path.join(__dirname, '../data/programs.json');
+        
+        // 만약 data 폴더가 없다면 생성 (안전장치)
+        if (!fs.existsSync(path.dirname(outputPath))) {
+            fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+        }
+        
         fs.writeFileSync(outputPath, JSON.stringify(scrapedPrograms, null, 2), 'utf-8');
         
-        console.log(`✅ 성공적으로 ${scrapedPrograms.length}개의 프로그램 데이터를 추출하고 저장했습니다!`);
+        console.log(`✅ 성공적으로 총 ${scrapedPrograms.length}개의 프로그램 데이터를 갱신했습니다!`);
 
     } catch (error) {
         console.error("❌ 크롤링 중 오류 발생:", error.message);
