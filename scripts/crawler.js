@@ -19,10 +19,16 @@ async function scrapeEYouth() {
             // POST 방식으로 페이지 번호(pageIndex)를 바꿔가며 요청합니다.
             const response = await axios.post(url, `pageIndex=${i}`, {
                 headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                }
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    // 사람(일반 크롬 브라우저)이 접속하는 것처럼 위장
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+                    'Referer': 'https://www.youth.go.kr/ypos/programs/search.do',
+                    'Origin': 'https://www.youth.go.kr'
+                },
+                // 리다이렉트가 발생하더라도 최대 5번까지만 따라가고 에러를 방지
+                maxRedirects: 5 
             });
-            
             const $ = cheerio.load(response.data);
             const list = $('.act-name-box dl');
             
