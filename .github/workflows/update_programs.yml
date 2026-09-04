@@ -1,0 +1,37 @@
+name: 매일 밤 e-청소년 데이터 크롤링
+
+on:
+  schedule:
+    # 매일 한국 시간 새벽 3시 (UTC 기준 전날 18:00)에 자동 실행
+    - cron: '0 18 * * *'
+  workflow_dispatch: # 깃허브 웹사이트에서 수동으로 버튼을 눌러 실행할 수 있는 옵션
+
+jobs:
+  scrape-and-update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 저장소 체크아웃
+        uses: actions/checkout@v3
+
+      - name: Node.js 환경 설정
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: 패키지 설치 (깃허브 컴퓨터에 설치)
+        run: npm install axios cheerio
+
+      - name: 크롤러 스크립트 실행
+        run: node scripts/crawler.js
+
+      - name: 변경된 JSON 파일 깃허브에 자동 Commit & Push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add data/programs.json
+          
+          # 파일에 변경사항이 있을 때만 Commit 진행 (에러 방지)
+          git diff --quiet && git diff --staged --quiet || (git commit -m "🤖 자동 업데이트: e-청소년 최신 데이터 반영" && git push)
