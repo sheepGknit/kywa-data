@@ -1542,7 +1542,14 @@
 					});
 				}
 			} else if (currentDetailTab === 'activity') {
-				
+				const mapProgramTypeToDashboard = (pType) => {
+					if (pType === '신고연계 프로그램') return '수련활동신고제';
+					if (pType === '인증연계(실시) 프로그램' || pType === '인증연계 프로그램') return '수련활동인증제';
+					if (pType === '유스내비 프로그램') return '그룹활동';
+					if (pType === '방과후 아카데미') return '청소년방과후아카데미';
+					return pType;
+				};
+
 				let filteredPrograms = programsEyouthData.filter(item => {
 					let matchSido = false;
 					let sido = (item.sidoNm || "").trim();
