@@ -1972,8 +1972,7 @@
                     type: 'bar', data: { labels: regionsList, datasets: datasets },
                     options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 20 } }, scales: { x: { stacked: isAllView, ticks: { font: { size: 12, weight: 'bold', family: "'Pretendard', sans-serif" }, maxRotation: 45, minRotation: 45 }, grid: { display: false } }, y: { stacked: isAllView, beginAtZero: true, grid: { color: '#f1f5f9' }, border: { display: false } } }, plugins: { legend: { display: isAllView, position: 'bottom', labels: { boxWidth: 10, font: { size: 11, family: "'Pretendard', sans-serif" } } } } }
                 });
-            }
-            else if (policyItems.includes(title)) {
+            }else if (policyItems.includes(title)) {
                 // 2. [청소년정책사업] 처리 로직 추가
                 const isAllView = title === '청소년정책사업 전체보기';
                 // 👇 청소년정책사업 6개 항목
@@ -1998,7 +1997,6 @@
                     type: 'bar', data: { labels: regionsList, datasets: datasets },
                     options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 20 } }, scales: { x: { stacked: isAllView, ticks: { font: { size: 12, weight: 'bold', family: "'Pretendard', sans-serif" }, maxRotation: 45, minRotation: 45 }, grid: { display: false } }, y: { stacked: isAllView, beginAtZero: true, grid: { color: '#f1f5f9' }, border: { display: false } } }, plugins: { legend: { display: isAllView, position: 'bottom', labels: { boxWidth: 10, font: { size: 11, family: "'Pretendard', sans-serif" } } } } }
                 });
-            }
             } else if (leaderItems.includes(title)) {
                 const yearsList = ['2022년', '2023년', '2024년', '2025년', '2026년'];
                 
