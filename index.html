@@ -2170,18 +2170,18 @@
                         maintainAspectRatio: false, 
                         layout: { padding: { top: 20 } }, 
                         
-                        // 🌟 여기 클릭 이벤트(onClick)를 새로 추가합니다!
+                        // (renderCharts 함수 안쪽 comboChartInstance 설정 부분)
                         onClick: (event, elements, chart) => {
                             // 시설 탭일 때, 그리고 막대기를 정확히 클릭했을 때만 실행
                             if (facilityItems.includes(title) && elements.length > 0) {
-                                const elementIndex = elements[0].index;          // 클릭한 지역 인덱스
-                                const datasetIndex = elements[0].datasetIndex;   // 클릭한 시설 종류 인덱스
+                                const elementIndex = elements[0].index;          
+                                const datasetIndex = elements[0].datasetIndex;   
                                 
                                 const clickedRegion = chart.data.labels[elementIndex]; 
                                 const clickedType = chart.data.datasets[datasetIndex].label; 
                                 
-                                // 모달 여는 함수 호출
-                                openFacilityModal(clickedRegion, clickedType);
+                                // 🌟 팝업 대신 하단 표를 리스트로 바꾸는 함수 호출
+                                showFacilityDetailTable(clickedRegion, clickedType, title);
                             }
                         },
                         
@@ -2352,6 +2352,13 @@
             const dataTable = document.getElementById('detailDataTable');
 
             if (tableHeaders.length > 0 && tableContainer && dataTable) {
+			// 🌟 원래 표 제목으로 복구하는 코드 추가
+                const headerDiv = tableContainer.querySelector('div.p-4');
+                if (headerDiv) {
+                    headerDiv.innerHTML = `<h3 class="font-bold text-brand-dark text-sm"><i class="ph-bold ph-table mr-1"></i> 데이터 상세 표</h3>`;
+                }
+
+                
                 let thHtml = `<thead class="bg-brand-dark text-brand-yellow text-xs uppercase text-center border-b border-gray-700"><tr>`;
                 tableHeaders.forEach(th => thHtml += `<th class="py-3 px-4">${th}</th>`);
                 thHtml += `</tr></thead>`;
@@ -2900,6 +2907,65 @@
                 }
             }
 		}
+		// 🌟 클릭 시 하단 표를 '상세 시설 리스트'로 바꿔주는 함수
+        function showFacilityDetailTable(region, type, currentTitle) {
+            const tableContainer = document.getElementById('dataTableContainer');
+            const dataTable = document.getElementById('detailDataTable');
+            const headerDiv = tableContainer.querySelector('div.p-4');
+            
+            // 1. 표 제목 영역을 '[지역] 시설 상세 목록'으로 변경 + '요약으로 돌아가기' 버튼 추가
+            headerDiv.innerHTML = `
+                <h3 class="font-bold text-brand-dark text-sm">
+                    <i class="ph-bold ph-list-dashes mr-1"></i> [${region}] ${type} 상세 목록
+                </h3>
+                <button onclick="renderCharts('${currentTitle}')" class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded-md transition-colors font-bold flex items-center gap-1">
+                    <i class="ph-bold ph-arrow-u-up-left"></i> 요약 표로 돌아가기
+                </button>
+            `;
+
+            // 2. 원본 데이터(sisulData)에서 해당 지역 & 해당 시설 종류만 필터링
+            let filteredList = [];
+            if (region === "전남광주통합특별시") {
+                filteredList = sisulData.filter(item => 
+                    (item['지역'] === '광주광역시' || item['지역'] === '전라남도') && item['시설유형'] === type
+                );
+            } else {
+                filteredList = sisulData.filter(item => 
+                    item['지역'] === region && item['시설유형'] === type
+                );
+            }
+
+            // 3. 표 헤더 및 내용(리스트) 생성
+            let html = `
+                <thead class="bg-brand-dark text-brand-yellow text-xs uppercase text-center border-b border-gray-700">
+                    <tr>
+                        <th class="py-3 px-4 w-1/3">시설명</th>
+                        <th class="py-3 px-4 w-2/3">주소 (위치)</th>
+                    </tr>
+                </thead>
+                <tbody class="text-center bg-white divide-y divide-gray-100">
+            `;
+
+            if (filteredList.length === 0) {
+                html += `<tr><td colspan="2" class="py-8 text-gray-400 font-bold">해당 지역에 등록된 시설이 없습니다.</td></tr>`;
+            } else {
+                filteredList.forEach(item => {
+                    const name = item['시설명'] || item['시설이름'] || '-';
+                    const address = item['주소'] || item['소재지'] || '-';
+                    html += `
+                        <tr class="hover:bg-blue-50 transition-colors">
+                            <td class="py-3 px-4 font-bold text-brand-dark bg-gray-50 text-left">${name}</td>
+                            <td class="py-3 px-4 text-gray-600 text-left">${address}</td>
+                        </tr>
+                    `;
+                });
+            }
+            html += `</tbody>`;
+            
+            // 4. 화면에 그리기 및 표 위치로 스크롤 이동
+            dataTable.innerHTML = html;
+            tableContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
     </script>
 	<div id="aiRegionalReportModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4 fade-in">
 		<div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
