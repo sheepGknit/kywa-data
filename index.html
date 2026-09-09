@@ -480,31 +480,40 @@
                 </div>
             </div>
 			
-			<!-- 🌟 각각의 화면이 그려질 전용 도화지들을 숨김(hidden) 상태로 준비합니다. -->
-            
-            <!-- 1. 시설 전용 화면 -->
-            <div id="facilityTrendContent" class="hidden flex-col flex-1 w-full">
-                <!-- (현재 완성되어 있는 지도와 콤보차트, 데이터 표 코드를 일단 여기에 넣어둡니다) -->
-            </div>
+			<!-- 🌟 1. 앞으로 각자 다르게 꾸며질 5개의 전용 빈 도화지 -->
+            <div id="facilityTrendContent" class="hidden flex-col flex-1 w-full"></div>
+            <div id="schoolTrendContent" class="hidden flex-col flex-1 w-full"></div>
+            <div id="activityTrendContent" class="hidden flex-col flex-1 w-full"></div>
+            <div id="policyTrendContent" class="hidden flex-col flex-1 w-full"></div>
+            <div id="leaderTrendContent" class="hidden flex-col flex-1 w-full"></div>
 
-            <!-- 2. 학교 전용 화면 -->
-            <div id="schoolTrendContent" class="hidden flex-col flex-1 w-full">
-                <!-- 나중에 학교 화면을 꾸밀 때 여기에 HTML을 작성합니다 -->
-            </div>
-
-            <!-- 3. 활동 전용 화면 -->
-            <div id="activityTrendContent" class="hidden flex-col flex-1 w-full">
-                <!-- 나중에 활동 화면을 꾸밀 때 여기에 HTML을 작성합니다 -->
-            </div>
-
-            <!-- 4. 정책 전용 화면 -->
-            <div id="policyTrendContent" class="hidden flex-col flex-1 w-full">
-                <!-- 나중에 정책 화면을 꾸밀 때 여기에 HTML을 작성합니다 -->
-            </div>
-
-            <!-- 5. 지도자 전용 화면 -->
-            <div id="leaderTrendContent" class="hidden flex-col flex-1 w-full">
-                <!-- JS가 도넛/막대 차트를 그려넣는 곳 -->
+            <!-- 🌟 2. 여기저기 옮겨 다닐 '임시 공통 블록 (지도 + 차트 + 표)' -->
+            <div id="commonTrendLayout" class="flex flex-col flex-1 w-full">
+                <!-- Map & Chart Split Layout -->
+                <div class="flex-1 flex flex-col lg:flex-row gap-6 min-h-[500px]">
+                    <div class="w-full lg:w-[30%] bg-white rounded-2xl shadow-sm border border-gray-200 relative overflow-hidden flex flex-col">
+                        <div class="p-3 bg-gray-50 border-b border-gray-200 flex justify-between items-center z-10">
+                            <span class="text-xs font-bold text-gray-500"><i class="ph-fill ph-map-trifold"></i> 시도별 밀집도 (5분위)</span>
+                        </div>
+                        <div class="w-full bg-white border border-gray-200 rounded px-2 py-1.5 text-[10.5px] text-gray-500 font-medium">
+                            <span class="text-brand-yellow font-bold mr-1"><i class="ph-bold ph-calculator"></i> 산출식</span> 
+                            <span id="trendMapFormula">계산식을 불러오는 중...</span>
+                        </div>
+                        <div id="trendMap" class="flex-1 bg-white"></div>
+                    </div>
+                    <div class="w-full lg:w-[70%] bg-white p-4 lg:p-6 rounded-2xl shadow-sm border border-gray-200 relative">
+                        <canvas id="mainComboChart"></canvas>
+                    </div>
+                </div>
+                <!-- 데이터 표 영역 -->
+                <div class="mt-6 bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hidden" id="dataTableContainer">
+                    <div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
+                        <h3 class="font-bold text-brand-dark text-sm"><i class="ph-bold ph-table mr-1"></i> 데이터 상세 표</h3>
+                    </div>
+                    <div class="overflow-x-auto custom-scroll">
+                        <table class="w-full text-sm text-left text-gray-500" id="detailDataTable"></table>
+                    </div>
+                </div>
             </div>
 			
             <div class="mt-4 pb-4 text-right text-[11px] text-gray-400">
@@ -1898,44 +1907,77 @@
                 timelineUI.style.display = 'block'; summaryUI.classList.remove('hidden'); summaryUI.classList.add('grid');
             }
 
+            // (showTrendView 함수 내부)
             mainView.classList.add('opacity-0');
             setTimeout(() => {
                 mainView.classList.add('hidden');
                 trendView.classList.remove('hidden');
                 trendView.classList.remove('opacity-0');
-				// 🌟 1. 일단 모든 도화지를 깔끔하게 숨깁니다 (초기화)
+
+                // 🌟 1. 모든 도화지와 공통 블록을 숨김
                 const allContents = ['facilityTrendContent', 'schoolTrendContent', 'activityTrendContent', 'policyTrendContent', 'leaderTrendContent'];
                 allContents.forEach(id => {
                     const el = document.getElementById(id);
                     if(el) el.style.display = 'none';
                 });
+                
+                const commonLayout = document.getElementById('commonTrendLayout');
+                commonLayout.style.display = 'none';
 
-                // 🌟 2. 클릭한 메뉴(title)에 맞는 전용 도화지만 찾아 켭니다 (flex로 표시)
+                // 🌟 2. 클릭한 메뉴에 맞는 도화지를 켜고, 공통 블록을 그 안으로 옮겨버림
                 if (facilityItems.includes(title)) {
-                    document.getElementById('facilityTrendContent').style.display = 'flex';
-                    // TODO: 나중에 시설 전용 렌더링 함수 호출
-                    renderCharts(title); // (임시로 기존 함수 연결)
+                    const container = document.getElementById('facilityTrendContent');
+                    container.appendChild(commonLayout); // 레고 블록 끼우기!
+                    container.style.display = 'flex';
+                    commonLayout.style.display = 'flex';
+                    renderCharts(title);
                 } 
                 else if (schoolItems.includes(title)) {
-                    document.getElementById('schoolTrendContent').style.display = 'flex';
-                    // TODO: 나중에 학교 전용 렌더링 함수 호출
-                    renderCharts(title); // (임시로 기존 함수 연결)
+                    const container = document.getElementById('schoolTrendContent');
+                    container.appendChild(commonLayout); // 레고 블록 끼우기!
+                    container.style.display = 'flex';
+                    commonLayout.style.display = 'flex';
+                    renderCharts(title);
                 } 
                 else if (activityItems.includes(title)) {
-                    document.getElementById('activityTrendContent').style.display = 'flex';
-                    // TODO: 나중에 활동 전용 렌더링 함수 호출
-                    renderCharts(title); // (임시로 기존 함수 연결)
+                    const container = document.getElementById('activityTrendContent');
+                    container.appendChild(commonLayout); // 레고 블록 끼우기!
+                    container.style.display = 'flex';
+                    commonLayout.style.display = 'flex';
+                    renderCharts(title);
                 } 
                 else if (policyItems.includes(title)) {
-                    document.getElementById('policyTrendContent').style.display = 'flex';
-                    // TODO: 나중에 정책 전용 렌더링 함수 호출
-                    renderCharts(title); // (임시로 기존 함수 연결)
+                    const container = document.getElementById('policyTrendContent');
+                    container.appendChild(commonLayout); // 레고 블록 끼우기!
+                    container.style.display = 'flex';
+                    commonLayout.style.display = 'flex';
+                    renderCharts(title);
                 } 
                 else if (leaderItems.includes(title)) {
-					timelineUI.style.display = 'none';
-					summaryUI.style.display = 'none';
+                    // 지도자는 이미 완성된 개별 함수가 있으므로 공통 블록 안 씀!
+                    timelineUI.style.display = 'none';
+                    summaryUI.style.display = 'none';
                     document.getElementById('leaderTrendContent').style.display = 'flex';
-                    renderLeaderTrendView(); // ⬅️ 방금 우리가 만든 지도자 렌더링 함수!
+                    renderLeaderTrendView();
+                }
+
+                // 🌟 (지도 초기화 및 리사이즈 로직은 아까처럼 if문 밖이나 안에 유지)
+                if (!leaderItems.includes(title)) {
+                    if (!mapTrend) {
+                        mapTrend = L.map('trendMap', { center: [36.0, 127.8], zoom: 6, zoomControl: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false });
+                        geojsonTrend = L.geoJson(provincesData, {
+                            style: () => ({ fillColor: '#f1f5f9', weight: 1, color: '#ffffff', fillOpacity: 1 })
+                        }).addTo(mapTrend);
+                    }
+                    setTimeout(() => {
+                        if (mapTrend) {
+                            mapTrend.invalidateSize();
+                            if(geojsonTrend) {
+                                const optimalBounds = L.latLngBounds([33.1, 125.5], [38.6, 129.5]);
+                                mapTrend.fitBounds(optimalBounds, { padding: [0, 0], animate: false });
+                            }
+                        }
+                    }, 100);
                 }
 
             }, 300);
