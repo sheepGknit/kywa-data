@@ -2460,8 +2460,7 @@
 				});
 
 				if (response && response.text) {
-					content.innerHTML = response.text.replace(/
-```html|```/g, '').trim();
+					content.innerHTML = response.text.replace(/```html|```/g, '').trim();
 				} else {
 					content.innerHTML = `<div class="text-xs text-gray-500">추천 결과를 생성하지 못했습니다. 다시 시도해 주세요.</div>`;
 				}
