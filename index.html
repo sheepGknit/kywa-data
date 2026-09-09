@@ -1961,6 +1961,10 @@
                 timelineUI.style.display = 'none'; summaryUI.classList.remove('grid'); summaryUI.classList.add('hidden');
                 document.getElementById('activityTabGroup').style.display = 'flex'; updateActivityTabUI(title);
             }
+			else if (leaderItems.includes(title)) {
+                timelineUI.style.display = 'none'; summaryUI.classList.remove('grid'); summaryUI.classList.add('hidden');
+                document.getElementById('leaderTabGroup').style.display = 'flex'; updatePolicyTabUI(title);
+            }
 			else if (policyItems.includes(title)) {
                 timelineUI.style.display = 'none'; summaryUI.classList.remove('grid'); summaryUI.classList.add('hidden');
                 document.getElementById('policyTabGroup').style.display = 'flex'; updatePolicyTabUI(title);
@@ -2023,9 +2027,6 @@
                 // (showTrendView 함수 안쪽 분기문)
                 else if (leaderItems.includes(title)) {
                     const container = document.getElementById('leaderTrendContent');
-                    
-                    const timelineUI = document.getElementById('timelineUI');
-                    if (timelineUI) { timelineUI.style.display = 'none'; timelineUI.classList.add('hidden'); }
                     
                     container.classList.remove('hidden'); container.classList.add('flex');
                     
