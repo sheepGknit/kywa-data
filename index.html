@@ -479,6 +479,34 @@
                     </table>
                 </div>
             </div>
+			
+			<!-- 🌟 각각의 화면이 그려질 전용 도화지들을 숨김(hidden) 상태로 준비합니다. -->
+            
+            <!-- 1. 시설 전용 화면 -->
+            <div id="facilityTrendContent" class="hidden flex-col flex-1 w-full">
+                <!-- (현재 완성되어 있는 지도와 콤보차트, 데이터 표 코드를 일단 여기에 넣어둡니다) -->
+            </div>
+
+            <!-- 2. 학교 전용 화면 -->
+            <div id="schoolTrendContent" class="hidden flex-col flex-1 w-full">
+                <!-- 나중에 학교 화면을 꾸밀 때 여기에 HTML을 작성합니다 -->
+            </div>
+
+            <!-- 3. 활동 전용 화면 -->
+            <div id="activityTrendContent" class="hidden flex-col flex-1 w-full">
+                <!-- 나중에 활동 화면을 꾸밀 때 여기에 HTML을 작성합니다 -->
+            </div>
+
+            <!-- 4. 정책 전용 화면 -->
+            <div id="policyTrendContent" class="hidden flex-col flex-1 w-full">
+                <!-- 나중에 정책 화면을 꾸밀 때 여기에 HTML을 작성합니다 -->
+            </div>
+
+            <!-- 5. 지도자 전용 화면 -->
+            <div id="leaderTrendContent" class="hidden flex-col flex-1 w-full">
+                <!-- JS가 도넛/막대 차트를 그려넣는 곳 -->
+            </div>
+			
             <div class="mt-4 pb-4 text-right text-[11px] text-gray-400">
                 <p><span class="font-bold text-gray-500"><i class="ph-bold ph-info"></i> 데이터 기준:</span> 공공데이터포털, 통계청 KOSIS, e-청소년 등록 데이터</p>
                 <p>※ 연도별 수치는 공시 기준일에 따라 실제 현황과 약간의 오차가 발생할 수 있습니다.</p>
@@ -775,6 +803,10 @@
             '청소년지도사 인원': { cum: [], new: [] },
             '청소년상담사 인원': { cum: [], new: [] }
         };
+		let leaderGradeData = {
+			'청소년지도사': [0,0,0],
+			'청소년상담사': [0,0,0]
+		};
 
         let defaultStats = {
             pop: 0, schAge: 0, std: 0,
@@ -1010,7 +1042,11 @@
 				let currentCum1 = 0; 
 				jidojaData.forEach(row => {
 					if (!row || !row["구분"]) return;
-					if (row["구분"] === "총 계") { defaultStats.lead1 = row["총계"]; return; }
+					if (row["구분"] === "총 계") {
+						defaultStats.lead1 = row["총계"];
+						leaderGradeData['청소년지도사'] = [row["1급"] || 0, row["2급"] || 0, row["3급"] || 0];
+						return; 
+					}
 					const yearMatch = row["구분"].match(/\d+/);
 					if (!yearMatch) return;
 					const year = parseInt(yearMatch[0], 10);
@@ -1024,7 +1060,12 @@
 				let currentCum2 = 0;
 				sangdamsaData.forEach(row => {
 					if (!row || !row["구분"]) return;
-					if (row["구분"] === "총 계") { defaultStats.lead2 = row["총계"]; return; }
+					if (row["구분"] === "총 계") { 
+                        defaultStats.lead2 = row["총계"]; 
+                        // 🌟 상담사 1, 2, 3급 누적 데이터 저장
+                        leaderGradeData['청소년상담사'] = [row["1급"] || 0, row["2급"] || 0, row["3급"] || 0];
+                        return; 
+                    }
 					const yearMatch = row["구분"].match(/\d+/);
 					if (!yearMatch) return;
 					const year = parseInt(yearMatch[0], 10);
@@ -1706,6 +1747,91 @@
             });
         }
         function filterLeader(type) { updateLeaderTabUI(type); renderCharts(type); }
+		
+		function renderLeaderTrendView() {
+            const trendContainer = document.getElementById('leaderTrendContent');
+// 그 공간 안에 HTML을 꽂아 넣습니다.
+            trendContainer.innerHTML = `
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 mt-2">
+                    <div class="flex flex-col bg-white rounded-2xl p-6 border border-gray-200 shadow-sm relative">
+                        <h4 class="text-base font-bold text-gray-700 text-center mb-6">급수별 취득 비율 (누적)</h4>
+                        <div class="flex-1 relative w-full min-h-[300px]">
+                            <canvas id="leaderGradeChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="flex flex-col bg-white rounded-2xl p-6 border border-gray-200 shadow-sm relative">
+                        <h4 class="text-base font-bold text-gray-700 text-center mb-6">연도별 신규 선발 추이</h4>
+                        <div class="flex-1 relative w-full min-h-[300px]">
+                            <canvas id="leaderYearlyChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // 이중 도넛 차트 그리기
+            const ctxGrade = document.getElementById('leaderGradeChart').getContext('2d');
+            new Chart(ctxGrade, {
+                type: 'doughnut',
+                data: {
+                    labels: ['1급', '2급', '3급'],
+                    datasets: [
+                        {
+                            label: '청소년지도사',
+                            data: leaderGradeData['청소년지도사'], 
+                            backgroundColor: ['#10b981', '#3b82f6', '#f43f5e'],
+                            borderWidth: 2,
+                            hoverOffset: 4,
+                            weight: 2
+                        },
+                        {
+                            label: '청소년상담사',
+                            data: leaderGradeData['청소년상담사'], 
+                            backgroundColor: ['#6ee7b7', '#93c5fd', '#fda4af'],
+                            borderWidth: 2,
+                            hoverOffset: 4,
+                            weight: 1.5
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false, cutout: '45%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { font: { family: "'Pretendard', sans-serif", size: 12 } } },
+                        tooltip: { callbacks: { label: function(context) { return `${context.dataset.label} : ${context.parsed.toLocaleString()}명`; } } }
+                    }
+                }
+            });
+
+            // 연도별 콤보 차트 그리기
+            const ctxYearly = document.getElementById('leaderYearlyChart').getContext('2d');
+            new Chart(ctxYearly, {
+                type: 'bar',
+                data: {
+                    labels: ['2022년', '2023년', '2024년', '2025년', '2026년'], 
+                    datasets: [
+                        {
+                            label: '청소년지도사 신규 (명)', type: 'bar',
+                            data: leaderTrendData['청소년지도사 인원'].new,
+                            backgroundColor: '#3b82f6', borderRadius: 4, barPercentage: 0.5
+                        },
+                        {
+                            label: '청소년상담사 신규 (명)', type: 'line',
+                            data: leaderTrendData['청소년상담사 인원'].new,
+                            borderColor: '#f43f5e', backgroundColor: '#f43f5e',
+                            borderWidth: 2.5, tension: 0.3, pointBackgroundColor: '#ffffff', pointBorderWidth: 2, pointRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: {
+                        x: { grid: { display: false }, ticks: { font: { family: "'Pretendard', sans-serif" } } },
+                        y: { beginAtZero: true, grid: { color: '#e2e8f0', borderDash: [5, 5] }, border: { display: false } }
+                    },
+                    plugins: { legend: { position: 'bottom', labels: { font: { family: "'Pretendard', sans-serif", size: 12 } } } }
+                }
+            });
+        }
 
         function showTrendView(title) {
             document.getElementById('trendViewTitle').textContent = title;
@@ -1758,10 +1884,6 @@
                 timelineUI.style.display = 'none'; summaryUI.classList.remove('grid'); summaryUI.classList.add('hidden');
                 document.getElementById('policyTabGroup').style.display = 'flex'; updatePolicyTabUI(title);
             }
-            else if (leaderItems.includes(title)) {
-                timelineUI.style.display = 'none'; summaryUI.classList.remove('grid'); summaryUI.classList.add('hidden');
-                document.getElementById('leaderTabGroup').style.display = 'flex'; updateLeaderTabUI(title);
-            }
             else {
                 timelineUI.style.display = 'block'; summaryUI.classList.remove('hidden'); summaryUI.classList.add('grid');
             }
@@ -1771,27 +1893,35 @@
                 mainView.classList.add('hidden');
                 trendView.classList.remove('hidden');
                 trendView.classList.remove('opacity-0');
+				// 🌟 1. 일단 모든 도화지를 깔끔하게 숨깁니다 (초기화)
+                const allContents = ['facilityTrendContent', 'schoolTrendContent', 'activityTrendContent', 'policyTrendContent', 'leaderTrendContent'];
+                allContents.forEach(id => {
+                    const el = document.getElementById(id);
+                    if(el) el.style.display = 'none';
+                });
 
-                if (!mapTrend) {
-                    mapTrend = L.map('trendMap', { center: [36.0, 127.8], zoom: 6, zoomControl: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false });
-                    geojsonTrend = L.geoJson(provincesData, {
-                        style: () => ({ fillColor: '#f1f5f9', weight: 1, color: '#ffffff', fillOpacity: 1 })
-                    }).addTo(mapTrend);
+                // 🌟 2. 클릭한 메뉴(title)에 맞는 전용 도화지만 찾아 켭니다 (flex로 표시)
+                if (facilityItems.includes(title)) {
+                    document.getElementById('facilityTrendContent').style.display = 'flex';
+                    // TODO: 나중에 시설 전용 렌더링 함수 호출
+                    renderCharts(title); // (임시로 기존 함수 연결)
+                } 
+                else if (schoolItems.includes(title)) {
+                    document.getElementById('schoolTrendContent').style.display = 'flex';
+                    // TODO: 나중에 학교 전용 렌더링 함수 호출
+                } 
+                else if (activityItems.includes(title)) {
+                    document.getElementById('activityTrendContent').style.display = 'flex';
+                    // TODO: 나중에 활동 전용 렌더링 함수 호출
+                } 
+                else if (policyItems.includes(title)) {
+                    document.getElementById('policyTrendContent').style.display = 'flex';
+                    // TODO: 나중에 정책 전용 렌더링 함수 호출
+                } 
+                else if (leaderItems.includes(title)) {
+                    document.getElementById('leaderTrendContent').style.display = 'flex';
+                    renderLeaderTrendView(); // ⬅️ 방금 우리가 만든 지도자 렌더링 함수!
                 }
-                setTimeout(() => {
-                    mapTrend.invalidateSize();
-
-                    if(geojsonTrend) {
-                        const optimalBounds = L.latLngBounds([33.1, 125.5], [38.6, 129.5]);
-                        mapTrend.fitBounds(optimalBounds, { padding: [0, 0], animate: false });
-                    }
-
-                    if (facilityItems.includes(title) || schoolItems.includes(title) || activityItems.includes(title) || policyItems.includes(title) || leaderItems.includes(title)) {
-                        renderCharts(title);
-                    } else {
-                        slideYear(document.getElementById('yearSlider').value);
-                    }
-                }, 100);
 
             }, 300);
         }
@@ -1972,34 +2102,7 @@
                 });
             }
 			
-			else if (leaderItems.includes(title)) {
-                const yearsList = ['2022년', '2023년', '2024년', '2025년', '2026년'];
-
-                if (title === '청소년지도자 전체보기') {
-                    datasets = [
-                        { label: '청소년지도사 (누적)', data: leaderTrendData['청소년지도사 인원'].cum, backgroundColor: '#1e293b', stack: '지도사', borderRadius: 0, barPercentage: 0.7, categoryPercentage: 0.6 },
-                        { label: '청소년지도사 (신규)', data: leaderTrendData['청소년지도사 인원'].new, backgroundColor: '#64748b', stack: '지도사', borderRadius: 0, barPercentage: 0.7, categoryPercentage: 0.6 },
-                        { label: '청소년상담사 (누적)', data: leaderTrendData['청소년상담사 인원'].cum, backgroundColor: '#FDBA1A', stack: '상담사', borderRadius: 0, barPercentage: 0.7, categoryPercentage: 0.6 },
-                        { label: '청소년상담사 (신규)', data: leaderTrendData['청소년상담사 인원'].new, backgroundColor: '#fde047', stack: '상담사', borderRadius: 0, barPercentage: 0.7, categoryPercentage: 0.6 }
-                    ];
-                    leaderDataByRegionStore['청소년지도사 인원'].forEach((val, i) => totalDataArray[i] += val);
-                    leaderDataByRegionStore['청소년상담사 인원'].forEach((val, i) => totalDataArray[i] += val);
-                } else {
-                    datasets = [
-                        { label: '전년도 누적인원', data: leaderTrendData[title].cum, backgroundColor: '#1e293b', stack: '단일', borderRadius: 0, barPercentage: 0.4 },
-                        { label: '당해연도 신규배출', data: leaderTrendData[title].new, backgroundColor: '#FDBA1A', stack: '단일', borderRadius: 0, barPercentage: 0.4 }
-                    ];
-                    totalDataArray = [...leaderDataByRegionStore[title]];
-                }
-                mapDataExtracted = true;
-
-                comboChartInstance = new Chart(canvas.getContext('2d'), {
-                    type: 'bar', data: { labels: yearsList, datasets: datasets },
-                    options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 20 } }, scales: { x: { stacked: true, ticks: { font: { size: 14, weight: 'bold', family: "'Pretendard', sans-serif" } }, grid: { display: false } }, y: { stacked: true, beginAtZero: true, grid: { color: '#f1f5f9' }, border: { display: false } } }, plugins: { legend: { display: true, position: 'bottom' } } }
-                });
-            }
-
-            if (mapDataExtracted) {
+			if (mapDataExtracted) {
                 const mapDataObj = {};
                 const targetYearKey = "2026.06월"; 
 
