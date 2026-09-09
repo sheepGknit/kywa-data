@@ -2927,15 +2927,14 @@
             let filteredList = [];
             if (region === "전남광주통합특별시") {
                 filteredList = sisulData.filter(item => 
-                    (item['지역'] === '광주광역시' || item['지역'] === '전라남도') && item['시설유형'] === type
+                    (item.ctpvNm.includes('광주') || (item.ctpvNm.includes('전남')) && type.includes(item.sisulType)
                 );
             } else {
                 filteredList = sisulData.filter(item => 
-                    item['지역'] === region && item['시설유형'] === type
+                    region.includes(item.ctpvNm) && type.includes(item.sisulType)
                 );
             }
 
-            // 3. 표 헤더 및 내용(리스트) 생성
             let html = `
                 <thead class="bg-brand-dark text-brand-yellow text-xs uppercase text-center border-b border-gray-700">
                     <tr>
@@ -2950,8 +2949,10 @@
                 html += `<tr><td colspan="2" class="py-8 text-gray-400 font-bold">해당 지역에 등록된 시설이 없습니다.</td></tr>`;
             } else {
                 filteredList.forEach(item => {
-                    const name = item['시설명'] || item['시설이름'] || '-';
-                    const address = item['주소'] || item['소재지'] || '-';
+                    // 🌟 JSON의 실제 키 값(sisulNm, lctnRoadNm)으로 데이터를 가져옵니다.
+                    const name = item.sisulNm || '-';
+                    const address = item.lctnRoadNm || '-';
+                    
                     html += `
                         <tr class="hover:bg-blue-50 transition-colors">
                             <td class="py-3 px-4 font-bold text-brand-dark bg-gray-50 text-left">${name}</td>
