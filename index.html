@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>청소년활동 데이터 플랫폼</title>
-    
+
     <script src="https://cdn.tailwindcss.com"></script>
 	<!-- Google GenAI SDK -->
 	<script type="importmap">
@@ -26,7 +26,7 @@
             }
         }
     </script>
-    
+
     <!-- Leaflet CSS & JS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -165,7 +165,6 @@
                         <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('중학교')"><span>중학교</span><span class="font-bold text-white" id="sch2">0개</span></div>
                         <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('고등학교')"><span>고등학교</span><span class="font-bold text-white" id="sch3">0개</span></div>
                         <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('대학교')"><span>대학교</span><span class="font-bold text-white" id="sch4">0개</span></div>
-                        <!-- 👇 특수학교 추가 👇 -->
                         <div class="py-3 px-2 flex justify-between pb-4 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('특수학교')"><span>특수학교</span><span class="font-bold text-white" id="sch5">0개</span></div>
                     </div>
                 </div>
@@ -189,15 +188,15 @@
 						<div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('자기개발')"><span>자기개발</span><span class="font-bold text-white" id="act_val_8">0개</span></div>
 						<div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('문화예술')"><span>문화예술</span><span class="font-bold text-white" id="act_val_9">0개</span></div>
 						<div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('환경보존')"><span>환경보존</span><span class="font-bold text-white" id="act_val_10">0개</span></div>
-						<div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('기타')"><span>기타</span><span class="font-bold text-white" id="act_val_11">0개</span></div>
+						<div class="py-3 px-2 flex justify-between pb-4 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('기타')"><span>기타</span><span class="font-bold text-white" id="act_val_11">0개</span></div>
 					</div>
                 </div>
 
                 <div class="bg-brand-light/30 rounded-xl border border-gray-700 overflow-hidden">
                     <button class="w-full px-5 py-4 flex justify-between items-center text-white hover:bg-brand-light/50 transition-colors" onclick="toggleAccordion(this)">
-                        <span class="font-bold text-base flex items-center gap-2"><i class="ph-fill ph-check-circle text-brand-yellow"></i> 청소년정책사업</span>
+                        <span class="font-bold text-base flex items-center gap-2"><i class="ph-fill ph-flag text-brand-yellow"></i> 청소년정책사업</span>
                         <div class="flex items-center gap-3">
-                            <span id="sumAct" class="text-brand-yellow font-bold text-sm whitespace-nowrap">0개</span>
+                            <span id="sumPol" class="text-brand-yellow font-bold text-sm whitespace-nowrap">0개</span>
                             <i class="ph-bold ph-caret-down transition-transform"></i>
                         </div>
                     </button>
@@ -229,9 +228,8 @@
                 <p class="font-bold mb-1 text-gray-300"><i class="ph-bold ph-info"></i> 데이터 출처</p>
                 <p>인구: 통계청 KOSIS (2026.06)</p>
                 <p>학교: 한국교육개발원 교육통계 (2025)</p>
-                <p>시설·활동·청소년지도사: 성평등가족부, 한국청소년활동진흥원</p>
+                <p>시설·활동·청소년지도사: 여성가족부, 한국청소년활동진흥원</p>
                 <p>청소년상담사: 한국청소년상담복지개발원</p>
-				
             </div>
         </div>
 
@@ -261,9 +259,7 @@
                 <div class="flex items-center gap-3">
                     <h1 id="detailRegionTitle" class="text-3xl font-black text-brand-dark tracking-tight">서울특별시</h1>
                     <span id="detailSubRegionTitle" class="text-2xl font-bold text-gray-400">전체</span>
-                    <!-- 👇 여기에 격차 지수 등급 뱃지가 추가됩니다 -->
                     <span id="detailGapBadge" class="hidden px-3 py-1 text-sm font-black rounded-full shadow-sm ml-2"></span>
-					<!-- 👇 [추가됨] AI 지역 현황 분석 리포트 보기 버튼 -->
 					<button onclick="openRegionalAiReport()" class="ml-3 flex items-center gap-1.5 bg-brand-dark hover:bg-slate-800 text-white px-3 py-1.5 text-xs font-bold rounded-lg transition-colors shadow-sm border border-brand-yellow">
 						<i class="ph-fill ph-sparkle text-brand-yellow text-sm"></i> AI 지역 현황 분석 리포트 보기
 					</button>
@@ -314,7 +310,6 @@
                         <span class="text-gray-500 text-xs font-bold mb-1">수련시설 현황</span>
                         <span class="text-xl lg:text-2xl font-black text-gray-800" id="detailStatFac">0개소</span>
                     </div>
-                    <!-- 👇 시설과 프로그램의 1만명당 지표를 함께 보여주도록 수정 -->
                     <div class="bg-brand-dark rounded-2xl p-4 shadow-md border border-gray-700 flex flex-col justify-center items-center relative overflow-hidden">
                         <div class="absolute top-0 w-full h-1 bg-brand-yellow"></div>
                         <span class="text-gray-300 text-[11px] font-bold mb-1 text-center">청소년 1만명당 인프라</span>
@@ -341,15 +336,11 @@
                         </button>
                     </div>
                     <div class="flex-1 overflow-y-auto p-4 custom-scroll" id="detailTabContent"></div>
-					
-                
                 </div>
-				
-				<!-- 👇👇 [추가 2] Detail View 데이터 출처 👇👇 -->
+
 				<div class="mt-4 text-left text-[11px] text-gray-400 shrink-0">
 					<span class="font-bold text-gray-500"><i class="ph-bold ph-info"></i> 데이터 출처:</span> 통계청(인구), 한국청소년활동진흥원(시설·활동), 한국교육개발원(학교)
 				</div>
-				<!-- 👆👆 [추가 끝] 👆👆 -->
 
             </div>
         </div>
@@ -466,12 +457,10 @@
                             <span class="text-[10px] text-gray-400 ml-1">높음</span>
                         </div>
                     </div>
-					<!-- 👇👇 [추가됨] 수식 표기 영역 👇👇 -->
 					<div class="w-full bg-white border border-gray-200 rounded px-2 py-1.5 text-[10.5px] text-gray-500 font-medium">
 						<span class="text-brand-yellow font-bold mr-1"><i class="ph-bold ph-calculator"></i> 산출식</span> 
 						<span id="trendMapFormula">계산식을 불러오는 중...</span>
 					</div>
-					<!-- 👆👆 [추가 끝] 👆👆 -->
                     <div id="trendMap" class="flex-1 bg-white"></div>
                 </div>
 
@@ -480,7 +469,6 @@
                 </div>
             </div>
         </div>
-		<!-- 👇👇 여기에 표가 들어갈 코드를 복사해서 붙여넣습니다! 👇👇 -->
             <div class="mt-6 bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hidden" id="dataTableContainer">
                 <div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
                     <h3 class="font-bold text-brand-dark text-sm"><i class="ph-bold ph-table mr-1"></i> 데이터 상세 표</h3>
@@ -491,13 +479,10 @@
                     </table>
                 </div>
             </div>
-            <!-- 👆👆 표 코드 끝 👆👆 -->
-            <!-- 👇👇 [추가 3] Trend View 데이터 출처 👇👇 -->
             <div class="mt-4 pb-4 text-right text-[11px] text-gray-400">
                 <p><span class="font-bold text-gray-500"><i class="ph-bold ph-info"></i> 데이터 기준:</span> 공공데이터포털, 통계청 KOSIS, e-청소년 등록 데이터</p>
                 <p>※ 연도별 수치는 공시 기준일에 따라 실제 현황과 약간의 오차가 발생할 수 있습니다.</p>
             </div>
-            <!-- 👆👆 [추가 끝] 👆👆 -->
     </main>
 
     <div id="aiModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4">
@@ -542,8 +527,8 @@
             </div>
         </div>
     </div>
-	
-	
+
+
     <!-- 지역 비교 분석 모달 -->
     <div id="compareModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4 fade-in">
         <div class="bg-white w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
@@ -557,7 +542,7 @@
                 </div>
                 <button onclick="closeCompareModal()" class="text-gray-300 hover:text-white p-2 transition-colors"><i class="ph-bold ph-x text-xl"></i></button>
             </div>
-            
+
             <div class="p-6 overflow-y-auto flex-1 bg-gray-50">
                 <!-- Mode Switcher -->
                 <div class="flex bg-gray-200 rounded-xl p-1 mb-5 mx-auto max-w-md">
@@ -642,7 +627,7 @@
         let currentMunicipality = '';
         let comboChartInstance = null;
         let currentDetailTab = 'facility';
-        
+
 		const districtData = {
           "서울특별시": ["종로구", "중구", "용산구", "성동구", "광진구", "동대문구", "중랑구", "성북구", "강북구", "도봉구", "노원구", "은평구", "서대문구", "마포구", "양천구", "강서구", "구로구", "금천구", "영등포구", "동작구", "관악구", "서초구", "강남구", "송파구", "강동구"],
           "부산광역시": ["중구", "서구", "동구", "영도구", "부산진구", "동래구", "남구", "북구", "해운대구", "사하구", "금정구", "강서구", "연제구", "수영구", "사상구", "기장군"],
@@ -668,6 +653,7 @@
 		let schoolData = {};
 		let programsEyouthData = [];
 		let programsPoliData = [];
+		let programsData = []; // 통합 프로그램 데이터
         const URL_PROVINCES = 'data/skorea_provinces_geo_simple.json';
         const URL_MUNICIPALITIES = 'data/skorea_municipalities_geo_simple.json';
         let provincesData = null;
@@ -700,10 +686,10 @@
             const content = btn.nextElementSibling;
             const icon = btn.querySelector('.ph-caret-down');
             const isOpen = content.classList.contains('accordion-open');
-            
+
             document.querySelectorAll('.accordion-content').forEach(c => c.classList.remove('accordion-open'));
             document.querySelectorAll('#accordionContainer .ph-caret-down').forEach(i => i.style.transform = 'rotate(0deg)');
-            
+
             if (!isOpen) {
                 content.classList.add('accordion-open');
                 icon.style.transform = 'rotate(180deg)';
@@ -714,24 +700,22 @@
         const setText = (id, text) => { const el = document.getElementById(id); if(el) el.textContent = text; };
 
         const regionsList = ["서울특별시", "부산광역시", "대구광역시", "인천광역시", "광주광역시", "대전광역시", "울산광역시", "세종특별자치시", "경기도", "강원도", "충청북도", "충청남도", "전라북도", "전라남도", "경상북도", "경상남도", "제주특별자치도"];
-        
+
         const facilityDataStore = {
             '청소년수련관': [],'청소년문화의집': [], '청소년수련원': [],
             '청소년특화시설': [], '청소년야영장': [], '유스호스텔': []
-        };// 👇 [추가] 시도별 종사자 수를 담을 배열 (17개 지역)
+        };
         let workerDataStore = new Array(17).fill(0);
 
-        // 1. [차트용] 청소년활동(Act) 집계 함수 (맵핑 없음)
 		function getEyouthChartData(activityType) {
 			let counts = new Array(regionsList.length).fill(0);
 			if (!programsEyouthData || programsEyouthData.length === 0) return counts;
 
 			programsEyouthData.forEach(item => {
 				let pType = (item.programType || "").trim();
-				
+
 				if (pType === activityType) {
 					let sido = (item.sidoNm || "").trim();
-					// 전남광주통합특별시 처리
 					if (sido === "광주광역시" || sido === "전라남도" || sido === "전남광주통합특별시") {
 						let integratedIdx = regionsList.indexOf("전남광주통합특별시");
 						if (integratedIdx !== -1) counts[integratedIdx]++;
@@ -745,7 +729,6 @@
 			return counts;
 		}
 
-		// 2. [차트용] 청소년정책사업(Poli) 집계 함수 (맵핑 적용)
 		function getPoliChartData(policyType) {
 			let counts = new Array(regionsList.length).fill(0);
 			if (!programsPoliData || programsPoliData.length === 0) return counts;
@@ -753,17 +736,15 @@
 			programsPoliData.forEach(item => {
 				let pType = (item.programType || "").trim();
 				let mappedType = pType;
-				
-				// 정책사업 전용 맵핑 규칙
+
 				if (pType === '신고연계 프로그램') mappedType = '수련활동신고제';
 				else if (pType === '인증연계(실시) 프로그램' || pType === '인증연계 프로그램') mappedType = '수련활동인증제';
-				else if (pType === '활동 프로그램') mappedType = '기타활동';
 				else if (pType === '유스내비 프로그램') mappedType = '그룹활동';
 				else if (pType === '방과후 아카데미') mappedType = '청소년방과후아카데미';
+                // 기타활동 등 다른 항목이 필요하다면 여기에 규칙을 추가합니다.
 
 				if (mappedType === policyType) {
 					let sido = (item.sidoNm || "").trim();
-					// 전남광주통합특별시 처리
 					if (sido === "광주광역시" || sido === "전라남도" || sido === "전남광주통합특별시") {
 						let integratedIdx = regionsList.indexOf("전남광주통합특별시");
 						if (integratedIdx !== -1) counts[integratedIdx]++;
@@ -791,12 +772,12 @@
             pop: 0, schAge: 0, std: 0,
             fac1: 0, fac2: 0, fac3: 0, fac4: 0, fac5: 0, fac6: 0,
             sch1: 0, sch2: 0, sch3: 0,
-            act1: 0, act2: 0, act3: 0, act4: 0, act5: 0, act6: 0, act7: 0, act8: 0, act9: 0, act10: 0,
+            act1: 0, act2: 0, act3: 0, act4: 0, act5: 0, act6: 0, act7: 0, act8: 0, act9: 0, act10: 0, act11: 0,
+            pol1: 0, pol2: 0, pol3: 0, pol4: 0, pol5: 0, pol6: 0,
             lead1: 0, lead2: 0
         };
 
         function getRegionData(regionName) {
-			// 1. 인구 데이터 가져오기
 			let actualPop = 0;
 			if (regionName === "전남광주통합특별시") {
 				let pop1 = (popData["광주광역시"] && popData["광주광역시"]["소계"]) ? popData["광주광역시"]["소계"]["총인구수"]["2026.06월"] || 0 : 0;
@@ -808,7 +789,6 @@
 				actualPop = popData[regionName]["소계"]["총인구수"]["2026.06월"] || 0;
 			}
 
-			// 2. 시설 데이터 가져오기
 			let rIdx = regionsList.indexOf(regionName);
 			const getFacCount = (type) => {
 				if (regionName === "전국") {
@@ -822,10 +802,8 @@
 				return rIdx !== -1 ? facilityDataStore[type][rIdx] : 0;
 			};
 
-			// 3. 학교 데이터 가져오기
 			const targetYear = "2025년"; 
 			const getSchCount = (schType) => {
-				// 👇 [수정됨] 전국일 경우 모든 시도의 학교 수를 합산하는 로직 추가
 				if (regionName === "전국") {
 					let total = 0;
 					regionsList.forEach(r => {
@@ -833,7 +811,6 @@
 							total += schoolData[r][schType][targetYear]["학교수"] || 0;
 						}
 					});
-					// 혹시 데이터에 '전국' 총계가 명시되어 있다면 그것을 우선 사용
 					if (schoolData["전국"] && schoolData["전국"][schType] && schoolData["전국"][schType][targetYear]) {
 						return schoolData["전국"][schType][targetYear]["학교수"] || 0;
 					}
@@ -853,7 +830,6 @@
 
 			const seed = regionName.length + (regionName.charCodeAt(0) % 10) || 5; 
 
-			// 4. 🌟 [핵심 수정] programs.json 기반으로 특정 지역의 활동 유형별 개수를 정확히 집계하는 로직 (양방향 통합 대응)
 			const getCountByRegion = (targetType, dataset) => {
 				if (!dataset || dataset.length === 0) return 0;
 
@@ -861,12 +837,10 @@
 				dataset.forEach(item => {
 					let pType = item.programType;
 					let mappedType = pType;
-					
-					// 정책사업인 경우에만 맵핑 룰 적용
+
 					if (dataset === programsPoliData) {
 						if (pType === '신고연계 프로그램') mappedType = '수련활동신고제';
 						else if (pType === '인증연계(실시) 프로그램' || pType === '인증연계 프로그램') mappedType = '수련활동인증제';
-						else if (pType === '활동 프로그램') mappedType = '기타활동';
 						else if (pType === '유스내비 프로그램') mappedType = '그룹활동';
 						else if (pType === '방과후 아카데미') mappedType = '청소년방과후아카데미';
 					}
@@ -882,7 +856,6 @@
 				return count;
 			};
 
-			// 5. 지도자 데이터
 			const lead1_val = regionName === "전국" ? 79793 : seed * 120 + 300;
 			const lead2_val = regionName === "전국" ? 47020 : seed * 120 + 300;
 
@@ -890,14 +863,13 @@
 				pop: actualPop, 
 				schAge: Math.floor(actualPop * 0.7), 
 				std: Math.floor(actualPop * 0.65),
-				
+
 				fac1: getFacCount('청소년수련관'), fac2: getFacCount('청소년문화의집'), fac3: getFacCount('청소년수련원'), 
 				fac4: getFacCount('청소년특화시설'), fac5: getFacCount('청소년야영장'), fac6: getFacCount('유스호스텔'),
-				
+
 				sch1: getSchCount('초등학교'), sch2: getSchCount('중학교'), sch3: getSchCount('고등학교'),
 				sch4: getSchCount('대학교'), sch5: getSchCount('특수학교'),
-				
-				// 청소년활동 (programsEyouthData)
+
 				act1: getCountByRegion('건강스포츠', programsEyouthData),
 				act2: getCountByRegion('모험개척', programsEyouthData),
 				act3: getCountByRegion('역사탐방', programsEyouthData),
@@ -909,51 +881,44 @@
 				act9: getCountByRegion('문화예술', programsEyouthData),
 				act10: getCountByRegion('환경보존', programsEyouthData),
 				act11: getCountByRegion('기타', programsEyouthData),
-				
-				// 청소년정책사업 (programsPoliData)
+
 				pol1: getCountByRegion('청소년방과후아카데미', programsPoliData),
 				pol2: getCountByRegion('국제청소년성취포상제', programsPoliData),
 				pol3: getCountByRegion('자기도전포상제', programsPoliData),
 				pol4: getCountByRegion('수련활동인증제', programsPoliData),
 				pol5: getCountByRegion('수련활동신고제', programsPoliData),
 				pol6: getCountByRegion('그룹활동', programsPoliData),
-				
+
 				lead1: lead1_val, lead2: lead2_val
 			};
 		}
 
         function applyDataToUI(d, isDefault, regionName) {
-            console.log(`🖥️ [디버깅 - applyDataToUI] 갱신 대상: ${isDefault ? '전국기본값' : regionName}`);
-            
             const noticeEl = document.getElementById('activeRegionNotice');
             if(noticeEl) noticeEl.innerHTML = isDefault ? "(현재 전국 통합 보기)" : `현재 선택된 지역: <span class="text-brand-yellow font-bold">[ ${regionName} ]</span>`;
-            
+
             setText('statYouthPop', parseNum(d.pop).toLocaleString() + "명"); 
             setText('statSchoolAge', parseNum(d.schAge).toLocaleString() + "명"); 
             setText('statStudents', parseNum(d.std).toLocaleString() + "명");
-            
+
             for(let i=1; i<=6; i++) setText('fac'+i, parseNum(d['fac'+i]).toLocaleString() + "개");
-            // 👇 [수정] 학교가 5개로 늘어났으므로 1~5까지 반영
             for(let i=1; i<=5; i++) setText('sch'+i, parseNum(d['sch'+i]).toLocaleString() + "개");
             for(let i=1; i<=11; i++) setText('act_val_'+i, parseNum(d['act'+i]).toLocaleString() + "개");
-			for(let i=1; i<=6; i++) setText('pol_val_'+i, parseNum(d['pol'+1]).toLocaleString() + "개");
+			for(let i=1; i<=6; i++) setText('pol_val_'+i, parseNum(d['pol'+i]).toLocaleString() + "개");
             setText('lead1', parseNum(d.lead1).toLocaleString() + "명"); 
             setText('lead2', parseNum(d.lead2).toLocaleString() + "명");
 
             setText('sumPop', parseNum(d.pop).toLocaleString() + "명");
             setText('sumFac', (parseNum(d.fac1) + parseNum(d.fac2) + parseNum(d.fac3) + parseNum(d.fac4) + parseNum(d.fac5) + parseNum(d.fac6)).toLocaleString() + "개소");
-            
-            // 👇 [수정] 대학교(sch4), 특수학교(sch5)까지 합산하여 총 학교수 표시
             setText('sumSch', (parseNum(d.sch1) + parseNum(d.sch2) + parseNum(d.sch3) + parseNum(d.sch4) + parseNum(d.sch5)).toLocaleString() + "개교");
-            
-            setText('sumAct', (parseNum(d.act1) + parseNum(d.act2) + parseNum(d.act3) + parseNum(d.act4) + parseNum(d.act5) + parseNum(d.act6) + parseNum(d.act7) + parseNum(d.act8) + parseNum(d.act9) + parseNum(d.act10)).toLocaleString() + "개");
+            setText('sumAct', (parseNum(d.act1) + parseNum(d.act2) + parseNum(d.act3) + parseNum(d.act4) + parseNum(d.act5) + parseNum(d.act6) + parseNum(d.act7) + parseNum(d.act8) + parseNum(d.act9) + parseNum(d.act10) + parseNum(d.act11)).toLocaleString() + "개");
+            setText('sumPol', (parseNum(d.pol1) + parseNum(d.pol2) + parseNum(d.pol3) + parseNum(d.pol4) + parseNum(d.pol5) + parseNum(d.pol6)).toLocaleString() + "개");
             setText('sumLead', (parseNum(d.lead1) + parseNum(d.lead2)).toLocaleString() + "명");
         }
 
         document.addEventListener('DOMContentLoaded', () => {
 			initMainMap();
 
-			// 🌟 공통 지역명 표준화 딕셔너리
 			const COMMON_REGION_MAP = {
 				"서울": "서울특별시", "부산": "부산광역시", "대구": "대구광역시", "인천": "인천광역시", 
 				"광주": "광주광역시", "대전": "대전광역시", "울산": "울산광역시", "세종": "세종특별자치시", 
@@ -964,7 +929,6 @@
 				"전남광주통합특별시": "전남광주통합특별시"
 			};
 
-			// 🌟 Promise.all을 사용하여 7개의 JSON 파일을 동시에 불러오고 모두 완료될 때까지 기다립니다.
 			Promise.all([
 				fetch(URL_MUNICIPALITIES).then(res => res.json()),
 				fetch('data/sisul.json').then(res => res.json()),
@@ -975,22 +939,19 @@
 				fetch('data/programs_poli.json').then(res => res.json())
 			])
 			.then(([munData, sisul, jidoja, pop, school, eyouth, poli]) => {
-				
-				// 1. 시군구 지도 데이터
 				municipalitiesData = munData;
 
-				// 2. 시설 데이터 정제
 				sisulData = Array.isArray(sisul) ? sisul : (sisul.records || []);
 				const types = ['청소년수련관', '청소년문화의집', '청소년수련원', '청소년특화시설', '청소년야영장', '유스호스텔'];
 				types.forEach(t => facilityDataStore[t] = new Array(17).fill(0));
-				
+
 				sisulData.forEach(item => {
 					const rawName = (item.ctpvNm || "").trim(); 
 					item.ctpvNm = COMMON_REGION_MAP[rawName] || rawName;
-					
+
 					const rIdx = regionsList.indexOf(item.ctpvNm);
 					const facilityName = item.sisulNm || item.fcltNm || ""; 
-					
+
 					let type = null;
 					if(item.sisulType === '수련관') type = '청소년수련관';
 					else if(item.sisulType === '문화의집') type = '청소년문화의집';
@@ -1013,7 +974,6 @@
 				defaultStats.fac5 = facilityDataStore['청소년야영장'].reduce((a, b) => a + b, 0);
 				defaultStats.fac6 = facilityDataStore['유스호스텔'].reduce((a, b) => a + b, 0);
 
-				// 3. 지도자 데이터 정제
 				let jidojaData = [];
 				let sangdamsaData = [];
 				if (Array.isArray(jidoja)) {
@@ -1054,7 +1014,6 @@
 					currentCum2 += row["총계"]; 
 				});
 
-				// 4. 인구 데이터 정제
 				popData = {};
 				Object.keys(pop).forEach(key => {
 					let newKey = COMMON_REGION_MAP[key.trim()] || key.trim();
@@ -1066,29 +1025,25 @@
 					defaultStats.std = Math.floor(defaultStats.pop * 0.65);
 				}
 
-				// 5. 학교 데이터 정제
 				schoolData = {};
 				Object.keys(school).forEach(key => {
 					let newKey = COMMON_REGION_MAP[key.trim()] || key.trim();
 					schoolData[newKey] = school[key];
 				});
 
-				// 6. 청소년활동 데이터 정제
 				let rawEyouth = Array.isArray(eyouth) ? eyouth : (eyouth.records || []);
 				programsEyouthData = rawEyouth.map(item => ({
 					...item, sidoNm: COMMON_REGION_MAP[(item.sidoNm || "").trim()] || (item.sidoNm || "").trim()
 				}));
 
-				// 7. 정책사업 데이터 정제
 				let rawPoli = Array.isArray(poli) ? poli : (poli.records || []);
 				programsPoliData = rawPoli.map(item => ({
 					...item, sidoNm: COMMON_REGION_MAP[(item.sidoNm || "").trim()] || (item.sidoNm || "").trim()
 				}));
+                
+                programsData = [...programsEyouthData, ...programsPoliData]; // 통합 프로그램 데이터 생성
 
-				// 🚀 모든 파일이 로드되고 정제가 끝난 이 시점에! 딱 한 번만 화면을 그립니다.
-				console.log("모든 데이터 로드 완료! 화면 렌더링을 시작합니다.");
 				applyDataToUI(getRegionData("전국"), true, "전국");
-
 			})
 			.catch(err => {
 				console.error('데이터 로드 중 에러가 발생했습니다:', err);
@@ -1100,7 +1055,7 @@
             fetch(URL_PROVINCES).then(res => res.json()).then(data => {
                 provincesData = data;
                 document.getElementById('mainMapLoading').style.display = 'none';
-                
+
                 let gjFeature = data.features.find(f => f.properties.name === "광주광역시");
                 let jnFeature = data.features.find(f => f.properties.name === "전라남도");
                 if (gjFeature && jnFeature) {
@@ -1116,21 +1071,17 @@
                     gbFeature.geometry.coordinates.push(createIslandPolygon(131.87, 37.24, 0.06, 0.06));
                 }
 
-                // 'transition-colors' 클래스 제거
 				geojsonMain = L.geoJson(data, {
-					style: () => ({ fillColor: '#E5E7EB', weight: 1.5, opacity: 1, color: '#ffffff', fillOpacity: 0.9, className: 'cursor-pointer' }),
-					// ... 생략 ...
+					style: () => ({ fillColor: '#E5E7EB', weight: 1.5, opacity: 1, color: '#ffffff', fillOpacity: 0.9, className: 'cursor-pointer transition-colors duration-300' }),
                     onEachFeature: (feature, layer) => {
                         layer.bindTooltip(feature.properties.name, { className: 'bg-gray-800 border-none text-white font-bold text-sm rounded-lg shadow-xl px-3 py-1.5', sticky: true, direction: 'auto' });
                         layer.on({
                            mouseover: e => { 
 								e.target.setStyle({ fillColor: '#FDBA1A', fillOpacity: 1 }); 
-								// e.target.bringToFront(); // 👈 이 줄을 주석 처리하거나 아예 삭제하세요.
 								applyDataToUI(getRegionData(feature.properties.name), false, feature.properties.name); 
 							},
                             mouseout: e => { 
 								geojsonMain.resetStyle(e.target); 
-								// 👇 defaultStats 대신 getRegionData("전국")을 호출하여 동적 데이터를 가져오도록 변경
 								applyDataToUI(getRegionData("전국"), true, "전국"); 
 							},
                             click: e => { currentProvince = feature.properties.name; currentMunicipality = '전체'; showDetailView(currentProvince); }
@@ -1143,16 +1094,15 @@
         }
 
         function showDetailView(regionName) {
-            console.log(`🗺️ [디버깅 - View 전환] 상세 페이지 진입. 선택된 시도: ${regionName}`);
             document.getElementById('detailRegionTitle').textContent = regionName;
             document.getElementById('detailSubRegionTitle').textContent = '전체';
-            
+
             mainView.classList.add('opacity-0');
             setTimeout(() => {
                 mainView.classList.add('hidden');
                 detailView.classList.remove('hidden');
                 detailView.classList.remove('opacity-0');
-                
+
                 initDetailMap(regionName);
                 updateDetailPanel(regionName, '전체');
             }, 500);
@@ -1163,8 +1113,7 @@
 			setTimeout(() => {
 				detailView.classList.add('hidden'); trendView.classList.add('hidden');
 				mainView.classList.remove('hidden'); mainView.classList.remove('opacity-0');
-				
-				// 👇 [추가] 메인 홈 화면으로 돌아올 때 전국 통합 기본 데이터를 다시 정확하게 복원합니다!
+
 				applyDataToUI(getRegionData("전국"), true, "전국");
 
 				if (mapDetail) { mapDetail.remove(); mapDetail = null; }
@@ -1183,7 +1132,7 @@
         function initDetailMap(regionName) {
             if (mapDetail) mapDetail.remove();
             mapDetail = L.map('detailMap', { center: [36.0, 127.8], zoom: 7, zoomControl: false, dragging: true, scrollWheelZoom: true, doubleClickZoom: false });
-            
+
             mapDetail.on('click', () => {
                 if(currentMunicipality !== '전체') {
                     resetDetailMunicipality();
@@ -1199,9 +1148,9 @@
                     "경상북도": ["37"], "경상남도": ["38"], "제주특별자치도": ["39"],
                     "전남광주통합특별시": ["24", "36"]
                 };
-                
+
                 const valid = codes[regionName] || [];
-                
+
                 let targetFeatures = data.features.filter(f => {
                     let c = f.properties.code || f.properties.SIG_CD;
                     if (c && valid.length) return valid.some(v => c.toString().startsWith(v));
@@ -1237,7 +1186,7 @@
                                     geojsonDetail.eachLayer(l => geojsonDetail.resetStyle(l));
                                     e.target.setStyle({ fillColor: '#FDBA1A', color: '#b45309', weight: 2 });
                                     e.target.bringToFront();
-                                    
+
                                     currentMunicipality = feature.properties.name;
                                     document.getElementById('detailSubRegionTitle').textContent = currentMunicipality;
                                     updateDetailPanel(currentProvince, currentMunicipality);
@@ -1264,31 +1213,25 @@
                 });
             }
         }
-		
+
 		async function updateDetailPanel(province, municipality) {
 			const isAll = (municipality === '전체');
 			const targetRegionName = isAll ? province : `${province} ${municipality}`;
-            // 🌟 [핵심 수정] 함수가 시작되자마자 현재 선택된 탭을 강제로 다시 그리도록 지시합니다.
 			switchDetailTab(currentDetailTab);
-			
+
 			const insightEl = document.getElementById('aiRegionalInsightText');
-			
-			// 1. 진입 시 로딩 표시
 			insightEl.innerHTML = `<i class="ph ph-spinner animate-spin inline-block mr-1"></i> AI가 <span class="text-brand-yellow font-bold">${targetRegionName}</span>의 데이터를 분석 중입니다...`;
-			
+
 			await new Promise(resolve => setTimeout(resolve, 50));
-			// 2. 인구 데이터 추출
 			let regionalPop = 0;
 			let safeMunicipality = municipality !== '전체' ? municipality.replace(/\s/g, '') : '';
 
 			if (province === "전남광주통합특별시") {
 				if (isAll) {
-					// 전체일 때는 광주와 전남의 소계를 합산
 					let p1 = popData["광주광역시"] ? (popData["광주광역시"]["소계"]["총인구수"]["2026.06월"] || 0) : 0;
 					let p2 = popData["전라남도"] ? (popData["전라남도"]["소계"]["총인구수"]["2026.06월"] || 0) : 0;
 					regionalPop = p1 + p2;
 				} else {
-					// 시군구일 때는 광주에서 먼저 찾고, 없으면 전남에서 찾기
 					if (popData["광주광역시"]) {
 						let key1 = Object.keys(popData["광주광역시"]).find(k => k.replace(/\s/g, '') === safeMunicipality);
 						if (key1) regionalPop = popData["광주광역시"][key1]["총인구수"]["2026.06월"] || 0;
@@ -1300,12 +1243,10 @@
 				}
 			} else if (popData[province]) {
 				if (isAll) {
-					// 일반 시도 전체일 경우 '소계' 사용
 					if (popData[province]["소계"]) {
 						regionalPop = popData[province]["소계"]["총인구수"]["2026.06월"] || 0;
 					}
 				} else {
-					// 일반 시도의 시군구일 경우 양쪽 띄어쓰기 모두 제거 후 매칭되는 키값 찾기
 					let foundKey = Object.keys(popData[province]).find(k => k.replace(/\s/g, '') === safeMunicipality);
 					if (foundKey && popData[province][foundKey]) {
 						regionalPop = popData[province][foundKey]["총인구수"]["2026.06월"] || 0;
@@ -1313,7 +1254,6 @@
 				}
 			}
 
-			// 🌟 3. [핵심 수정] 프로그램이 아닌 'sisulData'를 정확하게 필터링하고 중복 제거
             let filteredFacilities = sisulData.filter(item => {
                 let matchSido = false;
                 let ctpv = (item.ctpvNm || "").trim();
@@ -1325,17 +1265,15 @@
                 } else {
                     matchSido = (ctpv === province);
                 }
-                
+
                 if (!matchSido) return false;
 
                 if (!isAll) {
-                    // 👇 [핵심 수정] 시설 데이터 시군구 띄어쓰기 완전 제거 후 비교
                     return item.sggNm && item.sggNm.replace(/\s/g, '') === municipality.replace(/\s/g, '');
                 }
                 return true;
             });
 
-            // 시설 이름 기준 중복 제거 (Map 객체 활용)
             filteredFacilities = Array.from(
                 new Map(filteredFacilities.map(fac => {
                     const name = fac.facilityName || fac.sisulNm || fac.fcltNm || '';
@@ -1343,7 +1281,6 @@
                 })).values()
             );
 
-            // 👇👇 [수정 1] 프로그램(localPrograms) 필터링을 위로 끌어올립니다. 👇👇
             let localPrograms = programsData.filter(item => {
                 let matchSido = false;
                 let sido = (item.sidoNm || "").trim();
@@ -1357,33 +1294,25 @@
                 }
 
                 if (!matchSido) return false;
-                
-                // 👇 [핵심 수정] 프로그램 데이터 시군구 띄어쓰기 완전 제거 후 비교
                 if (!isAll) {
                     return item.sggNm && item.sggNm.replace(/\s/g, '') === municipality.replace(/\s/g, '');
                 }
                 return true;
             });
-            // 👆👆 끌어올림 끝 👆👆
-            
-            // 👇👇 [추가] 생활권 시설(수련관, 문화의집, 청소년센터) 여부를 판별하는 조건 함수
-            const isLivingZoneFac = (item) => {
-                return item.sisulType === '수련관' || item.sisulType === '문화의집' 
-            };
 
+            const isLivingZoneFac = (item) => {
+                return item.sisulType === '수련관' || item.sisulType === '문화의집'; 
+            };
             const isLivingZoneProg = (item) => {
                 return item.facilityName && (item.facilityName.includes('수련관') || item.facilityName.includes('문화의집') || item.facilityName.includes('청소년센터') || item.facilityName.includes('유스센터'));
             };
-            // 👆👆 [추가 끝]
 
-            // 🌟 생활권 시설 및 프로그램만 개수 세기
             const fac = filteredFacilities.filter(isLivingZoneFac).length;
             const progCount = localPrograms.filter(isLivingZoneProg).length;
-            
+
             const ratio = regionalPop > 0 ? ((filteredFacilities.length / regionalPop) * 10000).toFixed(1) : "0.0";
             const progRatio = regionalPop > 0 ? ((localPrograms.length / regionalPop) * 10000).toFixed(1) : "0.0";
 
-            // 🌟 수요-공급 격차 지수 산출 및 뱃지 UI 업데이트
             const supplyScore = fac + (progCount * 0.2); 
             const demandScore = regionalPop > 0 ? (regionalPop / 10000) : 1;
             const gapIndex = supplyScore / demandScore;
@@ -1399,74 +1328,63 @@
                 badgeText = "✅ 양호지역"; badgeClass = "bg-emerald-100 text-emerald-600 border border-emerald-200";
             }
 
-			// 🌟 시설 이름 기준 중복 제거 (Map 객체 활용)
 			const uniqueFacilities = Array.from(
 				new Map(filteredFacilities.map(fac => {
 					const name = fac.facilityName || fac.sisulNm || fac.fcltNm || '';
 					return [name, fac];
 				})).values()
 			);
-			
-           // 🌟 뱃지 UI 업데이트
+
             const badgeEl = document.getElementById('detailGapBadge');
             badgeEl.textContent = badgeText;
             badgeEl.className = `px-3 py-1 text-xs font-black rounded-full shadow-sm ml-2 border ${badgeClass} fade-in`;
             badgeEl.classList.remove('hidden');
 
             document.getElementById('detailStatPop').textContent = regionalPop.toLocaleString() + '명';
-            document.getElementById('detailStatFac').textContent = uniqueFacilities.length + '개소'; // 생활권 시설 수만 표시
+            document.getElementById('detailStatFac').textContent = uniqueFacilities.length + '개소'; 
             document.getElementById('detailStatRatio').textContent = ratio;
             document.getElementById('detailProgRatio').textContent = progRatio;
 
-            // 현재 활성화된 탭에 맞춰 콘텐츠 렌더링 (리스트에는 전체 시설 노출)
             renderTabContent(province, municipality, targetRegionName.length, uniqueFacilities);
 
-            // 👇👇 [수정] 전국 평균 및 상위 % 계산 시에도 생활권 필터 적용 👇👇
-            
-            // 1) 전국 평균 계산
             let natPop = (popData["전국"] && popData["전국"]["전국"]) ? popData["전국"]["전국"]["총인구수"]["2026.06월"] || 10000000 : 10000000;
             let natFac = sisulData.filter(isLivingZoneFac).length || 1;
             let natProg = programsData.filter(isLivingZoneProg).length || 1;
             let natAvgGap = (natFac + (natProg * 0.2)) / (natPop / 10000);
 
-            // 2) 상위 % 계산을 위한 전체 배열 만들기
             let allIndices = [];
             if (isAll) {
-                // 시도 간 비교일 경우
                 regionsList.forEach(r => {
                     let tPop = popData[r]?.["소계"]?.["총인구수"]?.["2026.06월"] || 100000;
                     if (r === "전남광주통합특별시") tPop = (popData["광주광역시"]?.["소계"]?.["총인구수"]?.["2026.06월"]||0) + (popData["전라남도"]?.["소계"]?.["총인구수"]?.["2026.06월"]||0);
-                    
+
                     let tFac = sisulData.filter(i => (r === "전남광주통합특별시" ? (i.ctpvNm === "광주광역시" || i.ctpvNm === "전라남도") : i.ctpvNm === r) && isLivingZoneFac(i)).length;
                     let tProg = programsData.filter(i => (r === "전남광주통합특별시" ? (i.sidoNm === "광주광역시" || i.sidoNm === "전라남도" || i.sidoNm === "전남광주통합특별시") : i.sidoNm === r) && isLivingZoneProg(i)).length;
-                    
+
                     allIndices.push((tFac + tProg * 0.2) / (tPop > 0 ? tPop / 10000 : 1));
                 });
             } else {
-                // 시군구 간 비교일 경우 (해당 시도 내에서)
                 let districts = districtData[province] || [];
                 if (province === "전남광주통합특별시") districts = [...(districtData["광주광역시"]||[]), ...(districtData["전라남도"]||[])];
-                
+
                 districts.forEach(d => {
                     let tPop = popData[province]?.[d]?.["총인구수"]?.["2026.06월"] || 10000;
                     if (!popData[province]?.[d]) {
                         let foundKey = Object.keys(popData[province]||{}).find(k => k.includes(d));
                         if (foundKey) tPop = popData[province][foundKey]["총인구수"]?.["2026.06월"] || 10000;
                     }
-                    
+
                     let tFac = sisulData.filter(i => (i.ctpvNm === province || (province==="전남광주통합특별시" && (i.ctpvNm==="광주광역시"||i.ctpvNm==="전라남도"))) && i.sggNm === d && isLivingZoneFac(i)).length;
                     let tProg = programsData.filter(i => (i.sidoNm === province || (province==="전남광주통합특별시" && (i.sidoNm==="광주광역시"||i.sidoNm==="전라남도"||i.sidoNm==="전남광주통합특별시"))) && i.sggNm === d && isLivingZoneProg(i)).length;
-                    
+
                     allIndices.push((tFac + tProg * 0.2) / (tPop > 0 ? tPop / 10000 : 1));
                 });
             }
 
-            // 등수 및 상위 퍼센트 산정
             allIndices.sort((a, b) => b - a);
             let rank = allIndices.filter(v => v > gapIndex).length + 1; 
             let percentile = Math.max(1, Math.round((rank / Math.max(allIndices.length, 1)) * 100));
 
-            // 3) 요청하신 문구 출력
             insightEl.innerHTML = `
                 <p>현재 지역의 <strong>'격차지수'는 <span class="text-brand-yellow text-base">${gapIndex.toFixed(2)}</span></strong> 입니다. 격차지수는</p>
                 <p class="bg-brand-dark/50 px-3 py-1.5 rounded inline-block text-gray-300 font-mono text-[11px] my-1">
@@ -1478,7 +1396,6 @@
                 </p>
             `;
 
-            // 4) 나중에 모달에서 꺼내 쓸 수 있도록 AI 리포트용 전역 변수 세팅
             window.currentReportData = {
                 regionName: targetRegionName,
                 badgeText: badgeText.replace(/[^가-힣]/g, ''),
@@ -1488,13 +1405,10 @@
                 prog: progCount,
                 progRatio: progRatio
             };
-            // 👆👆 [수정 끝] 👆👆
-        }
+		}
 
         function switchDetailTab(tabId) {
             currentDetailTab = tabId;
-            console.log(`📑 [디버깅 - 탭 전환] 선택 탭: ${tabId}, 현재 필터: ${currentProvince} > ${currentMunicipality}`);
-
             const tabs = ['facility', 'policy', 'activity'];
             tabs.forEach(t => {const btn = document.getElementById(`tab-btn-${t}`);
                 if(t === tabId) {
@@ -1503,11 +1417,9 @@
                     btn.className = "flex-1 py-4 text-sm font-bold text-gray-500 hover:text-gray-700 border-b-2 border-transparent transition-colors";
                     if(t === 'activity') btn.className += " relative"; 
                 }
-            }); // (기존 클래스 변경 로직 유지)
-            
+            });
+
             const isAll = (currentMunicipality === '전체');
-            
-            // 👇👇 [수정] 탭 전환 시에도 전남광주 필터링 유지 및 띄어쓰기 무시 👇👇
             let filteredFacilities = sisulData.filter(item => {
                 if (currentProvince === "전남광주통합특별시") {
                     return item.ctpvNm === "광주광역시" || item.ctpvNm === "전라남도";
@@ -1516,13 +1428,11 @@
             });
 
             if (!isAll) {
-                // 👇 [핵심 수정] 시군구 양쪽 모두 띄어쓰기 제거 후 비교
                 filteredFacilities = filteredFacilities.filter(item => 
                     item.sggNm && item.sggNm.replace(/\s/g, '') === currentMunicipality.replace(/\s/g, '')
                 );
             }
 
-			// 🌟 시설 이름 기준 중복 제거 (Map 객체 활용)
 			const uniqueFacilities = Array.from(
 				new Map(filteredFacilities.map(fac => {
 					const name = fac.facilityName || fac.sisulNm || fac.fcltNm || '';
@@ -1539,13 +1449,12 @@
 			const prefix = municipality === '전체' ? province : municipality;
 
 			if (currentDetailTab === 'facility') {
-				console.log(`📝 [디버깅 - 시설 리스트 렌더링] 그려질 개수: ${filteredFacilities.length}개`);
 				if (filteredFacilities.length === 0) {
 					html = `<div class="p-8 text-center text-gray-400 font-bold mt-10">해당 지역에 등록된 청소년 시설 데이터가 없습니다.</div>`;
 				} else {
 					filteredFacilities.forEach((fac) => {
 						const facilityName = fac.facilityName || fac.sisulNm || fac.fcltNm || '시설명 없음';
-						
+
 						let type = '청소년시설';
 						if (fac.sisulType === '수련관') type = '청소년수련관';
 						else if (fac.sisulType === '문화의집') type = '청소년문화의집';
@@ -1560,14 +1469,11 @@
 						const address = fac.lctnRoadNm || fac.lctnLotnoAddr || '주소 정보 없음';
 						const phone = fac.telno || '전화번호 미등록';
 
-						// 🌟 1. 홈페이지 URL 추출 및 프로토콜(http) 보정
-						// (공공데이터 특성상 website 또는 hmpg 키를 사용할 수 있으므로 둘 다 확인)
 						let websiteUrl = fac.website || fac.hmpg || '';
 						if (websiteUrl && !websiteUrl.startsWith('http')) {
 							websiteUrl = 'http://' + websiteUrl;
 						}
 
-						// 🌟 2. 버튼 클릭 액션 정의 (URL이 있으면 새 창, 없으면 알림창)
 						const clickAction = websiteUrl 
 							? `window.open('${websiteUrl}', '_blank')` 
 							: `alert('해당 기관의 홈페이지 정보가 등록되어 있지 않습니다.')`;
@@ -1583,7 +1489,6 @@
 								</div>
 								<div class="text-right flex sm:flex-col gap-3 sm:gap-1 items-center sm:items-end">
 									<span class="text-xs font-medium text-gray-600"><i class="ph-fill ph-phone text-brand-yellow"></i> ${phone}</span>
-									<!-- 🌟 3. 상세보기 버튼에 onclick 이벤트 추가 -->
 									<button onclick="${clickAction}" class="text-xs bg-brand-dark text-white px-3 py-1.5 rounded-lg hover:bg-brand-light transition-colors">상세보기</button>
 								</div>
 							</div>
@@ -1598,17 +1503,14 @@
 					} else {
 						matchSido = (item.sidoNm === province);
 					}
-					
+
 					if (!matchSido) return false;
 
                     if (municipality !== '전체') {
-                        // 👇 [핵심 수정] 정책사업 시군구 띄어쓰기 제거 후 비교
                         return item.sggNm && item.sggNm.replace(/\s/g, '') === municipality.replace(/\s/g, '');
                     }
                     return true;
                 });
-
-				console.log(`🏛️ [운영 정책사업] 시도: ${province}, 시군구: ${municipality} | 매칭된 정책 수: ${filteredPolicies.length}개`);
 
 				if (filteredPolicies.length === 0) {
 					html = `<div class="p-8 text-center text-gray-400 font-bold mt-10">해당 지역에 등록된 운영 정책사업 데이터가 없습니다.</div>`;
@@ -1643,7 +1545,6 @@
 				const mapProgramTypeToDashboard = (pType) => {
 					if (pType === '신고연계 프로그램') return '수련활동신고제';
 					if (pType === '인증연계(실시) 프로그램' || pType === '인증연계 프로그램') return '수련활동인증제';
-					if (pType === '활동 프로그램') return '기타활동';
 					if (pType === '유스내비 프로그램') return '그룹활동';
 					if (pType === '방과후 아카데미') return '청소년방과후아카데미';
 					return pType;
@@ -1653,7 +1554,6 @@
 					let matchSido = false;
 					let sido = (item.sidoNm || "").trim();
 
-					// 🌟 전남광주 통합 양방향 매칭 처리
 					if (province === "전남광주통합특별시") {
 						matchSido = (sido === "광주광역시" || sido === "전라남도" || sido === "전남광주통합특별시");
 					} else if (province === "광주광역시" || province === "전라남도") {
@@ -1661,17 +1561,14 @@
 					} else {
 						matchSido = (sido === province);
 					}
-					
+
 					if (!matchSido) return false;
 
                     if (municipality !== '전체') {
-                        // 👇 [핵심 수정] 신청 가능 활동 시군구 띄어쓰기 제거 후 비교
                         return item.sggNm && item.sggNm.replace(/\s/g, '') === municipality.replace(/\s/g, '');
                     }
                     return true;
                 });
-
-				console.log(`🎯 [신청 가능 활동] 시도: ${province}, 시군구: ${municipality} | 매칭된 프로그램 수: ${filteredPrograms.length}개`);
 
 				if (filteredPrograms.length === 0) {
 					html = `<div class="p-8 text-center text-gray-400 font-bold mt-10">해당 지역에 등록된 신청 가능 프로그램이 없습니다.</div>`;
@@ -1709,10 +1606,9 @@
 				}
 			}
 
-			// 👇 [핵심 수정] if-else 문이 모두 끝난 바깥 공통 영역에서 컨테이너에 최종 HTML을 반영합니다!
 			container.innerHTML = html;
 		}
-		
+
 
         function updateFacilityTabUI(activeTitle) {
             document.querySelectorAll(".fac-tab").forEach(btn => {
@@ -1733,12 +1629,32 @@
         function updateActivityTabUI(activeTitle) {
             document.querySelectorAll(".activity-tab").forEach(btn => {
                 let st = activeTitle;
-                if(st==='청소년활동 전체보기') st='전체보기'; else if(st==='청소년방과후아카데미') st='방과후아카데미'; else if(st==='청소년자원봉사활동') st='자원봉사'; else if(st==='국제청소년성취포상제') st='국제포상제'; else if(st==='청소년자기도전포상제') st='자기도전포상제'; else if(st==='수련활동인증제') st='활동인증제'; else if(st==='수련활동신고제') st='활동신고제'; else if(st==='참여활동(특별회의,참여위원회)') st='참여활동';
+                if(st==='청소년활동 전체보기') st='전체보기'; 
+                else if(st==='건강스포츠') st='건강·스포츠'; 
+                
                 if (btn.textContent.trim() === st || activeTitle === btn.textContent.trim()) btn.className = "activity-tab px-3 py-1.5 text-[13px] rounded-lg transition-colors bg-brand-yellow text-brand-dark font-black shadow-[0_0_10px_rgba(253,186,26,0.4)]";
                 else btn.className = "activity-tab px-3 py-1.5 text-[13px] rounded-lg transition-colors bg-[#1e293b] text-gray-400 hover:text-white border border-gray-600 font-bold";
             });
         }
         function filterActivity(type) { updateActivityTabUI(type); renderCharts(type); }
+
+		function updatePolicyTabUI(activeTitle) {
+			document.querySelectorAll(".policy-tab").forEach(btn => {
+				let st = activeTitle;
+				if(st==='청소년정책사업 전체보기') st='전체보기'; 
+				else if(st==='청소년방과후아카데미') st='방과후아카데미'; 
+				else if(st==='국제청소년성취포상제') st='국제포상제'; 
+				else if(st==='자기도전포상제') st='자기도전포상제'; 
+				else if(st==='수련활동인증제') st='활동인증제'; 
+				else if(st==='수련활동신고제') st='활동신고제'; 
+				else if(st==='그룹활동') st='그룹활동';
+				
+				if (btn.textContent.trim() === st || activeTitle === btn.textContent.trim()) btn.className = "policy-tab px-3 py-1.5 text-[13px] rounded-lg transition-colors bg-brand-yellow text-brand-dark font-black shadow-[0_0_10px_rgba(253,186,26,0.4)]";
+				else btn.className = "policy-tab px-3 py-1.5 text-[13px] rounded-lg transition-colors bg-[#1e293b] text-gray-400 hover:text-white border border-gray-600 font-bold";
+			});
+		}
+		function filterPolicy(type) { updatePolicyTabUI(type); renderCharts(type); }
+
 
         function updateLeaderTabUI(activeTitle) {
             document.querySelectorAll(".leader-tab").forEach(btn => {
@@ -1751,14 +1667,13 @@
         function filterLeader(type) { updateLeaderTabUI(type); renderCharts(type); }
 
         function showTrendView(title) {
-            console.log(`📈 [디버깅 - View 전환] 통계/차트 페이지 진입. 항목: ${title}`);
             document.getElementById('trendViewTitle').textContent = title;
-			
-			// 👇👇 [여기에 추가] 탭 클릭 시 즉시 수식을 업데이트하는 로직 👇👇
+
             const formulaEl = document.getElementById('trendMapFormula');
             const facilityItems = ['청소년시설 전체보기', '청소년수련관', '청소년문화의집', '청소년수련원', '청소년특화시설', '청소년야영장', '유스호스텔'];
             const schoolItems = ['학교 전체보기', '초등학교', '중학교', '고등학교', '대학교', '특수학교'];
-            const activityItems = ['청소년활동 전체보기', '청소년방과후아카데미', '수련활동인증제', '수련활동신고제', '국제교류', '그룹활동', '기타활동'];
+            const activityItems = ['청소년활동 전체보기', '건강스포츠', '모험개척', '역사탐방', '봉사협력', '교류', '과학정보', '진로탐구', '자기개발', '문화예술', '환경보존', '기타'];
+            const policyItems = ['청소년정책사업 전체보기', '청소년방과후아카데미', '국제청소년성취포상제', '자기도전포상제', '수련활동인증제', '수련활동신고제', '그룹활동'];
             const leaderItems = ['청소년지도자 전체보기', '청소년지도사 인원', '청소년상담사 인원'];
 
             if (formulaEl) {
@@ -1766,25 +1681,24 @@
                     formulaEl.innerHTML = `(지역 내 <b>시설 개소수</b> ÷ 지역 내 <b>청소년 인구</b>) × 100`;
                 } else if (schoolItems.includes(title)) {
                     formulaEl.innerHTML = `(지역 내 <b>학교수</b> ÷ 지역 내 <b>청소년 인구</b>) × 100`;
-                } else if (activityItems.includes(title)) {
+                } else if (activityItems.includes(title) || policyItems.includes(title)) {
                     formulaEl.innerHTML = `(지역 내 <b>프로그램 수</b> ÷ 전국 <b>총 청소년 인구</b>) × 100`;
                 } else if (leaderItems.includes(title)) {
                     formulaEl.innerHTML = `(지역 내 <b>지도자/상담사 수</b> ÷ 전국 <b>총 청소년 인구</b>) × 100`;
                 } else {
-                    // 요청하신 인구 데이터 계산식
                     formulaEl.innerHTML = `(<b>각 시·도 인구</b> ÷ <b>전국 청소년 인구</b>) × 100`;
                 }
             }
-            // 👆👆 [추가 끝] 👆👆
-            
+
             const timelineUI = document.getElementById('timelineUI');
             const summaryUI = document.getElementById('populationSummary');
-            
+
             document.getElementById('facilityTabGroup').style.display = 'none';
             document.getElementById('schoolTabGroup').style.display = 'none';
             document.getElementById('activityTabGroup').style.display = 'none';
+            document.getElementById('policyTabGroup').style.display = 'none';
             document.getElementById('leaderTabGroup').style.display = 'none';
-            
+
             if (facilityItems.includes(title)) {
                 timelineUI.style.display = 'none'; summaryUI.classList.remove('grid'); summaryUI.classList.add('hidden');
                 document.getElementById('facilityTabGroup').style.display = 'flex'; updateFacilityTabUI(title);
@@ -1793,10 +1707,13 @@
                 timelineUI.style.display = 'none'; summaryUI.classList.remove('grid'); summaryUI.classList.add('hidden');
                 document.getElementById('schoolTabGroup').style.display = 'flex'; updateSchoolTabUI(title);
             }
-            // 👇 [수정] 다른 아이들과 똑같이 깔끔하게 한 줄로 분리했습니다!
             else if (activityItems.includes(title)) {
                 timelineUI.style.display = 'none'; summaryUI.classList.remove('grid'); summaryUI.classList.add('hidden');
                 document.getElementById('activityTabGroup').style.display = 'flex'; updateActivityTabUI(title);
+            }
+			else if (policyItems.includes(title)) {
+                timelineUI.style.display = 'none'; summaryUI.classList.remove('grid'); summaryUI.classList.add('hidden');
+                document.getElementById('policyTabGroup').style.display = 'flex'; updatePolicyTabUI(title);
             }
             else if (leaderItems.includes(title)) {
                 timelineUI.style.display = 'none'; summaryUI.classList.remove('grid'); summaryUI.classList.add('hidden');
@@ -1820,13 +1737,13 @@
                 }
                 setTimeout(() => {
                     mapTrend.invalidateSize();
-                    
+
                     if(geojsonTrend) {
                         const optimalBounds = L.latLngBounds([33.1, 125.5], [38.6, 129.5]);
                         mapTrend.fitBounds(optimalBounds, { padding: [0, 0], animate: false });
                     }
-                    
-                    if (facilityItems.includes(title) || schoolItems.includes(title) || activityItems.includes(title) || leaderItems.includes(title)) {
+
+                    if (facilityItems.includes(title) || schoolItems.includes(title) || activityItems.includes(title) || policyItems.includes(title) || leaderItems.includes(title)) {
                         renderCharts(title);
                     } else {
                         slideYear(document.getElementById('yearSlider').value);
@@ -1847,16 +1764,16 @@
 
             const facilityItems = ['청소년시설 전체보기', '청소년수련관', '청소년문화의집', '청소년수련원', '청소년특화시설', '청소년야영장', '유스호스텔'];
             const schoolItems = ['학교 전체보기', '초등학교', '중학교', '고등학교', '대학교', '특수학교'];
-            const activityItems =  ['청소년활동 전체보기', '청소년방과후아카데미', '수련활동인증제', '수련활동신고제', '국제교류', '그룹활동', '기타활동'];
+            const activityItems = ['청소년활동 전체보기', '건강스포츠', '모험개척', '역사탐방', '봉사협력', '교류', '과학정보', '진로탐구', '자기개발', '문화예술', '환경보존', '기타'];
+            const policyItems = ['청소년정책사업 전체보기', '청소년방과후아카데미', '국제청소년성취포상제', '자기도전포상제', '수련활동인증제', '수련활동신고제', '그룹활동'];
             const leaderItems = ['청소년지도자 전체보기', '청소년지도사 인원', '청소년상담사 인원'];
-            
+
             let datasets = [];
             let totalDataArray = new Array(regionsList.length).fill(0);
             let mapDataExtracted = false;
-			// 👇👇 [여기에 추가] 표를 구성할 변수 선언 👇👇
             let tableHeaders = [];
             let tableRows = [];
-			
+
             if (facilityItems.includes(title)) {
                 const isAllView = title === '청소년시설 전체보기';
                 if (isAllView) {
@@ -1899,11 +1816,10 @@
                 const isAllView = title === '학교 전체보기';
                 const types = ['초등학교', '중학교', '고등학교', '대학교', '특수학교'];
                 const colors = ['#3b82f6', '#10b981', '#f97316', '#a855f7', '#ec4899'];
-				
-				// 👇 [수정] 슬라이더 연도가 2026년이거나 데이터가 없는 연도일 경우 2025년으로 고정/대체합니다.
+
                 let sliderVal = document.getElementById('yearSlider').value;
                 let targetYear = (parseInt(sliderVal) >= 2026) ? "2025년" : sliderVal + "년";
-                
+
                 const getSchoolArrayForChart = (schType, metric="학교수") => {
                     let arr = [];
                     regionsList.forEach(region => {
@@ -1933,8 +1849,7 @@
                     let typeDataArr = getSchoolArrayForChart(title, "학교수");
                     datasets = [{ label: title, data: typeDataArr, backgroundColor: colors[idx] || '#3b82f6', borderRadius: 0, barPercentage: 0.5 }];
                     totalDataArray = [...typeDataArr];
-                    
-                    // 상세 표 연도 표시도 2025년으로 맞춤
+
                     tableHeaders = ['시도명', '기준 연도', '학교수 (개교)', '학생수 (명)'];
                     let studentArr = getSchoolArrayForChart(title, "학생수");
                     regionsList.forEach((r, i) => {
@@ -1948,21 +1863,19 @@
                     options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 20 } }, scales: { x: { stacked: isAllView, ticks: { font: { size: 12, weight: 'bold', family: "'Pretendard', sans-serif" }, maxRotation: 45, minRotation: 45 }, grid: { display: false } }, y: { stacked: isAllView, beginAtZero: true, grid: { color: '#f1f5f9' }, border: { display: false } } }, plugins: { legend: { display: isAllView, position: 'bottom', labels: { boxWidth: 10, font: { size: 12, family: "'Pretendard', sans-serif" } } } } }
                 });
             }else if (activityItems.includes(title)) {
-                // 1. [청소년활동] 처리 로직
                 const isAllView = title === '청소년활동 전체보기';
-                // 👇 청소년활동 11개 항목으로 수정
                 const types = ['건강스포츠', '모험개척', '역사탐방', '봉사협력', '교류', '과학정보', '진로탐구', '자기개발', '문화예술', '환경보존', '기타'];
                 const colors = ['#f43f5e', '#f97316', '#eab308', '#84cc16', '#22c55e', '#10b981', '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6', '#d946ef'];
 
                 if (isAllView) {
                     types.forEach((type, idx) => {
-                        let typeDataArr = getEyouthChartData(type); // 🌟 새로 만든 청소년활동 전용 함수
+                        let typeDataArr = getEyouthChartData(type); 
                         datasets.push({ label: type, data: typeDataArr, backgroundColor: colors[idx], borderRadius: 0, barPercentage: 0.5 });
                         typeDataArr.forEach((val, i) => totalDataArray[i] += val);
                     });
                 } else {
                     const idx = types.indexOf(title);
-                    let typeDataArr = getEyouthChartData(title); // 🌟 새로 만든 청소년활동 전용 함수
+                    let typeDataArr = getEyouthChartData(title); 
                     datasets = [{ label: title, data: typeDataArr, backgroundColor: colors[idx] || '#3b82f6', borderRadius: 0, barPercentage: 0.5 }];
                     totalDataArray = [...typeDataArr];
                 }
@@ -1973,21 +1886,19 @@
                     options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 20 } }, scales: { x: { stacked: isAllView, ticks: { font: { size: 12, weight: 'bold', family: "'Pretendard', sans-serif" }, maxRotation: 45, minRotation: 45 }, grid: { display: false } }, y: { stacked: isAllView, beginAtZero: true, grid: { color: '#f1f5f9' }, border: { display: false } } }, plugins: { legend: { display: isAllView, position: 'bottom', labels: { boxWidth: 10, font: { size: 11, family: "'Pretendard', sans-serif" } } } } }
                 });
             }else if (policyItems.includes(title)) {
-                // 2. [청소년정책사업] 처리 로직 추가
                 const isAllView = title === '청소년정책사업 전체보기';
-                // 👇 청소년정책사업 6개 항목
                 const types = ['청소년방과후아카데미', '국제청소년성취포상제', '자기도전포상제', '수련활동인증제', '수련활동신고제', '그룹활동'];
                 const colors = ['#f43f5e', '#f97316', '#84cc16', '#10b981', '#06b6d4', '#3b82f6'];
 
                 if (isAllView) {
                     types.forEach((type, idx) => {
-                        let typeDataArr = getPoliChartData(type); // 🌟 새로 만든 청소년정책사업 전용 함수
+                        let typeDataArr = getPoliChartData(type); 
                         datasets.push({ label: type, data: typeDataArr, backgroundColor: colors[idx], borderRadius: 0, barPercentage: 0.5 });
                         typeDataArr.forEach((val, i) => totalDataArray[i] += val);
                     });
                 } else {
                     const idx = types.indexOf(title);
-                    let typeDataArr = getPoliChartData(title); // 🌟 새로 만든 청소년정책사업 전용 함수
+                    let typeDataArr = getPoliChartData(title); 
                     datasets = [{ label: title, data: typeDataArr, backgroundColor: colors[idx] || '#3b82f6', borderRadius: 0, barPercentage: 0.5 }];
                     totalDataArray = [...typeDataArr];
                 }
@@ -1999,7 +1910,7 @@
                 });
             } else if (leaderItems.includes(title)) {
                 const yearsList = ['2022년', '2023년', '2024년', '2025년', '2026년'];
-                
+
                 if (title === '청소년지도자 전체보기') {
                     datasets = [
                         { label: '청소년지도사 (누적)', data: leaderTrendData['청소년지도사 인원'].cum, backgroundColor: '#1e293b', stack: '지도사', borderRadius: 0, barPercentage: 0.7, categoryPercentage: 0.6 },
@@ -2026,9 +1937,7 @@
 
             if (mapDataExtracted) {
                 const mapDataObj = {};
-                
-                // 1. 각 시도별 '청소년 인구'를 미리 구해둡니다 (비율 계산의 분모용)
-                const targetYearKey = "2026.06월"; // 기본 기준 연월
+                const targetYearKey = "2026.06월"; 
 
                 regionsList.forEach((r, i) => {
                     let provPop = 0;
@@ -2041,43 +1950,36 @@
                             provPop = popData[r]["소계"]["총인구수"][targetYearKey] || 0;
                         }
                     }
-                    if (provPop === 0) provPop = 1; // 0으로 나누기 방지
+                    if (provPop === 0) provPop = 1; 
 
-                    let numerator = totalDataArray[i]; // 해당 지역의 시설 수, 학교 수, 또는 인구 수 등
+                    let numerator = totalDataArray[i]; 
                     let calculatedRatio = 0;
 
-                    // 2. 항목 종류에 따른 비율(%) 계산 공식 적용
                     if (facilityItems.includes(title)) {
-                        // 청소년시설: (시도별 시설 개소수 / 시도별 청소년 인구) * 100
                         calculatedRatio = (numerator / provPop) * 100;
                     } 
                     else if (schoolItems.includes(title)) {
-                        // 학교: (시도별 학교 수 / 시도별 청소년 인구) * 100
                         calculatedRatio = (numerator / provPop) * 100;
                     } 
                     else {
-                        // 청소년 인구 또는 기타: (시도별 청소년 인구 / 전국 총 청소년 인구) * 100
                         let totalNationPop = (popData["전국"] && popData["전국"]["전국"]) ? popData["전국"]["전국"]["총인구수"][targetYearKey] || 1 : 1;
                         calculatedRatio = (numerator / totalNationPop) * 100;
                     }
 
-                    // 소수점 둘째 자리까지 저장하여 분위(Quantile) 계산에 활용
                     mapDataObj[r] = Number(calculatedRatio.toFixed(3));
                 });
 
-                updateTrendMapColors(mapDataObj, true); // 두 번째 인자로 백분율 표기 여부 전달
-				
+                updateTrendMapColors(mapDataObj, true); 
             }
-			
-			// 🌟 [추가됨] 실제로 화면에 표를 그려주는 부분
+
             const tableContainer = document.getElementById('dataTableContainer');
             const dataTable = document.getElementById('detailDataTable');
-            
+
             if (tableHeaders.length > 0 && tableContainer && dataTable) {
                 let thHtml = `<thead class="bg-brand-dark text-brand-yellow text-xs uppercase text-center border-b border-gray-700"><tr>`;
                 tableHeaders.forEach(th => thHtml += `<th class="py-3 px-4">${th}</th>`);
                 thHtml += `</tr></thead>`;
-                
+
                 let tbHtml = `<tbody class="text-center bg-white divide-y divide-gray-100">`;
                 tableRows.forEach(row => {
                     tbHtml += `<tr class="hover:bg-gray-50 transition-colors">`;
@@ -2085,20 +1987,20 @@
                     tbHtml += `</tr>`;
                 });
                 tbHtml += `</tbody>`;
-                
+
                 dataTable.innerHTML = thHtml + tbHtml;
                 tableContainer.classList.remove('hidden');
             } else if (tableContainer) {
-                tableContainer.classList.add('hidden'); // 데이터가 없으면 숨김
+                tableContainer.classList.add('hidden'); 
             }
         }
 
         function updateTrendMapColors(dataObj, isPercentage = false) {
             if (!geojsonTrend) return;
-            
+
             const values = Object.values(dataObj).filter(v => v > 0);
             if (values.length === 0) return;
-            
+
             values.sort((a, b) => a - b);
             const q1 = values[Math.floor(values.length * 0.2)];
             const q2 = values[Math.floor(values.length * 0.4)];
@@ -2118,8 +2020,7 @@
                 if(rName === "광주광역시" || rName === "전라남도") rName = "전남광주통합특별시";
                 const val = dataObj[rName] || 0;
                 layer.setStyle({ fillColor: getColor(val), fillOpacity: 0.9, weight: 1, color: '#94a3b8' });
-                
-                // 🌟 퍼센트 기호(%) 붙여서 출력
+
                 let displayVal = isPercentage ? `${val}%` : val.toLocaleString();
                 layer.bindTooltip(`${rName}: ${displayVal}`, { className: 'bg-white border border-gray-200 text-brand-dark font-bold text-xs rounded shadow px-2 py-1', sticky: true });
             });
@@ -2128,19 +2029,18 @@
         function slideYear(val) {
             const buttons = document.querySelectorAll('.year-btn');
             document.getElementById('yearSlider').value = val;
-            
+
             buttons.forEach(btn => {
                 if(btn.textContent == val) btn.className = "year-btn px-4 py-1 text-sm rounded font-bold shadow-[0_0_10px_rgba(253,186,26,0.4)] bg-brand-yellow text-brand-dark";
                 else btn.className = "year-btn px-3 py-1 text-sm rounded bg-gray-600 text-gray-300 hover:text-white transition-colors";
             });
 
-            // 👇👇 popData(JSON)를 이용해 실제 해당 연도 데이터를 그려줌 👇👇
             let currentMale = new Array(regionsList.length).fill(0);
             let currentFemale = new Array(regionsList.length).fill(0);
 
             let totalMale = 0;
             let totalFemale = 0;
-            
+
             const targetYearKey = (val == "2026") ? "2026.06월" : `${val}년`;
 
             regionsList.forEach((region, i) => {
@@ -2168,14 +2068,13 @@
                 totalMale = popData["전국"]["전국"]["남자인구수"][targetYearKey] || 0;
                 totalFemale = popData["전국"]["전국"]["여자인구수"][targetYearKey] || 0;
             }
-            
+
             let totalPop = totalMale + totalFemale;
-            console.log(`⏳ [디버깅 - 연도 변경] 선택 연도: ${val}년, 변경된 전국 총 인구: ${totalPop}명`);
 
             document.getElementById('summaryTotal').textContent = totalPop.toLocaleString() + "명";
             document.getElementById('summaryMale').textContent = totalMale.toLocaleString() + "명";
             document.getElementById('summaryFemale').textContent = totalFemale.toLocaleString() + "명";
-            
+
             if(totalPop > 0) {
                 document.getElementById('summaryMalePct').textContent = `(${Math.round((totalMale/totalPop)*100)}%)`;
                 document.getElementById('summaryFemalePct').textContent = `(${Math.round((totalFemale/totalPop)*100)}%)`;
@@ -2196,56 +2095,51 @@
             regionsList.forEach((r, i) => { mapDataObj[r] = currentMale[i] + currentFemale[i]; });
             updateTrendMapColors(mapDataObj);
 
-            // 👇 [추가] 만약 현재 보고 있는 화면이 학교 관련 통계라면, 차트와 표를 즉시 다시 그립니다!
             const currentTitle = document.getElementById('trendViewTitle').textContent;
             const schoolItems = ['학교 전체보기', '초등학교', '중학교', '고등학교', '대학교', '특수학교'];
             if (schoolItems.includes(currentTitle)) {
                 renderCharts(currentTitle);
             }
 
-        } // slideYear 함수 끝
+        }
 
         function toggleAiChat() { document.getElementById('aiChatWindow').classList.toggle('hidden'); }
         function openAiRecommenderModal() { document.getElementById('aiModal').classList.remove('hidden'); document.getElementById('aiModal').classList.add('flex'); }
         function closeAiRecommenderModal() { document.getElementById('aiModal').classList.add('hidden'); document.getElementById('aiModal').classList.remove('flex'); }
         function sendPresetPrompt(t) { document.getElementById('aiChatInput').value = t; sendUserMessage(); }
-        
+
         function sendUserMessage() {
             const v = document.getElementById('aiChatInput').value;
             if(!v) return;
             document.getElementById('aiChatMessages').innerHTML += `<div class="flex items-start gap-2 justify-end"><div class="bg-brand-dark text-white p-3 rounded-2xl rounded-tr-none text-sm">${v}</div></div>`;
             document.getElementById('aiChatInput').value = '';
-            
+
             setTimeout(() => {
                 document.getElementById('aiChatMessages').innerHTML += `<div class="flex items-start gap-2"><div class="w-7 h-7 rounded-full bg-brand-dark text-white flex items-center justify-center flex-shrink-0 text-xs font-bold">AI</div><div class="bg-white p-3 rounded-2xl rounded-tl-none shadow-sm border border-gray-100 text-gray-700 max-w-[80%] leading-relaxed"><i class="ph ph-spinner animate-spin"></i> 답변을 생성하고 있습니다...</div></div>`;
                 document.getElementById('aiChatMessages').scrollTop = document.getElementById('aiChatMessages').scrollHeight;
             }, 500);
         }
-		
-		
 
-        // --- [1] 비교 모달 전역 변수 ---
 		let radarChartInstance = null;
 		let currentCompareMode = 'province';
 
-		// --- [2] 비교 모달 열기/닫기 ---
 		function openCompareModal() {
 			document.getElementById('compareModal').classList.remove('hidden');
 			document.getElementById('compareModal').classList.add('flex');
-			
+
 			let provHtml = '';
 			regionsList.forEach(r => provHtml += `<option value="${r}">${r}</option>`);
 			document.getElementById('compProvA').innerHTML = provHtml;
 			document.getElementById('compDistProv').innerHTML = provHtml;
 			document.getElementById('compProvB').innerHTML = `<option value="전체">전체 (전국 평균)</option>` + provHtml; 
-			
+
 			document.getElementById('compProvA').value = '서울특별시';
 			document.getElementById('compProvB').value = '전체';
 			document.getElementById('compDistProv').value = '서울특별시';
-			
+
 			updateDistricts();
 			setCompareMode('province');
-			document.getElementById('compareResultArea').classList.add('hidden'); // 결과 초기화
+			document.getElementById('compareResultArea').classList.add('hidden'); 
 		}
 
 		function closeCompareModal() {
@@ -2253,7 +2147,6 @@
 			document.getElementById('compareModal').classList.remove('flex');
 		}
 
-		// --- [3] 모드 전환 (시도 vs 시군구) ---
 		function setCompareMode(mode) {
 			currentCompareMode = mode;
 			document.getElementById('compareResultArea').classList.add('hidden');
@@ -2274,14 +2167,11 @@
 			}
 		}
 
-		// --- [4] 하위 지역(시군구) 셀렉트 박스 업데이트 ---
 		function updateDistricts() {
             const prov = document.getElementById('compDistProv').value;
-            
-            // 👇 [수정] 원본 데이터를 건드리지 않고 여기서 동적으로 합쳐줍니다!
+
             let dists = [];
             if (prov === "전남광주통합특별시") {
-                // 광주와 전남의 시군구 배열을 즉석에서 합침
                 dists = [
                     ...(districtData["광주광역시"] || []), 
                     ...(districtData["전라남도"] || [])
@@ -2289,7 +2179,7 @@
             } else {
                 dists = districtData[prov] || [];
             }
-            
+
             let htmlA = '';
             dists.forEach(d => htmlA += `<option value="${d}">${d}</option>`);
             document.getElementById('compDistA').innerHTML = htmlA;
@@ -2297,12 +2187,10 @@
             let htmlB = `<option value="전체">전체 (${prov} 평균)</option>`;
             dists.forEach(d => htmlB += `<option value="${d}">${d}</option>`);
             document.getElementById('compDistB').innerHTML = htmlB;
-            
+
             document.getElementById('compDistB').value = '전체'; 
         }
 
-		// --- [5] '비중(%)' 기반 실제 데이터 연동 지표 계산 함수 ---
-		// --- [5] 시군구 및 시도 데이터를 완벽하게 찾아내는 지표 계산 함수 ---
 		function generateMockIndicators(regionName, mode) {
 			const targetYear = "2025년";
 			const targetPopMonth = "2026.06월";
@@ -2314,14 +2202,12 @@
 
 			let currentProv = document.getElementById('compDistProv') ? document.getElementById('compDistProv').value : "서울특별시";
 
-			// 1. 기준이 되는 전체(전국 또는 시도) 데이터 총합 구하기
 			let natPop = (popData["전국"] && popData["전국"]["전국"]) ? popData["전국"]["전국"]["총인구수"][targetPopMonth] || 1 : 10000000;
 			let natFac = sisulData.length || 1;
 			let natSchool = 11750;
 
 			let provPop = 0, provFac = 0, provSchool = 0;
-			
-			// 시도 총인구 안전하게 가져오기
+
 			if (currentProv === "전남광주통합특별시") {
 				let p1 = popData["광주광역시"]?.["소계"]?.["총인구수"]?.[targetPopMonth] || 0;
 				let p2 = popData["전라남도"]?.["소계"]?.["총인구수"]?.[targetPopMonth] || 0;
@@ -2341,7 +2227,6 @@
 
 			let pop = 0, facCount = 0, schoolCount = 0;
 
-			// 2. 선택된 지역(regionName)의 데이터 추출
 			if (mode === 'province') {
 				if (regionName === '전체') {
 					pop = natPop / 17; facCount = natFac / 17; schoolCount = natSchool / 17;
@@ -2357,35 +2242,29 @@
 					}
 				}
 			} else {
-				// 🏠 [시군구 비교 모드]
 				let distCount = districtData[currentProv] ? districtData[currentProv].length : 1;
 				if (regionName === '전체') {
 					pop = provPop / distCount; facCount = provFac / distCount; schoolCount = provSchool / distCount;
 				} else {
-					// 🔍 시군구 인구 추출 (다양한 키 값 대응)
 					if (popData[currentProv]) {
 						if (popData[currentProv][regionName]) {
 							pop = popData[currentProv][regionName]["총인구수"]?.[targetPopMonth] || 0;
 						} else {
-							// 혹시 키 이름에 공백이나 오타가 있을 경우를 대비한 검색
 							let foundKey = Object.keys(popData[currentProv]).find(k => k.includes(regionName));
 							if (foundKey) {
 								pop = popData[currentProv][foundKey]["총인구수"]?.[targetPopMonth] || 0;
 							}
 						}
 					}
-					// 시군구 시설 수 추출
 					if (currentProv === "전남광주통합특별시") {
 						facCount = sisulData.filter(i => (i.ctpvNm === "광주광역시" || i.ctpvNm === "전라남도") && i.sggNm === regionName).length;
 					} else {
 						facCount = sisulData.filter(i => i.ctpvNm === currentProv && i.sggNm === regionName).length;
 					}
-					// 시군구별 학교수는 시도 전체 학교수에서 시설 비율만큼 안분
 					schoolCount = Math.floor(facCount * (provSchool / provFac)) || 1;
 				}
 			}
 
-			// 3. 비중(%) 계산
 			let scorePop = 0, scoreFac = 0, scoreSchool = 0;
 
 			if (mode === 'province') {
@@ -2398,16 +2277,13 @@
 				scoreSchool = provSchool > 0 ? (schoolCount / provSchool) * 100 : 0;
 			}
 
-			console.log(`[시군구 디버깅] 모드: ${mode} | 시도: ${currentProv} | 선택구: ${regionName} | 인구: ${pop} | 시설: ${facCount}`);
-
 			return [
 				Number(scorePop.toFixed(1)), 
 				Number(scoreFac.toFixed(1)), 
 				Number(scoreSchool.toFixed(1))
 			];
 		}
-		
-		// --- [6] 비교 분석 실행 (차트 그리기 & 표 채우기) ---
+
 		async function runComparison() {
 			const mode = currentCompareMode;
 
@@ -2433,11 +2309,10 @@
 
 			const dataA = generateMockIndicators(nameA, mode);
 			const dataB = generateMockIndicators(nameB, mode);
-			
-			// 차트 생성 (Chart.js)
+
 			const canvas = document.getElementById('radarChartCanvas');
 			if(radarChartInstance) radarChartInstance.destroy();
-			
+
 			radarChartInstance = new Chart(canvas.getContext('2d'), {
 				type: 'radar',
 				data: {
@@ -2450,16 +2325,12 @@
 				options: { responsive: true, maintainAspectRatio: false, scales: { r: { angleLines: { color: '#e2e8f0' }, grid: { color: '#e2e8f0' }, pointLabels: { font: { size: 11, family: "'Pretendard', sans-serif", weight: 'bold' }, color: '#475569' }, ticks: { display: false, min: 0 } } }, plugins: { legend: { position: 'bottom', labels: { font: { size: 12, family: "'Pretendard', sans-serif" } } } } }
 			});
 
-			// 상세 표 데이터 채우기
-			// 상세 표 데이터 채우기 (부동소수점 오차 방지)
 			document.getElementById('thNameA').textContent = nameA;
 			document.getElementById('thNameB').textContent = nameB;
 			const labels = ['청소년 인구(수요)', '수련시설(인프라)', '정책사업(프로그램)'];
 			let trHtml = '';
 			dataA.forEach((val, i) => {
-				// 👇 [수정] 뺄셈 결과에 바로 .toFixed(1)을 씌운 뒤 숫자로 변환하여 깔끔하게 정리
 				let diff = Number((val - dataB[i]).toFixed(1));
-				
 				let diffHtml = diff > 0 ? `<span class="text-blue-500 font-bold">(+${diff}%)</span>` : (diff < 0 ? `<span class="text-red-500 font-bold">(${diff}%)</span>` : '-');
 				trHtml += `<tr class="border-b border-gray-100"><td class="py-2 px-2 font-bold bg-white">${labels[i]}</td><td class="py-2 px-2">${val}% ${diffHtml}</td><td class="py-2 px-2 bg-gray-50">${dataB[i]}%</td></tr>`;
 			});
@@ -2505,13 +2376,12 @@
 			} catch (error) {
 				console.warn("AI API 호출 실패 또는 에러 발생, 수치 기반 크기 비교 로직으로 대체합니다:", error);
 
-				// 📊 [백업 로직] AI가 안 될 때 데이터를 수학적으로 비교하여 직접 문장 생성
 				let diffPop = Number((dataA[0] - dataB[0]).toFixed(1));
 				let diffFac = Number((dataA[1] - dataB[1]).toFixed(1));
 				let diffProg = Number((dataA[2] - dataB[2]).toFixed(1));
 
 				let popCmp = diffPop > 0 ? `<span class="text-brand-yellow font-bold">${nameA}</span>가 청소년 인구 비중이 ${diffPop}% 높고` : (diffPop < 0 ? `<span class="text-brand-yellow font-bold">${nameB}</span>가 청소년 인구 비중이 ${Math.abs(diffPop)}% 높고` : '두 지역의 청소년 인구 비중이 유사하며');
-				
+
 				let facCmp = diffFac > 0 ? `수련시설 인프라는 <span class="text-brand-yellow font-bold">${nameA}</span>가 ${diffFac}% 우세합니다.` : (diffFac < 0 ? `수련시설 인프라는 <span class="text-brand-yellow font-bold">${nameB}</span>가 ${Math.abs(diffFac)}% 우세합니다.` : '수련시설 인프라는 유사한 수준입니다.');
 
 				let suggestion = "";
@@ -2529,9 +2399,6 @@
 			}
 		}
 
-
-
-        // --- [진짜 AI 연동형] AI 맞춤형 청소년활동 추천 생성 함수 ---
 		async function generateAiRecommendation() {
 			const area = document.getElementById('aiArea').value;
 			const interest = document.getElementById('aiInterest').value;
@@ -2544,14 +2411,12 @@
 			container.classList.remove('hidden');
 			content.innerHTML = `<div class="flex items-center gap-2 text-brand-dark font-bold py-4"><i class="ph ph-spinner-gap animate-spin text-brand-yellow text-xl"></i> AI가 '${area}'의 실데이터와 관심사를 분석하여 맞춤 프로그램을 생성 중입니다...</div>`;
 
-			// 선택 지역의 실제 등록 프로그램 최대 5개 추출하여 프롬프트 참고 자료로 전달
 			const matchedPrograms = programsData.filter(p => (p.sidoNm === area || area.includes(p.sidoNm))).slice(0, 5);
 			const programContext = matchedPrograms.length > 0 
 				? matchedPrograms.map(p => `- 프로그램명: ${p.activityName} / 운영기관: ${p.facilityName || '시설 미정'}`).join('\n')
 				: '등록된 세부 프로그램 정보 없음';
 
 			try {
-				// 💡 API 키 입력
 				const API_KEY = "AQ.Ab8RN6IhZPKU-lX1GmWpO6usO15l7RJUbR8SA2UtaBYyeYBstg"; 
 
 				const { GoogleGenAI } = await import("@google/genai");
@@ -2595,7 +2460,8 @@
 				});
 
 				if (response && response.text) {
-					content.innerHTML = response.text.replace(/```html|```/g, '').trim();
+					content.innerHTML = response.text.replace(/
+```html|```/g, '').trim();
 				} else {
 					content.innerHTML = `<div class="text-xs text-gray-500">추천 결과를 생성하지 못했습니다. 다시 시도해 주세요.</div>`;
 				}
@@ -2603,7 +2469,6 @@
 			} catch (error) {
                 console.warn("AI 추천 생성 실패, 로컬 데이터 검색(Fallback)으로 대체합니다.", error);
 
-                // 🌟 1. 관심분야별 매칭 키워드 사전 정의
                 const keywordMap = {
                     "환경 및 생태": ["환경", "생태", "에코", "탄소", "지구", "자연", "플라스틱", "기후", "업사이클링", "쓰레기", "플로깅"],
                     "디지털 및 AI 코딩": ["디지털", "코딩", "AI", "인공지능", "로봇", "소프트웨어", "IT", "메타버스", "드론", "미디어", "앱", "SW"],
@@ -2615,22 +2480,17 @@
 
                 const keywords = keywordMap[interest] || [interest];
 
-                // 🌟 2. 지역 및 키워드로 프로그램 검색
                 let fallbackPrograms = programsData.filter(p => {
-                    // 지역 매칭 (전남광주통합 등 예외 처리 포함)
                     let isAreaMatch = (p.sidoNm === area || area.includes(p.sidoNm) || (area === "전남광주통합특별시" && (p.sidoNm === "광주광역시" || p.sidoNm === "전라남도")));
                     if (!isAreaMatch) return false;
 
-                    // 키워드 매칭 (제목에 키워드 중 하나라도 포함되어 있는지)
                     let actName = (p.activityName || "").toLowerCase();
                     return keywords.some(kw => actName.includes(kw.toLowerCase()));
                 });
 
-                // 🌟 3. 검색 결과 UI 렌더링
                 if (fallbackPrograms.length > 0) {
-                    // 최상위 2개만 추출
                     const selected = fallbackPrograms.slice(0, 2);
-                    
+
                     let html = `
                         <div class="mb-3 text-sm text-gray-700">
                             <span class="font-bold text-brand-dark">'${area}'</span> 지역 <span class="font-bold text-brand-dark">'${interest}'</span> 분야 관련 등록 프로그램입니다. 
@@ -2655,7 +2515,6 @@
                     html += `</div>`;
                     content.innerHTML = html;
                 } else {
-                    // 검색 결과가 없을 때
                     content.innerHTML = `
                         <div class="bg-gray-50 p-6 rounded-xl border border-gray-200 text-center">
                             <i class="ph-bold ph-magnifying-glass text-2xl text-gray-400 mb-2"></i>
@@ -2667,7 +2526,6 @@
             }
 		}
     </script>
-	<!-- 👇 [추가됨] AI 지역 현황 분석 리포트 모달 -->
 	<div id="aiRegionalReportModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4 fade-in">
 		<div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
 			<div class="bg-brand-dark text-white px-6 py-4 flex justify-between items-center shrink-0">
@@ -2680,9 +2538,8 @@
 				</div>
 				<button onclick="closeRegionalAiReport()" class="text-gray-300 hover:text-white p-2 transition-colors"><i class="ph-bold ph-x text-xl"></i></button>
 			</div>
-			
+
 			<div class="p-6 overflow-y-auto flex-1 bg-gray-50 relative" id="aiRegionalReportContent">
-				<!-- AI 내용이 들어갈 자리 -->
 			</div>
 			<div class="px-6 py-4 bg-white border-t border-gray-200 text-right shrink-0">
 				<button onclick="closeRegionalAiReport()" class="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-xl transition-colors">닫기</button>
@@ -2691,14 +2548,13 @@
 	</div>
 
 	<script>
-		// 👇 [추가됨] 모달 열기/닫기 및 AI 호출 함수
 		function openRegionalAiReport() {
 			document.getElementById('aiRegionalReportModal').classList.remove('hidden');
 			document.getElementById('aiRegionalReportModal').classList.add('flex');
-			
+
 			const contentEl = document.getElementById('aiRegionalReportContent');
 			const d = window.currentReportData;
-			
+
 			if(!d) {
 				contentEl.innerHTML = `<p class="text-gray-500">데이터를 불러오는 데 실패했습니다.</p>`;
 				return;
@@ -2746,14 +2602,15 @@
 						<p><strong><span class="text-brand-yellow text-lg">5. 유의사항:</span></strong><br> [해당 지표 활용 시 주의할 점 1문장]</p>
 					</div>
 				`;
-				
+
 				const response = await ai.models.generateContent({
 					model: 'gemini-3.6-flash',
 					contents: prompt,
 				});
-				
+
 				if (response && response.text) {
-					document.getElementById('aiRegionalReportContent').innerHTML = response.text.replace(/```html|```/g, '').trim();
+					document.getElementById('aiRegionalReportContent').innerHTML = response.text.replace(/
+```html|```/g, '').trim();
 				} else {
 					throw new Error("Empty response");
 				}
