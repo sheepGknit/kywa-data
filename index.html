@@ -799,10 +799,11 @@
             '청소년상담사 인원': [950, 260, 210, 240, 170, 140, 110, 40, 1100, 160, 140, 180, 190, 200, 220, 240, 60]
         };
 
-        const leaderTrendData = {
-            '청소년지도사 인원': { cum: [], new: [] },
-            '청소년상담사 인원': { cum: [], new: [] }
+		const leaderTrendData = {
+            '청소년지도사 인원': { cum: [], new: [], grade1: [], grade2: [], grade3: [] },
+            '청소년상담사 인원': { cum: [], new: [], grade1: [], grade2: [], grade3: [] }
         };
+		
 		let leaderGradeData = {
 			'청소년지도사': [0,0,0],
 			'청소년상담사': [0,0,0]
@@ -1050,12 +1051,16 @@
 					const yearMatch = row["구분"].match(/\d+/);
 					if (!yearMatch) return;
 					const year = parseInt(yearMatch[0], 10);
-					if (year >= 22 && year <= 26) {
-						leaderTrendData['청소년지도사 인원'].cum.push(currentCum1); 
-						leaderTrendData['청소년지도사 인원'].new.push(row["총계"]);  
-					}
-					currentCum1 += row["총계"]; 
-				});
+                    if (year >= 22 && year <= 26) {
+                        leaderTrendData['청소년지도사 인원'].cum.push(currentCum1); 
+                        leaderTrendData['청소년지도사 인원'].new.push(row["총계"]);  
+                        // 🌟 연도별 1, 2, 3급 데이터 추출 추가
+                        leaderTrendData['청소년지도사 인원'].grade1.push(row["1급"] || 0);
+                        leaderTrendData['청소년지도사 인원'].grade2.push(row["2급"] || 0);
+                        leaderTrendData['청소년지도사 인원'].grade3.push(row["3급"] || 0);
+                    }
+                    currentCum1 += row["총계"]; 
+                });
 
 				let currentCum2 = 0;
 				sangdamsaData.forEach(row => {
@@ -1069,12 +1074,16 @@
 					const yearMatch = row["구분"].match(/\d+/);
 					if (!yearMatch) return;
 					const year = parseInt(yearMatch[0], 10);
-					if (year >= 22 && year <= 26) {
-						leaderTrendData['청소년상담사 인원'].cum.push(currentCum2); 
-						leaderTrendData['청소년상담사 인원'].new.push(row["총계"]);  
-					}
-					currentCum2 += row["총계"]; 
-				});
+                    if (year >= 22 && year <= 26) {
+                        leaderTrendData['청소년상담사 인원'].cum.push(currentCum2); 
+                        leaderTrendData['청소년상담사 인원'].new.push(row["총계"]);  
+                        // 🌟 연도별 1, 2, 3급 데이터 추출 추가
+                        leaderTrendData['청소년상담사 인원'].grade1.push(row["1급"] || 0);
+                        leaderTrendData['청소년상담사 인원'].grade2.push(row["2급"] || 0);
+                        leaderTrendData['청소년상담사 인원'].grade3.push(row["3급"] || 0);
+                    }
+                    currentCum2 += row["총계"]; 
+                });
 
 				popData = {};
 				Object.keys(pop).forEach(key => {
@@ -1802,33 +1811,34 @@
                 }
             });
 
-            // 연도별 콤보 차트 그리기
+            // 연도별 그룹 누적 막대 차트 그리기
             const ctxYearly = document.getElementById('leaderYearlyChart').getContext('2d');
             new Chart(ctxYearly, {
                 type: 'bar',
                 data: {
                     labels: ['2022년', '2023년', '2024년', '2025년', '2026년'], 
                     datasets: [
-                        {
-                            label: '청소년지도사 신규 (명)', type: 'bar',
-                            data: leaderTrendData['청소년지도사 인원'].new,
-                            backgroundColor: '#3b82f6', borderRadius: 4, barPercentage: 0.5
-                        },
-                        {
-                            label: '청소년상담사 신규 (명)', type: 'line',
-                            data: leaderTrendData['청소년상담사 인원'].new,
-                            borderColor: '#f43f5e', backgroundColor: '#f43f5e',
-                            borderWidth: 2.5, tension: 0.3, pointBackgroundColor: '#ffffff', pointBorderWidth: 2, pointRadius: 4
-                        }
+                        // --- 청소년지도사 그룹 (stack: '지도사') ---
+                        { label: '청소년지도사 1급', data: leaderTrendData['청소년지도사 인원'].grade1, backgroundColor: '#10b981', stack: '지도사' },
+                        { label: '청소년지도사 2급', data: leaderTrendData['청소년지도사 인원'].grade2, backgroundColor: '#3b82f6', stack: '지도사' },
+                        { label: '청소년지도사 3급', data: leaderTrendData['청소년지도사 인원'].grade3, backgroundColor: '#f43f5e', stack: '지도사' },
+                        
+                        // --- 청소년상담사 그룹 (stack: '상담사') ---
+                        { label: '청소년상담사 1급', data: leaderTrendData['청소년상담사 인원'].grade1, backgroundColor: '#6ee7b7', stack: '상담사' },
+                        { label: '청소년상담사 2급', data: leaderTrendData['청소년상담사 인원'].grade2, backgroundColor: '#93c5fd', stack: '상담사' },
+                        { label: '청소년상담사 3급', data: leaderTrendData['청소년상담사 인원'].grade3, backgroundColor: '#fda4af', stack: '상담사' }
                     ]
                 },
                 options: {
                     responsive: true, maintainAspectRatio: false,
                     scales: {
-                        x: { grid: { display: false }, ticks: { font: { family: "'Pretendard', sans-serif" } } },
-                        y: { beginAtZero: true, grid: { color: '#e2e8f0', borderDash: [5, 5] }, border: { display: false } }
+                        // 🌟 x축, y축 모두 stacked: true 설정 필요
+                        x: { stacked: true, grid: { display: false }, ticks: { font: { family: "'Pretendard', sans-serif" } } },
+                        y: { stacked: true, beginAtZero: true, grid: { color: '#e2e8f0', borderDash: [5, 5] }, border: { display: false } }
                     },
-                    plugins: { legend: { position: 'bottom', labels: { font: { family: "'Pretendard', sans-serif", size: 12 } } } }
+                    plugins: { 
+                        legend: { position: 'bottom', labels: { font: { family: "'Pretendard', sans-serif", size: 11 }, boxWidth: 12 } } 
+                    }
                 }
             });
         }
@@ -1909,16 +1919,21 @@
                 else if (schoolItems.includes(title)) {
                     document.getElementById('schoolTrendContent').style.display = 'flex';
                     // TODO: 나중에 학교 전용 렌더링 함수 호출
+                    renderCharts(title); // (임시로 기존 함수 연결)
                 } 
                 else if (activityItems.includes(title)) {
                     document.getElementById('activityTrendContent').style.display = 'flex';
                     // TODO: 나중에 활동 전용 렌더링 함수 호출
+                    renderCharts(title); // (임시로 기존 함수 연결)
                 } 
                 else if (policyItems.includes(title)) {
                     document.getElementById('policyTrendContent').style.display = 'flex';
                     // TODO: 나중에 정책 전용 렌더링 함수 호출
+                    renderCharts(title); // (임시로 기존 함수 연결)
                 } 
                 else if (leaderItems.includes(title)) {
+					timelineUI.style.display = 'none';
+					summaryUI.style.display = 'none';
                     document.getElementById('leaderTrendContent').style.display = 'flex';
                     renderLeaderTrendView(); // ⬅️ 방금 우리가 만든 지도자 렌더링 함수!
                 }
