@@ -178,7 +178,7 @@
                         </div>
                     </button>
                     <div class="accordion-content bg-brand-dark/50 px-3 text-sm text-gray-300">
-                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('건강스포츠')"><span>건강·스포츠</span><span class="font-bold text-white" id="act_val_1">0개</span></div>
+                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('건강/스포츠')"><span>건강/스포츠</span><span class="font-bold text-white" id="act_val_1">0개</span></div>
                         <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('모험개척')"><span>모험개척</span><span class="font-bold text-white" id="act_val_2">0개</span></div>
                         <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('역사탐방')"><span>역사탐방</span><span class="font-bold text-white" id="act_val_3">0개</span></div>
 						<div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('봉사협력')"><span>봉사협력</span><span class="font-bold text-white" id="act_val_4">0개</span></div>
@@ -413,7 +413,7 @@
 			<!-- 청소년활동 (영역별: 11개 항목) 탭 그룹 -->
 			<div id="activityTabGroup" class="hidden flex flex-wrap gap-2 mb-4">
 				<button onclick="filterActivity('청소년활동 전체보기')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-brand-yellow text-brand-dark font-black shadow-[0_0_10px_rgba(253,186,26,0.4)]">전체보기</button>
-				<button onclick="filterActivity('건강스포츠')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">건강·스포츠</button>
+				<button onclick="filterActivity('건강/스포츠')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">건강/스포츠</button>
 				<button onclick="filterActivity('모험개척')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">모험개척</button>
 				<button onclick="filterActivity('역사탐방')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">역사탐방</button>
 				<button onclick="filterActivity('봉사협력')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">봉사협력</button>
@@ -870,7 +870,7 @@
 				sch1: getSchCount('초등학교'), sch2: getSchCount('중학교'), sch3: getSchCount('고등학교'),
 				sch4: getSchCount('대학교'), sch5: getSchCount('특수학교'),
 
-				act1: getCountByRegion('건강스포츠', programsEyouthData),
+				act1: getCountByRegion('건강/스포츠', programsEyouthData),
 				act2: getCountByRegion('모험개척', programsEyouthData),
 				act3: getCountByRegion('역사탐방', programsEyouthData),
 				act4: getCountByRegion('봉사협력', programsEyouthData),
@@ -1630,7 +1630,7 @@
             document.querySelectorAll(".activity-tab").forEach(btn => {
                 let st = activeTitle;
                 if(st==='청소년활동 전체보기') st='전체보기'; 
-                else if(st==='건강스포츠') st='건강·스포츠'; 
+                else if(st==='건강/스포츠') st='건강/스포츠'; 
                 
                 if (btn.textContent.trim() === st || activeTitle === btn.textContent.trim()) btn.className = "activity-tab px-3 py-1.5 text-[13px] rounded-lg transition-colors bg-brand-yellow text-brand-dark font-black shadow-[0_0_10px_rgba(253,186,26,0.4)]";
                 else btn.className = "activity-tab px-3 py-1.5 text-[13px] rounded-lg transition-colors bg-[#1e293b] text-gray-400 hover:text-white border border-gray-600 font-bold";
@@ -1672,7 +1672,7 @@
             const formulaEl = document.getElementById('trendMapFormula');
             const facilityItems = ['청소년시설 전체보기', '청소년수련관', '청소년문화의집', '청소년수련원', '청소년특화시설', '청소년야영장', '유스호스텔'];
             const schoolItems = ['학교 전체보기', '초등학교', '중학교', '고등학교', '대학교', '특수학교'];
-            const activityItems = ['청소년활동 전체보기', '건강스포츠', '모험개척', '역사탐방', '봉사협력', '교류', '과학정보', '진로탐구', '자기개발', '문화예술', '환경보존', '기타'];
+            const activityItems = ['청소년활동 전체보기', '건강/스포츠', '모험개척', '역사탐방', '봉사협력', '교류', '과학정보', '진로탐구', '자기개발', '문화예술', '환경보존', '기타'];
             const policyItems = ['청소년정책사업 전체보기', '청소년방과후아카데미', '국제청소년성취포상제', '자기도전포상제', '수련활동인증제', '수련활동신고제', '그룹활동'];
             const leaderItems = ['청소년지도자 전체보기', '청소년지도사 인원', '청소년상담사 인원'];
 
@@ -1764,7 +1764,7 @@
 
             const facilityItems = ['청소년시설 전체보기', '청소년수련관', '청소년문화의집', '청소년수련원', '청소년특화시설', '청소년야영장', '유스호스텔'];
             const schoolItems = ['학교 전체보기', '초등학교', '중학교', '고등학교', '대학교', '특수학교'];
-            const activityItems = ['청소년활동 전체보기', '건강스포츠', '모험개척', '역사탐방', '봉사협력', '교류', '과학정보', '진로탐구', '자기개발', '문화예술', '환경보존', '기타'];
+            const activityItems = ['청소년활동 전체보기', '건강/스포츠', '모험개척', '역사탐방', '봉사협력', '교류', '과학정보', '진로탐구', '자기개발', '문화예술', '환경보존', '기타'];
             const policyItems = ['청소년정책사업 전체보기', '청소년방과후아카데미', '국제청소년성취포상제', '자기도전포상제', '수련활동인증제', '수련활동신고제', '그룹활동'];
             const leaderItems = ['청소년지도자 전체보기', '청소년지도사 인원', '청소년상담사 인원'];
 
@@ -1864,7 +1864,7 @@
                 });
             }else if (activityItems.includes(title)) {
                 const isAllView = title === '청소년활동 전체보기';
-                const types = ['건강스포츠', '모험개척', '역사탐방', '봉사협력', '교류', '과학정보', '진로탐구', '자기개발', '문화예술', '환경보존', '기타'];
+                const types = ['건강/스포츠', '모험개척', '역사탐방', '봉사협력', '교류', '과학정보', '진로탐구', '자기개발', '문화예술', '환경보존', '기타'];
                 const colors = ['#f43f5e', '#f97316', '#eab308', '#84cc16', '#22c55e', '#10b981', '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6', '#d946ef'];
 
                 if (isAllView) {
