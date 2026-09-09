@@ -498,6 +498,37 @@
             <p>※ 연도별 수치는 공시 기준일에 따라 실제 현황과 약간의 오차가 발생할 수 있습니다.</p>
         </div>
     </main>
+	<!-- 🌟 시설 상세 리스트 팝업 (모달) -->
+    <div id="facilityModal" class="hidden fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4 transition-opacity">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[80vh] flex flex-col overflow-hidden transform transition-transform">
+            <!-- 모달 헤더 -->
+            <div class="p-5 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+                <div>
+                    <h3 id="modalRegionTitle" class="text-xl font-black text-brand-dark flex items-center gap-2">
+                        <i class="ph-fill ph-map-pin text-brand-yellow"></i> <span>지역 이름</span>
+                    </h3>
+                    <p id="modalFacilityType" class="text-sm text-gray-500 font-bold mt-1">시설 종류 (총 0개소)</p>
+                </div>
+                <button onclick="closeFacilityModal()" class="text-gray-400 hover:text-red-500 transition-colors p-2 rounded-lg hover:bg-red-50">
+                    <i class="ph-bold ph-x text-2xl"></i>
+                </button>
+            </div>
+            <!-- 모달 콘텐츠 (리스트) -->
+            <div class="p-0 overflow-y-auto custom-scroll flex-1 bg-white">
+                <table class="w-full text-sm text-center text-gray-600">
+                    <thead class="bg-brand-dark text-brand-yellow sticky top-0">
+                        <tr>
+                            <th class="py-3 px-4 font-bold">시설명</th>
+                            <th class="py-3 px-4 font-bold">주소 (위치)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modalFacilityList" class="divide-y divide-gray-100">
+                        <!-- 자바스크립트가 리스트를 채울 공간 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 	
 	
     <div id="aiModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4">
@@ -1804,6 +1835,7 @@
                                 <thead class="bg-brand-dark text-brand-yellow text-xs uppercase border-b border-gray-700">
                                     <tr>
                                         <th class="py-3 px-4">연도</th>
+										<th class="py-3 px-4">누적인원</th>
                                         <th class="py-3 px-4">신규 선발 총계</th>
                                         <th class="py-3 px-4">1급</th>
                                         <th class="py-3 px-4">2급</th>
@@ -1898,6 +1930,7 @@
                 let trHtml = '';
                 
                 years.forEach((yr, i) => {
+					const cum = leaderTrendData[dataKey].cum[i] || 0;
                     const total = leaderTrendData[dataKey].new[i] || 0;
                     const g1 = leaderTrendData[dataKey].grade1[i] || 0;
                     const g2 = leaderTrendData[dataKey].grade2[i] || 0;
@@ -1906,6 +1939,7 @@
                     trHtml += `
                         <tr class="hover:bg-gray-50 transition-colors">
                             <td class="py-2.5 px-4 font-bold text-brand-dark bg-gray-50">${yr}</td>
+                            <td class="py-2.5 px-4 font-black text-blue-600">${cum.toLocaleString()}명</td> <!-- 🌟 누적인원 셀 추가 -->
                             <td class="py-2.5 px-4 font-bold text-gray-700">${total.toLocaleString()}명</td>
                             <td class="py-2.5 px-4 text-[#10b981] font-medium">${g1.toLocaleString()}명</td>
                             <td class="py-2.5 px-4 text-[#3b82f6] font-medium">${g2.toLocaleString()}명</td>
@@ -2127,9 +2161,36 @@
                     }
                 };
 
+                // (renderCharts 함수 안쪽) 시설 차트 생성 부분
                 comboChartInstance = new Chart(canvas.getContext('2d'), {
-                    type: 'bar', data: { labels: regionsList, datasets: datasets },
-                    options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 20 } }, scales: { x: { stacked: isAllView, ticks: { font: { size: 12, weight: 'bold', family: "'Pretendard', sans-serif" }, color: '#1e293b', maxRotation: 45, minRotation: 45 }, grid: { display: false } }, y: { stacked: isAllView, beginAtZero: true, grid: { color: '#f1f5f9' }, border: { display: false } } }, plugins: { legend: { display: isAllView, position: 'bottom', labels: { boxWidth: 10, font: { size: 12, family: "'Pretendard', sans-serif" } } } } },
+                    type: 'bar', 
+                    data: { labels: regionsList, datasets: datasets },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false, 
+                        layout: { padding: { top: 20 } }, 
+                        
+                        // 🌟 여기 클릭 이벤트(onClick)를 새로 추가합니다!
+                        onClick: (event, elements, chart) => {
+                            // 시설 탭일 때, 그리고 막대기를 정확히 클릭했을 때만 실행
+                            if (facilityItems.includes(title) && elements.length > 0) {
+                                const elementIndex = elements[0].index;          // 클릭한 지역 인덱스
+                                const datasetIndex = elements[0].datasetIndex;   // 클릭한 시설 종류 인덱스
+                                
+                                const clickedRegion = chart.data.labels[elementIndex]; 
+                                const clickedType = chart.data.datasets[datasetIndex].label; 
+                                
+                                // 모달 여는 함수 호출
+                                openFacilityModal(clickedRegion, clickedType);
+                            }
+                        },
+                        
+                        scales: { 
+                            x: { stacked: isAllView, ticks: { font: { size: 12, weight: 'bold', family: "'Pretendard', sans-serif" }, maxRotation: 45, minRotation: 45 }, grid: { display: false } }, 
+                            y: { stacked: isAllView, beginAtZero: true, grid: { color: '#f1f5f9' }, border: { display: false } } 
+                        }, 
+                        plugins: { legend: { display: isAllView, position: 'bottom', labels: { boxWidth: 10, font: { size: 12, family: "'Pretendard', sans-serif" } } } } 
+                    },
                     plugins: [customLabelPlugin]
                 });
             }
@@ -2862,6 +2923,59 @@
 	</div>
 
 	<script>
+	// 🌟 팝업창 닫기 함수
+        function closeFacilityModal() {
+            document.getElementById('facilityModal').classList.add('hidden');
+        }
+
+        // 🌟 클릭한 지역/시설 데이터 필터링 후 팝업창 띄우기
+        function openFacilityModal(region, type) {
+            // 1. 모달 텍스트 세팅
+            document.getElementById('modalRegionTitle').innerHTML = `<i class="ph-fill ph-map-pin text-brand-yellow"></i> <span>${region}</span>`;
+            
+            const tbody = document.getElementById('modalFacilityList');
+            tbody.innerHTML = ''; // 기존 리스트 초기화
+
+            // 2. 원본 데이터(sisulData)에서 해당 지역 & 해당 시설 종류만 골라내기
+            // (※ 광주/전남 통합 처리 등 예외가 있다면 여기서 맞춰주어야 합니다)
+            let filteredList = [];
+            
+            if (region === "전남광주통합특별시") {
+                filteredList = sisulData.filter(item => 
+                    (item['지역'] === '광주광역시' || item['지역'] === '전라남도') && 
+                    item['시설유형'] === type
+                );
+            } else {
+                filteredList = sisulData.filter(item => 
+                    item['지역'] === region && 
+                    item['시설유형'] === type
+                );
+            }
+
+            // 3. 골라낸 개수 표시
+            document.getElementById('modalFacilityType').textContent = `${type} (총 ${filteredList.length}개소)`;
+
+            // 4. 표에 행(tr) 만들어서 붙이기
+            if (filteredList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="2" class="py-8 text-gray-400 font-bold">해당 지역에 등록된 시설이 없습니다.</td></tr>`;
+            } else {
+                filteredList.forEach(item => {
+                    // JSON 데이터의 키 이름('시설명', '주소')은 실제 파일에 맞게 수정해 주세요.
+                    const name = item['시설명'] || item['시설이름'] || '-';
+                    const address = item['주소'] || item['소재지'] || '-';
+                    
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-blue-50 transition-colors">
+                            <td class="py-3 px-4 font-bold text-gray-700 text-left">${name}</td>
+                            <td class="py-3 px-4 text-gray-500 text-sm text-left">${address}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            // 5. 모달 화면에 짠! 하고 보여주기
+            document.getElementById('facilityModal').classList.remove('hidden');
+        }
 		function openRegionalAiReport() {
 			document.getElementById('aiRegionalReportModal').classList.remove('hidden');
 			document.getElementById('aiRegionalReportModal').classList.add('flex');
