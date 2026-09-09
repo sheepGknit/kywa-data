@@ -922,9 +922,9 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-			initMainMap();
-
-			// 🌟 공통 지역명 표준화 딕셔너리
+            initMainMap();
+            fetch(URL_MUNICIPALITIES).then(r => r.json()).then(d => municipalitiesData = d);
+			// 🌟 [통합] 공통 지역명 표준화 딕셔너리를 최상단에 딱 한 번만 선언합니다.
 			const COMMON_REGION_MAP = {
 				"서울": "서울특별시", "부산": "부산광역시", "대구": "대구광역시", "인천": "인천광역시", 
 				"광주": "광주광역시", "대전": "대전광역시", "울산": "울산광역시", "세종": "세종특별자치시", 
@@ -934,137 +934,180 @@
 				"제주": "제주특별자치도", "제주도": "제주특별자치도", 
 				"전남광주통합특별시": "전남광주통합특별시"
 			};
+			
+            // 1. 청소년 시설 데이터 로드
+            fetch('data/sisul.json')
+                .then(res => res.json())
+                .then(data => {
+                    sisulData = Array.isArray(data) ? data : (data.records || []);
+                    
+                    const types = ['청소년수련관', '청소년문화의집', '청소년수련원', '청소년특화시설', '청소년야영장', '유스호스텔'];
+                    types.forEach(t => facilityDataStore[t] = new Array(17).fill(0));
 
-			// 🌟 Promise.all을 사용하여 7개의 JSON 파일을 동시에 불러오고 모두 완료될 때까지 기다립니다.
-			Promise.all([
-				fetch(URL_MUNICIPALITIES).then(res => res.json()),
-				fetch('data/sisul.json').then(res => res.json()),
-				fetch('data/jidoja.json').then(res => res.json()),
-				fetch('data/pop_data.json').then(res => res.json()),
-				fetch('data/school.json').then(res => res.json()),
-				fetch('data/programs_eyouth.json').then(res => res.json()),
-				fetch('data/programs_poli.json').then(res => res.json())
-			])
-			.then(([munData, sisul, jidoja, pop, school, eyouth, poli]) => {
+                    sisulData.forEach(item => {
+                        const rawName = (item.ctpvNm || "").trim(); 
+						item.ctpvNm = COMMON_REGION_MAP[rawName] || rawName;
+                        if (regionMap[rawName]) {
+                            item.ctpvNm = regionMap[rawName];
+                        }
+                        
+                        const rIdx = regionsList.indexOf(item.ctpvNm);
+                        const facilityName = item.sisulNm || item.fcltNm || ""; 
+                        
+                        let type = null;
+                        if(item.sisulType === '수련관') type = '청소년수련관';
+                        else if(item.sisulType === '문화의집') type = '청소년문화의집';
+                        else if(item.sisulType === '수련원') type = '청소년수련원';
+                        else if(item.sisulType === '특화시설') type = '청소년특화시설';
+                        else if(item.sisulType === '야영장') type = '청소년야영장';
+                        else if(item.sisulType === '유스호스텔') type = '유스호스텔';
+                        else if(facilityName.includes('수련관')) type = '청소년수련관'; 
+                        else if(facilityName.includes('문화의집')) type = '청소년문화의집'; 
+                        else if(facilityName.includes('수련원')) type = '청소년수련원'; 
+
+                        if(rIdx !== -1 && type) {
+                            facilityDataStore[type][rIdx]++;
+                        }
+                    });
+
+                    defaultStats.fac1 = facilityDataStore['청소년수련관'].reduce((a, b) => a + b, 0);
+                    defaultStats.fac2 = facilityDataStore['청소년문화의집'].reduce((a, b) => a + b, 0);
+                    defaultStats.fac3 = facilityDataStore['청소년수련원'].reduce((a, b) => a + b, 0);
+                    defaultStats.fac4 = facilityDataStore['청소년특화시설'].reduce((a, b) => a + b, 0);
+                    defaultStats.fac5 = facilityDataStore['청소년야영장'].reduce((a, b) => a + b, 0);
+                    defaultStats.fac6 = facilityDataStore['유스호스텔'].reduce((a, b) => a + b, 0);
+
+                    applyDataToUI(getRegionData("전국"), true, "전국");
+                })
+                .catch(err => console.error('시설 데이터 실패.', err));
+            
+            // 2. 청소년 지도자 및 상담사 데이터 로드
+            fetch('data/jidoja.json') 
+                .then(res => res.json())
+                .then(data => {
+                    let jidojaData = [];
+                    let sangdamsaData = [];
+
+                    // 1) JSON 구조에 맞게 지도자와 상담사 배열 추출
+                    // 최상위가 배열인 경우 (예: [{"지도자": [...]}, {"상담사": [...]}])
+                    if (Array.isArray(data)) {
+                        data.forEach(item => {
+                            if (item["지도자"]) jidojaData = Array.isArray(item["지도자"]) ? item["지도자"] : Object.values(item["지도자"]);
+                            if (item["상담사"]) sangdamsaData = Array.isArray(item["상담사"]) ? item["상담사"] : Object.values(item["상담사"]);
+                        });
+                    } else {
+                        // 최상위가 객체인 경우 (예: {"지도자": [...], "상담사": [...]})
+                        if (data["지도자"]) jidojaData = Array.isArray(data["지도자"]) ? data["지도자"] : Object.values(data["지도자"]);
+                        if (data["상담사"]) sangdamsaData = Array.isArray(data["상담사"]) ? data["상담사"] : Object.values(data["상담사"]);
+                    }
+
+                    // 2) '지도자' (lead1) 데이터 처리
+                    let currentCum1 = 0; 
+                    jidojaData.forEach(row => {
+                        if (!row || !row["구분"]) return;
+                        if (row["구분"] === "총 계") {
+                            defaultStats.lead1 = row["총계"]; 
+                            return; 
+                        }
+                        
+                        const yearMatch = row["구분"].match(/\d+/);
+                        if (!yearMatch) return;
+                        const year = parseInt(yearMatch[0], 10);
+                        
+                        if (year >= 22 && year <= 26) {
+                            leaderTrendData['청소년지도사 인원'].cum.push(currentCum1); 
+                            leaderTrendData['청소년지도사 인원'].new.push(row["총계"]);  
+                        }
+                        currentCum1 += row["총계"]; 
+                    });
+
+                    // 3) '상담사' (lead2) 데이터 처리
+                    let currentCum2 = 0;
+                    sangdamsaData.forEach(row => {
+                        if (!row || !row["구분"]) return;
+                        if (row["구분"] === "총 계") {
+                            defaultStats.lead2 = row["총계"]; 
+                            return; 
+                        }
+                        
+                        const yearMatch = row["구분"].match(/\d+/);
+                        if (!yearMatch) return;
+                        const year = parseInt(yearMatch[0], 10);
+                        
+                        if (year >= 22 && year <= 26) {
+                            leaderTrendData['청소년상담사 인원'].cum.push(currentCum2); 
+                            leaderTrendData['청소년상담사 인원'].new.push(row["총계"]);  
+                        }
+                        currentCum2 += row["총계"]; 
+                    });
+
+                    console.log(`🐞 [디버깅 - Fetch] jidoja.json 로드 완료. 지도자(${jidojaData.length}건), 상담사(${sangdamsaData.length}건)`);
+                    applyDataToUI(getRegionData("전국"), true, "전국");
+                })
+                .catch(err => console.error('지도자/상담사 데이터 실패.', err));
+                
+            // 3. 청소년 인구 데이터 로드
+            fetch('data/pop_data.json') 
+                .then(res => res.json())
+                .then(data => {
+                    popData = {};
+                    // 원래 데이터의 키(지역명)를 하나씩 확인해서 변환된 이름으로 다시 담아줍니다.
+                    Object.keys(data).forEach(key => {
+                        let newKey = COMMON_REGION_MAP[key.trim()] || key.trim();
+                        popData[newKey] = data[key];
+                    });
+                    // 👆👆 [수정 끝] 👆👆
+					                    
+                    if(popData["전국"] && popData["전국"]["전국"]) {
+                        defaultStats.pop = popData["전국"]["전국"]["총인구수"]["2026.06월"] || 0;
+                        defaultStats.schAge = Math.floor(defaultStats.pop * 0.7);
+                        defaultStats.std = Math.floor(defaultStats.pop * 0.65);
+                    }
+                    
+                    applyDataToUI(getRegionData("전국"), true, "전국");
+                })
+                .catch(err => console.error('인구 데이터 실패.', err));
 				
-				// 1. 시군구 지도 데이터
-				municipalitiesData = munData;
+			// 4. 학교 데이터 로드 (school.json)
+			fetch('data/school.json') 
+                .then(res => res.json())
+                .then(data => {
+                    schoolData = {};
+                    Object.keys(data).forEach(key => {
+                        let newKey = COMMON_REGION_MAP[key.trim()] || key.trim();
+                        schoolData[newKey] = data[key];
+                    });
+                
+                    console.log(`🐞 [디버깅 - Fetch] school.json 로드 완료.`);
+                    applyDataToUI(getRegionData("전국"), true, "전국");
+                })
+                .catch(err => console.error('학교 데이터 실패.', err));
 
-				// 2. 시설 데이터 정제
-				sisulData = Array.isArray(sisul) ? sisul : (sisul.records || []);
-				const types = ['청소년수련관', '청소년문화의집', '청소년수련원', '청소년특화시설', '청소년야영장', '유스호스텔'];
-				types.forEach(t => facilityDataStore[t] = new Array(17).fill(0));
-				
-				sisulData.forEach(item => {
-					const rawName = (item.ctpvNm || "").trim(); 
-					item.ctpvNm = COMMON_REGION_MAP[rawName] || rawName;
-					
-					const rIdx = regionsList.indexOf(item.ctpvNm);
-					const facilityName = item.sisulNm || item.fcltNm || ""; 
-					
-					let type = null;
-					if(item.sisulType === '수련관') type = '청소년수련관';
-					else if(item.sisulType === '문화의집') type = '청소년문화의집';
-					else if(item.sisulType === '수련원') type = '청소년수련원';
-					else if(item.sisulType === '특화시설') type = '청소년특화시설';
-					else if(item.sisulType === '야영장') type = '청소년야영장';
-					else if(item.sisulType === '유스호스텔') type = '유스호스텔';
-					else if(facilityName.includes('수련관')) type = '청소년수련관'; 
-					else if(facilityName.includes('문화의집')) type = '청소년문화의집'; 
-					else if(facilityName.includes('수련원')) type = '청소년수련원'; 
+			// 1. 청소년활동 데이터 로드
+			fetch('data/programs_eyouth.json')
+				.then(res => res.json())
+				.then(data => {
+					let rawPrograms = Array.isArray(data) ? data : (data.records || []);
+					programsEyouthData = rawPrograms.map(item => ({
+						...item, sidoNm: COMMON_REGION_MAP[(item.sidoNm || "").trim()] || (item.sidoNm || "").trim()
+					}));
+                    applyDataToUI(getRegionData("전국"), true, "전국");
 
-					if(rIdx !== -1 && type) {
-						facilityDataStore[type][rIdx]++;
-					}
-				});
-				defaultStats.fac1 = facilityDataStore['청소년수련관'].reduce((a, b) => a + b, 0);
-				defaultStats.fac2 = facilityDataStore['청소년문화의집'].reduce((a, b) => a + b, 0);
-				defaultStats.fac3 = facilityDataStore['청소년수련원'].reduce((a, b) => a + b, 0);
-				defaultStats.fac4 = facilityDataStore['청소년특화시설'].reduce((a, b) => a + b, 0);
-				defaultStats.fac5 = facilityDataStore['청소년야영장'].reduce((a, b) => a + b, 0);
-				defaultStats.fac6 = facilityDataStore['유스호스텔'].reduce((a, b) => a + b, 0);
+				})
+				.catch(err => console.error('청소년활동 데이터 실패.', err));
 
-				// 3. 지도자 데이터 정제
-				let jidojaData = [];
-				let sangdamsaData = [];
-				if (Array.isArray(jidoja)) {
-					jidoja.forEach(item => {
-						if (item["지도자"]) jidojaData = Array.isArray(item["지도자"]) ? item["지도자"] : Object.values(item["지도자"]);
-						if (item["상담사"]) sangdamsaData = Array.isArray(item["상담사"]) ? item["상담사"] : Object.values(item["상담사"]);
-					});
-				} else {
-					if (jidoja["지도자"]) jidojaData = Array.isArray(jidoja["지도자"]) ? jidoja["지도자"] : Object.values(jidoja["지도자"]);
-					if (jidoja["상담사"]) sangdamsaData = Array.isArray(jidoja["상담사"]) ? jidoja["상담사"] : Object.values(jidoja["상담사"]);
-				}
-
-				let currentCum1 = 0; 
-				jidojaData.forEach(row => {
-					if (!row || !row["구분"]) return;
-					if (row["구분"] === "총 계") { defaultStats.lead1 = row["총계"]; return; }
-					const yearMatch = row["구분"].match(/\d+/);
-					if (!yearMatch) return;
-					const year = parseInt(yearMatch[0], 10);
-					if (year >= 22 && year <= 26) {
-						leaderTrendData['청소년지도사 인원'].cum.push(currentCum1); 
-						leaderTrendData['청소년지도사 인원'].new.push(row["총계"]);  
-					}
-					currentCum1 += row["총계"]; 
-				});
-
-				let currentCum2 = 0;
-				sangdamsaData.forEach(row => {
-					if (!row || !row["구분"]) return;
-					if (row["구분"] === "총 계") { defaultStats.lead2 = row["총계"]; return; }
-					const yearMatch = row["구분"].match(/\d+/);
-					if (!yearMatch) return;
-					const year = parseInt(yearMatch[0], 10);
-					if (year >= 22 && year <= 26) {
-						leaderTrendData['청소년상담사 인원'].cum.push(currentCum2); 
-						leaderTrendData['청소년상담사 인원'].new.push(row["총계"]);  
-					}
-					currentCum2 += row["총계"]; 
-				});
-
-				// 4. 인구 데이터 정제
-				popData = {};
-				Object.keys(pop).forEach(key => {
-					let newKey = COMMON_REGION_MAP[key.trim()] || key.trim();
-					popData[newKey] = pop[key];
-				});
-				if(popData["전국"] && popData["전국"]["전국"]) {
-					defaultStats.pop = popData["전국"]["전국"]["총인구수"]["2026.06월"] || 0;
-					defaultStats.schAge = Math.floor(defaultStats.pop * 0.7);
-					defaultStats.std = Math.floor(defaultStats.pop * 0.65);
-				}
-
-				// 5. 학교 데이터 정제
-				schoolData = {};
-				Object.keys(school).forEach(key => {
-					let newKey = COMMON_REGION_MAP[key.trim()] || key.trim();
-					schoolData[newKey] = school[key];
-				});
-
-				// 6. 청소년활동 데이터 정제
-				let rawEyouth = Array.isArray(eyouth) ? eyouth : (eyouth.records || []);
-				programsEyouthData = rawEyouth.map(item => ({
-					...item, sidoNm: COMMON_REGION_MAP[(item.sidoNm || "").trim()] || (item.sidoNm || "").trim()
-				}));
-
-				// 7. 정책사업 데이터 정제
-				let rawPoli = Array.isArray(poli) ? poli : (poli.records || []);
-				programsPoliData = rawPoli.map(item => ({
-					...item, sidoNm: COMMON_REGION_MAP[(item.sidoNm || "").trim()] || (item.sidoNm || "").trim()
-				}));
-
-				// 🚀 모든 파일이 로드되고 정제가 끝난 이 시점에! 딱 한 번만 화면을 그립니다.
-				console.log("모든 데이터 로드 완료! 화면 렌더링을 시작합니다.");
-				applyDataToUI(getRegionData("전국"), true, "전국");
-
-			})
-			.catch(err => {
-				console.error('데이터 로드 중 에러가 발생했습니다:', err);
-			});
-		});
+			// 2. 청소년정책사업 데이터 로드
+			fetch('data/programs_poli.json')
+				.then(res => res.json())
+				.then(data => {
+					let rawPrograms = Array.isArray(data) ? data : (data.records || []);
+					programsPoliData = rawPrograms.map(item => ({
+						...item, sidoNm: COMMON_REGION_MAP[(item.sidoNm || "").trim()] || (item.sidoNm || "").trim()
+					}));
+					applyDataToUI(getRegionData("전국"), true, "전국"); 
+				})
+				.catch(err => console.error('정책사업 데이터 실패.', err));
+        });
 
         function initMainMap() {
             mapMain = L.map('mainMap', { center: [36.0, 127.8], zoom: 6.5, zoomControl: false, dragging: false, scrollWheelZoom: true, doubleClickZoom: false, touchZoom: false });
