@@ -1068,7 +1068,7 @@
 
 			// 5. 프로그램 데이터 로드 (programs.json)
 			// 5. 프로그램 데이터 로드 및 지역명 표준화 전처리 (programs.json)
-			fetch('data/programs.json')
+			fetch('data/programs_poli.json')
 				.then(res => res.json())
 				.then(data => {
 					let rawPrograms = Array.isArray(data) ? data : (data.records || []);
