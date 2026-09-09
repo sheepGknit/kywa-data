@@ -1744,90 +1744,174 @@
         }
         function filterLeader(type) { updateLeaderTabUI(type); renderCharts(type); }
 		
-		function renderLeaderTrendView() {
-            const trendContainer = document.getElementById('leaderTrendContent');
-			// 그 공간 안에 HTML을 꽂아 넣습니다.
-            trendContainer.innerHTML = `
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 mt-2">
-                    <div class="flex flex-col bg-white rounded-2xl p-6 border border-gray-200 shadow-sm relative">
-                        <h4 class="text-base font-bold text-gray-700 text-center mb-6">급수별 취득 비율 (누적)</h4>
-                        <div class="flex-1 relative w-full min-h-[300px]">
-                            <canvas id="leaderGradeChart"></canvas>
+		function renderLeaderTrendView(title = '청소년지도자 전체보기') {
+            const container = document.getElementById('leaderTrendContent');
+            const isAll = title === '청소년지도자 전체보기';
+            
+            // 개별 탭일 경우 이름 매핑 ('청소년지도사 인원' -> '청소년지도사')
+            const roleName = title.replace(' 인원', ''); 
+            const dataKey = title; 
+
+            let html = '';
+
+            // 🌟 1. 전체보기 레이아웃 (기존과 동일)
+            if (isAll) {
+                html = `
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 mt-2">
+                        <div class="flex flex-col bg-white rounded-2xl p-6 border border-gray-200 shadow-sm relative">
+                            <h4 class="text-base font-bold text-gray-700 text-center mb-6">급수별 취득 비율 (누적)</h4>
+                            <div class="flex-1 relative w-full min-h-[300px]">
+                                <canvas id="leaderGradeChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="flex flex-col bg-white rounded-2xl p-6 border border-gray-200 shadow-sm relative">
+                            <h4 class="text-base font-bold text-gray-700 text-center mb-6">연도별 신규 선발 추이</h4>
+                            <div class="flex-1 relative w-full min-h-[300px]">
+                                <canvas id="leaderYearlyChart"></canvas>
+                            </div>
                         </div>
                     </div>
-                    <div class="flex flex-col bg-white rounded-2xl p-6 border border-gray-200 shadow-sm relative">
-                        <h4 class="text-base font-bold text-gray-700 text-center mb-6">연도별 신규 선발 추이</h4>
-                        <div class="flex-1 relative w-full min-h-[300px]">
-                            <canvas id="leaderYearlyChart"></canvas>
+                `;
+            } 
+            // 🌟 2. 개별 보기 레이아웃 (차트 2개 + 하단 상세 표)
+            else {
+                html = `
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-2 mb-6">
+                        <div class="flex flex-col bg-white rounded-2xl p-6 border border-gray-200 shadow-sm relative">
+                            <h4 class="text-base font-bold text-gray-700 text-center mb-6">${roleName} 급수별 누적 현황</h4>
+                            <div class="flex-1 relative w-full min-h-[250px]">
+                                <canvas id="leaderSingleGradeChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="flex flex-col bg-white rounded-2xl p-6 border border-gray-200 shadow-sm relative">
+                            <h4 class="text-base font-bold text-gray-700 text-center mb-6">연도별 신규 취득 (급수별)</h4>
+                            <div class="flex-1 relative w-full min-h-[250px]">
+                                <canvas id="leaderSingleYearlyChart"></canvas>
+                            </div>
                         </div>
                     </div>
-                </div>
-            `;
+                    
+                    <!-- 상세 데이터 표 -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                        <div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
+                            <h3 class="font-bold text-brand-dark text-sm"><i class="ph-bold ph-table mr-1"></i> 연도별 ${roleName} 세부 데이터</h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-center text-gray-500">
+                                <thead class="bg-brand-dark text-brand-yellow text-xs uppercase border-b border-gray-700">
+                                    <tr>
+                                        <th class="py-3 px-4">연도</th>
+                                        <th class="py-3 px-4">신규 선발 총계</th>
+                                        <th class="py-3 px-4">1급</th>
+                                        <th class="py-3 px-4">2급</th>
+                                        <th class="py-3 px-4">3급</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="leaderDetailTableBody" class="divide-y divide-gray-100">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
 
-            // 이중 도넛 차트 그리기
-            const ctxGrade = document.getElementById('leaderGradeChart').getContext('2d');
-            new Chart(ctxGrade, {
-                type: 'doughnut',
-                data: {
-                    labels: ['1급', '2급', '3급'],
-                    datasets: [
-                        {
-                            label: '청소년지도사',
-                            data: leaderGradeData['청소년지도사'], 
-                            backgroundColor: ['#10b981', '#3b82f6', '#f43f5e'],
-                            borderWidth: 2,
-                            hoverOffset: 4,
-                            weight: 2
-                        },
-                        {
-                            label: '청소년상담사',
-                            data: leaderGradeData['청소년상담사'], 
-                            backgroundColor: ['#6ee7b7', '#93c5fd', '#fda4af'],
-                            borderWidth: 2,
-                            hoverOffset: 4,
-                            weight: 1.5
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false, cutout: '45%',
-                    plugins: {
-                        legend: { position: 'bottom', labels: { font: { family: "'Pretendard', sans-serif", size: 12 } } },
-                        tooltip: { callbacks: { label: function(context) { return `${context.dataset.label} : ${context.parsed.toLocaleString()}명`; } } }
-                    }
-                }
-            });
+            container.innerHTML = html;
 
-            // 연도별 그룹 누적 막대 차트 그리기
-            const ctxYearly = document.getElementById('leaderYearlyChart').getContext('2d');
-            new Chart(ctxYearly, {
-                type: 'bar',
-                data: {
-                    labels: ['2022년', '2023년', '2024년', '2025년', '2026년'], 
-                    datasets: [
-                        // --- 청소년지도사 그룹 (stack: '지도사') ---
-                        { label: '청소년지도사 1급', data: leaderTrendData['청소년지도사 인원'].grade1, backgroundColor: '#10b981', stack: '지도사' },
-                        { label: '청소년지도사 2급', data: leaderTrendData['청소년지도사 인원'].grade2, backgroundColor: '#3b82f6', stack: '지도사' },
-                        { label: '청소년지도사 3급', data: leaderTrendData['청소년지도사 인원'].grade3, backgroundColor: '#f43f5e', stack: '지도사' },
-                        
-                        // --- 청소년상담사 그룹 (stack: '상담사') ---
-                        { label: '청소년상담사 1급', data: leaderTrendData['청소년상담사 인원'].grade1, backgroundColor: '#6ee7b7', stack: '상담사' },
-                        { label: '청소년상담사 2급', data: leaderTrendData['청소년상담사 인원'].grade2, backgroundColor: '#93c5fd', stack: '상담사' },
-                        { label: '청소년상담사 3급', data: leaderTrendData['청소년상담사 인원'].grade3, backgroundColor: '#fda4af', stack: '상담사' }
-                    ]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    scales: {
-                        // 🌟 x축, y축 모두 stacked: true 설정 필요
-                        x: { stacked: true, grid: { display: false }, ticks: { font: { family: "'Pretendard', sans-serif" } } },
-                        y: { stacked: true, beginAtZero: true, grid: { color: '#e2e8f0', borderDash: [5, 5] }, border: { display: false } }
+            // 🌟 3. 차트 렌더링 로직
+            if (isAll) {
+                // (기존 전체보기 차트 그리기 - 이중 도넛 + 나란한 막대)
+                const ctxGrade = document.getElementById('leaderGradeChart').getContext('2d');
+                new Chart(ctxGrade, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['1급', '2급', '3급'],
+                        datasets: [
+                            { label: '청소년지도사', data: leaderGradeData['청소년지도사'], backgroundColor: ['#10b981', '#3b82f6', '#f43f5e'], borderWidth: 2, hoverOffset: 4, weight: 2 },
+                            { label: '청소년상담사', data: leaderGradeData['청소년상담사'], backgroundColor: ['#6ee7b7', '#93c5fd', '#fda4af'], borderWidth: 2, hoverOffset: 4, weight: 1.5 }
+                        ]
                     },
-                    plugins: { 
-                        legend: { position: 'bottom', labels: { font: { family: "'Pretendard', sans-serif", size: 11 }, boxWidth: 12 } } 
+                    options: { responsive: true, maintainAspectRatio: false, cutout: '45%', plugins: { legend: { position: 'bottom', labels: { font: { family: "'Pretendard', sans-serif", size: 12 } } }, tooltip: { callbacks: { label: function(context) { return `${context.dataset.label} : ${context.parsed.toLocaleString()}명`; } } } } }
+                });
+
+                const ctxYearly = document.getElementById('leaderYearlyChart').getContext('2d');
+                new Chart(ctxYearly, {
+                    type: 'bar',
+                    data: {
+                        labels: ['2022년', '2023년', '2024년', '2025년', '2026년'], 
+                        datasets: [
+                            { label: '청소년지도사 1급', data: leaderTrendData['청소년지도사 인원'].grade1, backgroundColor: '#10b981', stack: '지도사' },
+                            { label: '청소년지도사 2급', data: leaderTrendData['청소년지도사 인원'].grade2, backgroundColor: '#3b82f6', stack: '지도사' },
+                            { label: '청소년지도사 3급', data: leaderTrendData['청소년지도사 인원'].grade3, backgroundColor: '#f43f5e', stack: '지도사' },
+                            { label: '청소년상담사 1급', data: leaderTrendData['청소년상담사 인원'].grade1, backgroundColor: '#6ee7b7', stack: '상담사' },
+                            { label: '청소년상담사 2급', data: leaderTrendData['청소년상담사 인원'].grade2, backgroundColor: '#93c5fd', stack: '상담사' },
+                            { label: '청소년상담사 3급', data: leaderTrendData['청소년상담사 인원'].grade3, backgroundColor: '#fda4af', stack: '상담사' }
+                        ]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        scales: { x: { stacked: true, grid: { display: false }, ticks: { font: { family: "'Pretendard', sans-serif" } } }, y: { stacked: true, beginAtZero: true, grid: { color: '#e2e8f0', borderDash: [5, 5] }, border: { display: false } } },
+                        plugins: { legend: { position: 'bottom', labels: { font: { family: "'Pretendard', sans-serif", size: 11 }, boxWidth: 12 } } }
                     }
-                }
-            });
+                });
+            } 
+            else {
+                // (개별 보기 차트 그리기 - 단일 도넛 + 급수 누적 막대)
+                const ctxGrade = document.getElementById('leaderSingleGradeChart').getContext('2d');
+                new Chart(ctxGrade, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['1급', '2급', '3급'],
+                        datasets: [{
+                            label: roleName,
+                            data: leaderGradeData[roleName],
+                            backgroundColor: ['#10b981', '#3b82f6', '#f43f5e'],
+                            borderWidth: 2, hoverOffset: 4
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, cutout: '55%', plugins: { legend: { position: 'bottom', labels: { font: { family: "'Pretendard', sans-serif", size: 12 } } } } }
+                });
+
+                const ctxYearly = document.getElementById('leaderSingleYearlyChart').getContext('2d');
+                new Chart(ctxYearly, {
+                    type: 'bar',
+                    data: {
+                        labels: ['2022년', '2023년', '2024년', '2025년', '2026년'],
+                        datasets: [
+                            { label: '1급', data: leaderTrendData[dataKey].grade1, backgroundColor: '#10b981', stack: '급수' },
+                            { label: '2급', data: leaderTrendData[dataKey].grade2, backgroundColor: '#3b82f6', stack: '급수' },
+                            { label: '3급', data: leaderTrendData[dataKey].grade3, backgroundColor: '#f43f5e', stack: '급수' }
+                        ]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, beginAtZero: true, grid: { color: '#e2e8f0', borderDash: [5, 5] }, border: { display: false } } },
+                        plugins: { legend: { position: 'bottom', labels: { font: { family: "'Pretendard', sans-serif", size: 12 } } } }
+                    }
+                });
+
+                // 🌟 4. 데이터 표 값 채워넣기
+                const tbody = document.getElementById('leaderDetailTableBody');
+                const years = ['2022년', '2023년', '2024년', '2025년', '2026년'];
+                let trHtml = '';
+                
+                years.forEach((yr, i) => {
+                    const total = leaderTrendData[dataKey].new[i] || 0;
+                    const g1 = leaderTrendData[dataKey].grade1[i] || 0;
+                    const g2 = leaderTrendData[dataKey].grade2[i] || 0;
+                    const g3 = leaderTrendData[dataKey].grade3[i] || 0;
+                    
+                    trHtml += `
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="py-2.5 px-4 font-bold text-brand-dark bg-gray-50">${yr}</td>
+                            <td class="py-2.5 px-4 font-bold text-gray-700">${total.toLocaleString()}명</td>
+                            <td class="py-2.5 px-4 text-[#10b981] font-medium">${g1.toLocaleString()}명</td>
+                            <td class="py-2.5 px-4 text-[#3b82f6] font-medium">${g2.toLocaleString()}명</td>
+                            <td class="py-2.5 px-4 text-[#f43f5e] font-medium">${g3.toLocaleString()}명</td>
+                        </tr>
+                    `;
+                });
+                tbody.innerHTML = trHtml;
+            }
         }
 
         function showTrendView(title) {
@@ -1936,23 +2020,20 @@
                     commonLayout.classList.remove('hidden'); commonLayout.classList.add('flex');
                     renderCharts(title);
                 } 
+                // (showTrendView 함수 안쪽 분기문)
                 else if (leaderItems.includes(title)) {
-                    // 지도자는 공통 블록을 쓰지 않고 자체 화면을 켬
                     const container = document.getElementById('leaderTrendContent');
-					// 🌟 연도 슬라이더와 인구 요약창을 강제로 끄는 코드 추가
+                    
                     const timelineUI = document.getElementById('timelineUI');
                     const summaryUI = document.getElementById('populationSummary');
-                    if (timelineUI) { 
-                        timelineUI.style.display = 'none'; 
-                        timelineUI.classList.add('hidden'); 
-                    }
-                    if (summaryUI) { 
-                        summaryUI.style.display = 'none'; 
-                        summaryUI.classList.add('hidden'); 
-                    }
+                    if (timelineUI) { timelineUI.style.display = 'none'; timelineUI.classList.add('hidden'); }
+                    if (summaryUI) { summaryUI.style.display = 'none'; summaryUI.classList.add('hidden'); }
+                    
                     container.classList.remove('hidden'); container.classList.add('flex');
-                    renderLeaderTrendView();
-                } 
+                    
+                    // 🌟 괄호 안에 title을 추가합니다!
+                    renderLeaderTrendView(title); 
+                }
                 else {
                     // 위 항목들에 해당하지 않으면 '인구수' 기본 화면으로 간주
                     const container = document.getElementById('populationTrendContent');
