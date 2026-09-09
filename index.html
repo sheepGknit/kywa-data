@@ -436,12 +436,13 @@
 				<button onclick="filterPolicy('수련활동신고제')" class="policy-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">활동신고제</button>
 				<button onclick="filterPolicy('그룹활동')" class="policy-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">그룹활동</button>
 			</div>
+			<!-- 청소년지도사 -->
             <div id="leaderTabGroup" class="hidden flex gap-2 mb-4">
                 <button onclick="filterLeader('청소년지도자 전체보기')" class="leader-tab px-4 py-2 text-sm rounded-lg bg-brand-yellow text-brand-dark font-black shadow-[0_0_10px_rgba(253,186,26,0.4)]">전체보기</button>
                 <button onclick="filterLeader('청소년지도사 인원')" class="leader-tab px-4 py-2 text-sm rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">청소년지도사</button>
                 <button onclick="filterLeader('청소년상담사 인원')" class="leader-tab px-4 py-2 text-sm rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">청소년상담사</button>
             </div>
-<!-- 🌟 1. 앞으로 각자 다르게 꾸며질 6개의 전용 빈 도화지 (기본은 모두 hidden) -->
+		<!-- 🌟 1. 앞으로 각자 다르게 꾸며질 6개의 전용 빈 도화지 (기본은 모두 hidden) -->
             <div id="populationTrendContent" class="hidden flex-col flex-1 w-full"></div>
             <div id="facilityTrendContent" class="hidden flex-col flex-1 w-full"></div>
             <div id="schoolTrendContent" class="hidden flex-col flex-1 w-full"></div>
@@ -1745,7 +1746,7 @@
 		
 		function renderLeaderTrendView() {
             const trendContainer = document.getElementById('leaderTrendContent');
-// 그 공간 안에 HTML을 꽂아 넣습니다.
+			// 그 공간 안에 HTML을 꽂아 넣습니다.
             trendContainer.innerHTML = `
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 mt-2">
                     <div class="flex flex-col bg-white rounded-2xl p-6 border border-gray-200 shadow-sm relative">
@@ -1938,6 +1939,17 @@
                 else if (leaderItems.includes(title)) {
                     // 지도자는 공통 블록을 쓰지 않고 자체 화면을 켬
                     const container = document.getElementById('leaderTrendContent');
+					// 🌟 연도 슬라이더와 인구 요약창을 강제로 끄는 코드 추가
+                    const timelineUI = document.getElementById('timelineUI');
+                    const summaryUI = document.getElementById('populationSummary');
+                    if (timelineUI) { 
+                        timelineUI.style.display = 'none'; 
+                        timelineUI.classList.add('hidden'); 
+                    }
+                    if (summaryUI) { 
+                        summaryUI.style.display = 'none'; 
+                        summaryUI.classList.add('hidden'); 
+                    }
                     container.classList.remove('hidden'); container.classList.add('flex');
                     renderLeaderTrendView();
                 } 
