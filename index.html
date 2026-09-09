@@ -1733,8 +1733,7 @@
 		}
 		function filterPolicy(type) { updatePolicyTabUI(type); renderCharts(type); }
 
-
-        function updateLeaderTabUI(activeTitle) {
+		function updateLeaderTabUI(activeTitle) {
             document.querySelectorAll(".leader-tab").forEach(btn => {
                 let st = activeTitle;
                 if(st==='청소년지도자 전체보기') st='전체보기'; else if(st==='청소년지도사 인원') st='청소년지도사'; else if(st==='청소년상담사 인원') st='청소년상담사';
@@ -1742,7 +1741,11 @@
                 else btn.className = "leader-tab px-4 py-2 text-sm rounded-lg transition-colors bg-[#1e293b] text-gray-400 hover:text-white border border-gray-600 font-bold";
             });
         }
-        function filterLeader(type) { updateLeaderTabUI(type); renderCharts(type); }
+
+        // 🌟 수정된 부분: renderCharts 대신 showTrendView를 호출해야 화면이 제대로 전환됩니다.
+        function filterLeader(type) { 
+            showTrendView(type); 
+        }
 		
 		function renderLeaderTrendView(title = '청소년지도자 전체보기') {
             const container = document.getElementById('leaderTrendContent');
@@ -1963,7 +1966,7 @@
             }
 			else if (leaderItems.includes(title)) {
                 timelineUI.style.display = 'none'; summaryUI.classList.remove('grid'); summaryUI.classList.add('hidden');
-                document.getElementById('leaderTabGroup').style.display = 'flex'; updatePolicyTabUI(title);
+                document.getElementById('leaderTabGroup').style.display = 'flex'; updateLeaderTabUI(title);
             }
 			else if (policyItems.includes(title)) {
                 timelineUI.style.display = 'none'; summaryUI.classList.remove('grid'); summaryUI.classList.add('hidden');
@@ -2026,6 +2029,7 @@
                 } 
                 // (showTrendView 함수 안쪽 분기문)
                 else if (leaderItems.includes(title)) {
+			
                     const container = document.getElementById('leaderTrendContent');
                     
                     container.classList.remove('hidden'); container.classList.add('flex');
