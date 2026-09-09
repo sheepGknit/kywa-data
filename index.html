@@ -441,90 +441,64 @@
                 <button onclick="filterLeader('청소년지도사 인원')" class="leader-tab px-4 py-2 text-sm rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">청소년지도사</button>
                 <button onclick="filterLeader('청소년상담사 인원')" class="leader-tab px-4 py-2 text-sm rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">청소년상담사</button>
             </div>
-
-            <!-- Map & Chart Split Layout -->
-            <div class="flex-1 flex flex-col lg:flex-row gap-6 min-h-[500px]">
-                <div class="w-full lg:w-[30%] bg-white rounded-2xl shadow-sm border border-gray-200 relative overflow-hidden flex flex-col">
-                    <div class="p-3 bg-gray-50 border-b border-gray-200 flex justify-between items-center z-10">
-                        <span class="text-xs font-bold text-gray-500"><i class="ph-fill ph-map-trifold"></i> 시도별 밀집도 (5분위)</span>
-                        <div class="flex items-center gap-1">
-                            <span class="text-[10px] text-gray-400 mr-1">낮음</span>
-                            <div class="w-3 h-3 rounded-sm bg-[#f1f5f9]"></div>
-                            <div class="w-3 h-3 rounded-sm bg-[#cbd5e1]"></div>
-                            <div class="w-3 h-3 rounded-sm bg-[#94a3b8]"></div>
-                            <div class="w-3 h-3 rounded-sm bg-[#475569]"></div>
-                            <div class="w-3 h-3 rounded-sm bg-[#1e293b]"></div>
-                            <span class="text-[10px] text-gray-400 ml-1">높음</span>
-                        </div>
-                    </div>
-					<div class="w-full bg-white border border-gray-200 rounded px-2 py-1.5 text-[10.5px] text-gray-500 font-medium">
-						<span class="text-brand-yellow font-bold mr-1"><i class="ph-bold ph-calculator"></i> 산출식</span> 
-						<span id="trendMapFormula">계산식을 불러오는 중...</span>
-					</div>
-                    <div id="trendMap" class="flex-1 bg-white"></div>
-                </div>
-
-                <div class="w-full lg:w-[70%] bg-white p-4 lg:p-6 rounded-2xl shadow-sm border border-gray-200 relative">
-                    <canvas id="mainComboChart"></canvas>
-                </div>
-            </div>
-        </div>
-            <div class="mt-6 bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hidden" id="dataTableContainer">
-                <div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
-                    <h3 class="font-bold text-brand-dark text-sm"><i class="ph-bold ph-table mr-1"></i> 데이터 상세 표</h3>
-                </div>
-                <div class="overflow-x-auto custom-scroll">
-                    <table class="w-full text-sm text-left text-gray-500" id="detailDataTable">
-                        <!-- 자바스크립트가 표를 그려 넣을 위치 -->
-                    </table>
-                </div>
-            </div>
-			
-			<!-- 🌟 1. 앞으로 각자 다르게 꾸며질 5개의 전용 빈 도화지 -->
+<!-- 🌟 1. 앞으로 각자 다르게 꾸며질 6개의 전용 빈 도화지 (기본은 모두 hidden) -->
+            <div id="populationTrendContent" class="hidden flex-col flex-1 w-full"></div>
             <div id="facilityTrendContent" class="hidden flex-col flex-1 w-full"></div>
             <div id="schoolTrendContent" class="hidden flex-col flex-1 w-full"></div>
             <div id="activityTrendContent" class="hidden flex-col flex-1 w-full"></div>
             <div id="policyTrendContent" class="hidden flex-col flex-1 w-full"></div>
             <div id="leaderTrendContent" class="hidden flex-col flex-1 w-full"></div>
-			
-			<div id="commonTrendLayout" class="hidden flex-col flex-1 w-full">
+            
 
-            <!-- 🌟 2. 여기저기 옮겨 다닐 '임시 공통 블록 (지도 + 차트 + 표)' -->
-				<div id="commonTrendLayout" class="flex flex-col flex-1 w-full">
-					<!-- Map & Chart Split Layout -->
-					<div class="flex-1 flex flex-col lg:flex-row gap-6 min-h-[500px]">
-						<div class="w-full lg:w-[30%] bg-white rounded-2xl shadow-sm border border-gray-200 relative overflow-hidden flex flex-col">
-							<div class="p-3 bg-gray-50 border-b border-gray-200 flex justify-between items-center z-10">
-								<span class="text-xs font-bold text-gray-500"><i class="ph-fill ph-map-trifold"></i> 시도별 밀집도 (5분위)</span>
-							</div>
-							<div class="w-full bg-white border border-gray-200 rounded px-2 py-1.5 text-[10.5px] text-gray-500 font-medium">
-								<span class="text-brand-yellow font-bold mr-1"><i class="ph-bold ph-calculator"></i> 산출식</span> 
-								<span id="trendMapFormula">계산식을 불러오는 중...</span>
-							</div>
-							<div id="trendMap" class="flex-1 bg-white"></div>
-						</div>
-						<div class="w-full lg:w-[70%] bg-white p-4 lg:p-6 rounded-2xl shadow-sm border border-gray-200 relative">
-							<canvas id="mainComboChart"></canvas>
-						</div>
-					</div>
-					<!-- 데이터 표 영역 -->
-					<div class="mt-6 bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hidden" id="dataTableContainer">
-						<div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
-							<h3 class="font-bold text-brand-dark text-sm"><i class="ph-bold ph-table mr-1"></i> 데이터 상세 표</h3>
-						</div>
-						<div class="overflow-x-auto custom-scroll">
-							<table class="w-full text-sm text-left text-gray-500" id="detailDataTable"></table>
-						</div>
-					</div>
-				</div>
-			</div>
-			
-            <div class="mt-4 pb-4 text-right text-[11px] text-gray-400">
-                <p><span class="font-bold text-gray-500"><i class="ph-bold ph-info"></i> 데이터 기준:</span> 공공데이터포털, 통계청 KOSIS, e-청소년 등록 데이터</p>
-                <p>※ 연도별 수치는 공시 기준일에 따라 실제 현황과 약간의 오차가 발생할 수 있습니다.</p>
+            <!-- 🌟 2. 클릭할 때마다 각 도화지로 순간이동할 '임시 공통 블록' (처음엔 숨김) -->
+            <div id="commonTrendLayout" class="hidden flex-col flex-1 w-full">
+                <!-- Map & Chart Split Layout -->
+                <div class="flex-1 flex flex-col lg:flex-row gap-6 min-h-[500px]">
+                    <div class="w-full lg:w-[30%] bg-white rounded-2xl shadow-sm border border-gray-200 relative overflow-hidden flex flex-col">
+                        <div class="p-3 bg-gray-50 border-b border-gray-200 flex justify-between items-center z-10">
+                            <span class="text-xs font-bold text-gray-500"><i class="ph-fill ph-map-trifold"></i> 시도별 밀집도 (5분위)</span>
+                            <div class="flex items-center gap-1">
+                                <span class="text-[10px] text-gray-400 mr-1">낮음</span>
+                                <div class="w-3 h-3 rounded-sm bg-[#f1f5f9]"></div>
+                                <div class="w-3 h-3 rounded-sm bg-[#cbd5e1]"></div>
+                                <div class="w-3 h-3 rounded-sm bg-[#94a3b8]"></div>
+                                <div class="w-3 h-3 rounded-sm bg-[#475569]"></div>
+                                <div class="w-3 h-3 rounded-sm bg-[#1e293b]"></div>
+                                <span class="text-[10px] text-gray-400 ml-1">높음</span>
+                            </div>
+                        </div>
+                        <div class="w-full bg-white border border-gray-200 rounded px-2 py-1.5 text-[10.5px] text-gray-500 font-medium">
+                            <span class="text-brand-yellow font-bold mr-1"><i class="ph-bold ph-calculator"></i> 산출식</span> 
+                            <span id="trendMapFormula">계산식을 불러오는 중...</span>
+                        </div>
+                        <div id="trendMap" class="flex-1 bg-white"></div>
+                    </div>
+
+                    <div class="w-full lg:w-[70%] bg-white p-4 lg:p-6 rounded-2xl shadow-sm border border-gray-200 relative">
+                        <canvas id="mainComboChart"></canvas>
+                    </div>
+                </div>
+                <!-- 데이터 표 영역 -->
+                <div class="mt-6 bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hidden" id="dataTableContainer">
+                    <div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
+                        <h3 class="font-bold text-brand-dark text-sm"><i class="ph-bold ph-table mr-1"></i> 데이터 상세 표</h3>
+                    </div>
+                    <div class="overflow-x-auto custom-scroll">
+                        <table class="w-full text-sm text-left text-gray-500" id="detailDataTable"></table>
+                    </div>
+                </div>
             </div>
-    </main>
+        </div>
+        <!-- max-w-[1600px] 닫기 -->
 
+        <!-- 데이터 기준 안내 (이 부분은 유지) -->
+        <div class="mt-4 pb-4 text-right text-[11px] text-gray-400">
+            <p><span class="font-bold text-gray-500"><i class="ph-bold ph-info"></i> 데이터 기준:</span> 공공데이터포털, 통계청 KOSIS, e-청소년 등록 데이터</p>
+            <p>※ 연도별 수치는 공시 기준일에 따라 실제 현황과 약간의 오차가 발생할 수 있습니다.</p>
+        </div>
+    </main>
+	
+	
     <div id="aiModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4">
         <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             <div class="bg-brand-dark text-white px-6 py-4 flex justify-between items-center">
