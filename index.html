@@ -2927,7 +2927,7 @@
             let filteredList = [];
             if (region === "전남광주통합특별시") {
                 filteredList = sisulData.filter(item => 
-                    (item.ctpvNm.includes('광주') || (item.ctpvNm.includes('전남')) && type.includes(item.sisulType)
+                    (item.ctpvNm.includes('광주') || item.ctpvNm.includes('전남')) && type.includes(item.sisulType)
                 );
             } else {
                 filteredList = sisulData.filter(item => 
