@@ -419,27 +419,32 @@
                 <button onclick="filterSchool('대학교')" class="sch-tab px-4 py-2 text-sm rounded-lg bg-[#1e293b] text-gray-400 font-bold">대학교</button>
                 <button onclick="filterSchool('특수학교')" class="sch-tab px-4 py-2 text-sm rounded-lg bg-[#1e293b] text-gray-400 font-bold">특수학교</button>
             </div>
+			<!-- 청소년활동 (영역별: 11개 항목) 탭 그룹 -->
+			<div id="activityTabGroup" class="hidden flex flex-wrap gap-2 mb-4">
+				<button onclick="filterActivity('청소년활동 전체보기')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-brand-yellow text-brand-dark font-black shadow-[0_0_10px_rgba(253,186,26,0.4)]">전체보기</button>
+				<button onclick="filterActivity('건강스포츠')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">건강·스포츠</button>
+				<button onclick="filterActivity('모험개척')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">모험개척</button>
+				<button onclick="filterActivity('역사탐방')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">역사탐방</button>
+				<button onclick="filterActivity('봉사협력')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">봉사협력</button>
+				<button onclick="filterActivity('교류')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">교류</button>
+				<button onclick="filterActivity('과학정보')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">과학정보</button>
+				<button onclick="filterActivity('진로탐구')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">진로탐구</button>
+				<button onclick="filterActivity('자기개발')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">자기개발</button>
+				<button onclick="filterActivity('문화예술')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">문화예술</button>
+				<button onclick="filterActivity('환경보존')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">환경보존</button>
+				<button onclick="filterActivity('기타')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">기타</button>
+			</div>
 
-            <div id="activityTabGroup" class="hidden flex flex-wrap gap-2 mb-4">
-                <button onclick="filterActivity('청소년활동 전체보기')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-brand-yellow text-brand-dark font-black shadow-[0_0_10px_rgba(253,186,26,0.4)]">전체보기</button>
-                <button onclick="filterActivity('청소년방과후아카데미')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">방과후아카데미</button>
-                <button onclick="filterActivity('수련활동인증제')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">활동인증제</button>
-                <button onclick="filterActivity('수련활동신고제')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">활동신고제</button>
-                <button onclick="filterActivity('참여활동(특별회의,참여위원회)')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">참여활동</button>
-                <button onclick="filterActivity('그룹활동')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">그룹활동</button>
-                <button onclick="filterActivity('기타활동')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">다양한 청소년 활동</button>
-            </div>
-
-            <div id="policyTabGroup" class="hidden flex flex-wrap gap-2 mb-4">
-                <button onclick="filterPolicy('청소년정책사업 전체보기')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-brand-yellow text-brand-dark font-black shadow-[0_0_10px_rgba(253,186,26,0.4)]">전체보기</button>
-                <button onclick="filterPolicy('청소년방과후아카데미')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">방과후아카데미</button>
-                <button onclick="filterPolicy('수련활동인증제')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">활동인증제</button>
-                <button onclick="filterPolicy('수련활동신고제')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">활동신고제</button>
-                <button onclick="filterPolicy('참여활동(특별회의,참여위원회)')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">참여활동</button>
-                <button onclick="filterPolicy('그룹활동')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">그룹활동</button>
-                <button onclick="filterPolicy('기타활동')" class="activity-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">다양한 청소년 활동</button>
-            </div>
-
+			<!-- 청소년정책사업 (사업별: 6개 항목) 탭 그룹 -->
+			<div id="policyTabGroup" class="hidden flex flex-wrap gap-2 mb-4">
+				<button onclick="filterPolicy('청소년정책사업 전체보기')" class="policy-tab px-3 py-1.5 text-[13px] rounded-lg bg-brand-yellow text-brand-dark font-black shadow-[0_0_10px_rgba(253,186,26,0.4)]">전체보기</button>
+				<button onclick="filterPolicy('청소년방과후아카데미')" class="policy-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">방과후아카데미</button>
+				<button onclick="filterPolicy('국제청소년성취포상제')" class="policy-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">국제포상제</button>
+				<button onclick="filterPolicy('자기도전포상제')" class="policy-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">자기도전포상제</button>
+				<button onclick="filterPolicy('수련활동인증제')" class="policy-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">활동인증제</button>
+				<button onclick="filterPolicy('수련활동신고제')" class="policy-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">활동신고제</button>
+				<button onclick="filterPolicy('그룹활동')" class="policy-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">그룹활동</button>
+			</div>
             <div id="leaderTabGroup" class="hidden flex gap-2 mb-4">
                 <button onclick="filterLeader('청소년지도자 전체보기')" class="leader-tab px-4 py-2 text-sm rounded-lg bg-brand-yellow text-brand-dark font-black shadow-[0_0_10px_rgba(253,186,26,0.4)]">전체보기</button>
                 <button onclick="filterLeader('청소년지도사 인원')" class="leader-tab px-4 py-2 text-sm rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">청소년지도사</button>
@@ -716,38 +721,59 @@
         };// 👇 [추가] 시도별 종사자 수를 담을 배열 (17개 지역)
         let workerDataStore = new Array(17).fill(0);
 
-        // --- [수정] programs.json 기반으로 17개 시도별 개수를 자동 집계하는 함수 ---
-		function getDynamicActivityData(activityType) {
+        // 1. [차트용] 청소년활동(Act) 집계 함수 (맵핑 없음)
+		function getEyouthChartData(activityType) {
 			let counts = new Array(regionsList.length).fill(0);
-			
-			if (!programsData || programsData.length === 0) return counts;
+			if (!programsEyouthData || programsEyouthData.length === 0) return counts;
 
-			programsData.forEach(item => {
-				let pType = item.programType;
+			programsEyouthData.forEach(item => {
+				let pType = (item.programType || "").trim();
+				
+				if (pType === activityType) {
+					let sido = (item.sidoNm || "").trim();
+					// 전남광주통합특별시 처리
+					if (sido === "광주광역시" || sido === "전라남도" || sido === "전남광주통합특별시") {
+						let integratedIdx = regionsList.indexOf("전남광주통합특별시");
+						if (integratedIdx !== -1) counts[integratedIdx]++;
+					}
+					let idx = regionsList.indexOf(sido);
+					if (idx !== -1 && sido !== "전남광주통합특별시") {
+						counts[idx]++;
+					}
+				}
+			});
+			return counts;
+		}
+
+		// 2. [차트용] 청소년정책사업(Poli) 집계 함수 (맵핑 적용)
+		function getPoliChartData(policyType) {
+			let counts = new Array(regionsList.length).fill(0);
+			if (!programsPoliData || programsPoliData.length === 0) return counts;
+
+			programsPoliData.forEach(item => {
+				let pType = (item.programType || "").trim();
 				let mappedType = pType;
 				
-				// 맵핑 규칙 적용
+				// 정책사업 전용 맵핑 규칙
 				if (pType === '신고연계 프로그램') mappedType = '수련활동신고제';
 				else if (pType === '인증연계(실시) 프로그램' || pType === '인증연계 프로그램') mappedType = '수련활동인증제';
 				else if (pType === '활동 프로그램') mappedType = '기타활동';
 				else if (pType === '유스내비 프로그램') mappedType = '그룹활동';
 				else if (pType === '방과후 아카데미') mappedType = '청소년방과후아카데미';
 
-				if (mappedType === activityType) {
+				if (mappedType === policyType) {
 					let sido = (item.sidoNm || "").trim();
 					// 전남광주통합특별시 처리
-					if (sido === "광주광역시" || sido === "전라남도") {
+					if (sido === "광주광역시" || sido === "전라남도" || sido === "전남광주통합특별시") {
 						let integratedIdx = regionsList.indexOf("전남광주통합특별시");
 						if (integratedIdx !== -1) counts[integratedIdx]++;
 					}
-					
 					let idx = regionsList.indexOf(sido);
-					if (idx !== -1) {
+					if (idx !== -1 && sido !== "전남광주통합특별시") {
 						counts[idx]++;
 					}
 				}
 			});
-
 			return counts;
 		}
 
@@ -1921,21 +1947,22 @@
                     type: 'bar', data: { labels: regionsList, datasets: datasets },
                     options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 20 } }, scales: { x: { stacked: isAllView, ticks: { font: { size: 12, weight: 'bold', family: "'Pretendard', sans-serif" }, maxRotation: 45, minRotation: 45 }, grid: { display: false } }, y: { stacked: isAllView, beginAtZero: true, grid: { color: '#f1f5f9' }, border: { display: false } } }, plugins: { legend: { display: isAllView, position: 'bottom', labels: { boxWidth: 10, font: { size: 12, family: "'Pretendard', sans-serif" } } } } }
                 });
-            }
-            else if (activityItems.includes(title)) {
+            }else if (activityItems.includes(title)) {
+                // 1. [청소년활동] 처리 로직
                 const isAllView = title === '청소년활동 전체보기';
-                const types = ['청소년방과후아카데미', '수련활동인증제', '수련활동신고제', '그룹활동', '기타활동'];
-                const colors = ['#f43f5e', '#f97316', '#84cc16', '#10b981', '#06b6d4', '#3b82f6', '#8b5cf6', '#d946ef', '#64748b'];
+                // 👇 청소년활동 11개 항목으로 수정
+                const types = ['건강스포츠', '모험개척', '역사탐방', '봉사협력', '교류', '과학정보', '진로탐구', '자기개발', '문화예술', '환경보존', '기타'];
+                const colors = ['#f43f5e', '#f97316', '#eab308', '#84cc16', '#22c55e', '#10b981', '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6', '#d946ef'];
 
                 if (isAllView) {
                     types.forEach((type, idx) => {
-                        let typeDataArr = getDynamicActivityData(type);
+                        let typeDataArr = getEyouthChartData(type); // 🌟 새로 만든 청소년활동 전용 함수
                         datasets.push({ label: type, data: typeDataArr, backgroundColor: colors[idx], borderRadius: 0, barPercentage: 0.5 });
                         typeDataArr.forEach((val, i) => totalDataArray[i] += val);
                     });
                 } else {
                     const idx = types.indexOf(title);
-                    let typeDataArr = getDynamicActivityData(title);
+                    let typeDataArr = getEyouthChartData(title); // 🌟 새로 만든 청소년활동 전용 함수
                     datasets = [{ label: title, data: typeDataArr, backgroundColor: colors[idx] || '#3b82f6', borderRadius: 0, barPercentage: 0.5 }];
                     totalDataArray = [...typeDataArr];
                 }
@@ -1945,6 +1972,33 @@
                     type: 'bar', data: { labels: regionsList, datasets: datasets },
                     options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 20 } }, scales: { x: { stacked: isAllView, ticks: { font: { size: 12, weight: 'bold', family: "'Pretendard', sans-serif" }, maxRotation: 45, minRotation: 45 }, grid: { display: false } }, y: { stacked: isAllView, beginAtZero: true, grid: { color: '#f1f5f9' }, border: { display: false } } }, plugins: { legend: { display: isAllView, position: 'bottom', labels: { boxWidth: 10, font: { size: 11, family: "'Pretendard', sans-serif" } } } } }
                 });
+            }
+            else if (policyItems.includes(title)) {
+                // 2. [청소년정책사업] 처리 로직 추가
+                const isAllView = title === '청소년정책사업 전체보기';
+                // 👇 청소년정책사업 6개 항목
+                const types = ['청소년방과후아카데미', '국제청소년성취포상제', '자기도전포상제', '수련활동인증제', '수련활동신고제', '그룹활동'];
+                const colors = ['#f43f5e', '#f97316', '#84cc16', '#10b981', '#06b6d4', '#3b82f6'];
+
+                if (isAllView) {
+                    types.forEach((type, idx) => {
+                        let typeDataArr = getPoliChartData(type); // 🌟 새로 만든 청소년정책사업 전용 함수
+                        datasets.push({ label: type, data: typeDataArr, backgroundColor: colors[idx], borderRadius: 0, barPercentage: 0.5 });
+                        typeDataArr.forEach((val, i) => totalDataArray[i] += val);
+                    });
+                } else {
+                    const idx = types.indexOf(title);
+                    let typeDataArr = getPoliChartData(title); // 🌟 새로 만든 청소년정책사업 전용 함수
+                    datasets = [{ label: title, data: typeDataArr, backgroundColor: colors[idx] || '#3b82f6', borderRadius: 0, barPercentage: 0.5 }];
+                    totalDataArray = [...typeDataArr];
+                }
+                mapDataExtracted = true;
+
+                comboChartInstance = new Chart(canvas.getContext('2d'), {
+                    type: 'bar', data: { labels: regionsList, datasets: datasets },
+                    options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 20 } }, scales: { x: { stacked: isAllView, ticks: { font: { size: 12, weight: 'bold', family: "'Pretendard', sans-serif" }, maxRotation: 45, minRotation: 45 }, grid: { display: false } }, y: { stacked: isAllView, beginAtZero: true, grid: { color: '#f1f5f9' }, border: { display: false } } }, plugins: { legend: { display: isAllView, position: 'bottom', labels: { boxWidth: 10, font: { size: 11, family: "'Pretendard', sans-serif" } } } } }
+                });
+            }
             } else if (leaderItems.includes(title)) {
                 const yearsList = ['2022년', '2023년', '2024년', '2025년', '2026년'];
                 
