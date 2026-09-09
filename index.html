@@ -757,6 +757,14 @@
 			});
 			return counts;
 		}
+		
+		const groupActivityDataStore = {
+			"서울특별시": 173, "부산광역시": 91, "대구광역시": 47, "인천광역시": 54,
+			"광주광역시": 32, "대전광역시": 34, "울산광역시": 24, "세종특별자치시": 11,
+			"경기도": 263, "강원도": 38, "충청북도": 32, "충청남도": 87,
+			"경상북도": 118, "경상남도": 50, "전라북도": 45, "전라남도": 37, // 데이터에 맞춰 매핑
+			"제주특별자치도": 15
+		};
 
         const leaderDataByRegionStore = {
             '청소년지도사 인원': [1200, 350, 280, 310, 220, 180, 150, 50, 1450, 210, 190, 240, 260, 270, 290, 310, 80],
@@ -858,6 +866,19 @@
 
 			const lead1_val = regionName === "전국" ? 79793 : seed * 120 + 300;
 			const lead2_val = regionName === "전국" ? 47020 : seed * 120 + 300;
+			
+			const getGroupActivityCount =() => {
+				if(regionName === "전국"){
+					return Object.values(groupActivityDataStore).reduce((a, b) => a + b, 0);
+				}
+				
+				if (regionName === "전남광주통합특별시") {
+                    // 통합특별시일 경우 광주와 전남 합산
+                    return (groupActivityDataStore["광주광역시"] || 0) + (groupActivityDataStore["전라남도"] || 0);
+                }
+                // 일반 지역일 경우 해당 지역 값 반환
+                return groupActivityDataStore[regionName] || 0;
+            };
 
 			return {
 				pop: actualPop, 
@@ -887,7 +908,7 @@
 				pol3: getCountByRegion('자기도전포상제', programsPoliData),
 				pol4: getCountByRegion('수련활동인증제', programsPoliData),
 				pol5: getCountByRegion('수련활동신고제', programsPoliData),
-				pol6: getCountByRegion('그룹활동', programsPoliData),
+				pol6: getGroupActivityCount(),
 
 				lead1: lead1_val, lead2: lead2_val
 			};
