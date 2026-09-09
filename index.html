@@ -2609,8 +2609,7 @@
 				});
 
 				if (response && response.text) {
-					document.getElementById('aiRegionalReportContent').innerHTML = response.text.replace(/
-```html|```/g, '').trim();
+					document.getElementById('aiRegionalReportContent').innerHTML = response.text.replace(/```html|```/g, '').trim();
 				} else {
 					throw new Error("Empty response");
 				}
