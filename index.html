@@ -203,7 +203,7 @@
                     <div class="accordion-content bg-brand-dark/50 px-3 text-sm text-gray-300">
                         <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('청소년방과후아카데미')"><span>청소년방과후아카데미</span><span class="font-bold text-white" id="pol_val_1">0개</span></div>
                         <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('국제청소년성취포상제')"><span>국제청소년성취포상제</span><span class="font-bold text-white" id="pol_val_2">0개</span></div>
-                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('자기도전포상제')"><span>자기도전포상제</span><span class="font-bold text-white" id="pol_val_3">0개</span></div>
+                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('자기도전포상제')"><span>청소년자기도전포상제</span><span class="font-bold text-white" id="pol_val_3">0개</span></div>
                         <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('수련활동인증제')"><span>수련활동인증제</span><span class="font-bold text-white" id="pol_val_4">0개</span></div>
                         <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('수련활동신고제')"><span>수련활동신고제</span><span class="font-bold text-white" id="pol_val_5">0개</span></div>
                         <div class="py-3 px-2 flex justify-between pb-4 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('그룹활동')"><span>그룹활동</span><span class="font-bold text-white" id="pol_val_6">0개</span></div>
@@ -430,8 +430,8 @@
 			<div id="policyTabGroup" class="hidden flex flex-wrap gap-2 mb-4">
 				<button onclick="filterPolicy('청소년정책사업 전체보기')" class="policy-tab px-3 py-1.5 text-[13px] rounded-lg bg-brand-yellow text-brand-dark font-black shadow-[0_0_10px_rgba(253,186,26,0.4)]">전체보기</button>
 				<button onclick="filterPolicy('청소년방과후아카데미')" class="policy-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">방과후아카데미</button>
-				<button onclick="filterPolicy('국제청소년성취포상제')" class="policy-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">국제포상제</button>
-				<button onclick="filterPolicy('자기도전포상제')" class="policy-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">자기도전포상제</button>
+				<button onclick="filterPolicy('국제청소년성취포상제')" class="policy-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">국제청소년성취포상제</button>
+				<button onclick="filterPolicy('자기도전포상제')" class="policy-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">청소년자기도전포상제</button>
 				<button onclick="filterPolicy('수련활동인증제')" class="policy-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">활동인증제</button>
 				<button onclick="filterPolicy('수련활동신고제')" class="policy-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">활동신고제</button>
 				<button onclick="filterPolicy('그룹활동')" class="policy-tab px-3 py-1.5 text-[13px] rounded-lg bg-[#1e293b] text-gray-400 border border-gray-600 font-bold">그룹활동</button>
@@ -956,7 +956,7 @@
 
 				pol1: getCountByRegion('청소년방과후아카데미', programsPoliData),
 				pol2: getCountByRegion('국제청소년성취포상제', programsPoliData),
-				pol3: getCountByRegion('자기도전포상제', programsPoliData),
+				pol3: getCountByRegion('청소년자기도전포상제', programsPoliData),
 				pol4: getCountByRegion('수련활동인증제', programsPoliData),
 				pol5: getCountByRegion('수련활동신고제', programsPoliData),
 				pol6: getGroupActivityCount(),
@@ -1635,6 +1635,8 @@
 					if (pType === '신고연계 프로그램') return '수련활동신고제';
 					if (pType === '인증연계(실시) 프로그램' || pType === '인증연계 프로그램') return '수련활동인증제';
 					if (pType === '유스내비 프로그램') return '그룹활동';
+					if (pType === '국제청소년성취포상제') return '국제청소년성취포상제';
+					if (pType === '청소년자기도전포상제') return '청소년자기도전포상제';
 					if (pType === '방과후 아카데미') return '청소년방과후아카데미';
 					return pType;
 				};
@@ -1752,8 +1754,8 @@
 				let st = activeTitle;
 				if(st==='청소년정책사업 전체보기') st='전체보기'; 
 				else if(st==='청소년방과후아카데미') st='방과후아카데미'; 
-				else if(st==='국제청소년성취포상제') st='국제포상제'; 
-				else if(st==='자기도전포상제') st='자기도전포상제'; 
+				else if(st==='국제청소년성취포상제') st='국제청소년성취포상제'; 
+				else if(st==='청소년자기도전포상제') st='청소년자기도전포상제'; 
 				else if(st==='수련활동인증제') st='활동인증제'; 
 				else if(st==='수련활동신고제') st='활동신고제'; 
 				else if(st==='그룹활동') st='그룹활동';
@@ -1958,7 +1960,7 @@
             const facilityItems = ['청소년시설 전체보기', '청소년수련관', '청소년문화의집', '청소년수련원', '청소년특화시설', '청소년야영장', '유스호스텔'];
             const schoolItems = ['학교 전체보기', '초등학교', '중학교', '고등학교', '대학교', '특수학교'];
             const activityItems = ['청소년활동 전체보기', '건강/스포츠', '모험개척', '역사탐방', '봉사협력', '교류', '과학정보', '진로탐구', '자기개발', '문화예술', '환경보존', '기타'];
-            const policyItems = ['청소년정책사업 전체보기', '청소년방과후아카데미', '국제청소년성취포상제', '자기도전포상제', '수련활동인증제', '수련활동신고제', '그룹활동'];
+            const policyItems = ['청소년정책사업 전체보기', '청소년방과후아카데미', '국제청소년성취포상제', '청소년자기도전포상제', '수련활동인증제', '수련활동신고제', '그룹활동'];
             const leaderItems = ['청소년지도자 전체보기', '청소년지도사 인원', '청소년상담사 인원'];
 
             if (formulaEl) {
@@ -2120,7 +2122,7 @@
             const facilityItems = ['청소년시설 전체보기', '청소년수련관', '청소년문화의집', '청소년수련원', '청소년특화시설', '청소년야영장', '유스호스텔'];
             const schoolItems = ['학교 전체보기', '초등학교', '중학교', '고등학교', '대학교', '특수학교'];
             const activityItems = ['청소년활동 전체보기', '건강/스포츠', '모험개척', '역사탐방', '봉사협력', '교류', '과학정보', '진로탐구', '자기개발', '문화예술', '환경보존', '기타'];
-            const policyItems = ['청소년정책사업 전체보기', '청소년방과후아카데미', '국제청소년성취포상제', '자기도전포상제', '수련활동인증제', '수련활동신고제', '그룹활동'];
+            const policyItems = ['청소년정책사업 전체보기', '청소년방과후아카데미', '국제청소년성취포상제', '청소년자기도전포상제', '수련활동인증제', '수련활동신고제', '그룹활동'];
             const leaderItems = ['청소년지도자 전체보기', '청소년지도사 인원', '청소년상담사 인원'];
 
             let datasets = [];
@@ -2273,7 +2275,7 @@
 			
 			else if (policyItems.includes(title)) {
                 const isAllView = title === '청소년정책사업 전체보기';
-                const types = ['청소년방과후아카데미', '국제청소년성취포상제', '자기도전포상제', '수련활동인증제', '수련활동신고제', '그룹활동'];
+                const types = ['청소년방과후아카데미', '국제청소년성취포상제', '청소년자기도전포상제', '수련활동인증제', '수련활동신고제', '그룹활동'];
                 const colors = ['#f43f5e', '#f97316', '#84cc16', '#10b981', '#06b6d4', '#3b82f6'];
 
                 // 🌟 하드코딩된 그룹활동 데이터를 차트 X축(regionsList) 순서대로 배열로 만드는 함수
