@@ -1170,47 +1170,58 @@
 		});
 
         function initMainMap() {
-            mapMain = L.map('mainMap', { center: [36.0, 127.8], zoom: 6.5, zoomControl: false, dragging: false, scrollWheelZoom: true, doubleClickZoom: false, touchZoom: false });
-            fetch(URL_PROVINCES).then(res => res.json()).then(data => {
-                provincesData = data;
-                document.getElementById('mainMapLoading').style.display = 'none';
+			mapMain = L.map('mainMap', { center: [36.0, 127.8], zoom: 6.5, zoomControl: false, dragging: false, scrollWheelZoom: true, doubleClickZoom: false, touchZoom: false });
+			fetch(URL_PROVINCES).then(res => res.json()).then(data => {
+				provincesData = data;
+				document.getElementById('mainMapLoading').style.display = 'none';
 
-                let gjFeature = data.features.find(f => f.properties.name === "광주광역시");
-                let jnFeature = data.features.find(f => f.properties.name === "전라남도");
-                if (gjFeature && jnFeature) {
-                    let merged = mergeFeaturesToMultiPolygon([gjFeature, jnFeature], "전남광주통합특별시", "36");
-                    data.features = data.features.filter(f => f.properties.name !== "광주광역시" && f.properties.name !== "전라남도");
-                    data.features.push(merged);
-                }
+				// 🚨 1. name 대신 sidonm 사용
+				let gjFeature = data.features.find(f => (f.properties.sidonm || f.properties.name) === "광주광역시");
+				let jnFeature = data.features.find(f => (f.properties.sidonm || f.properties.name) === "전라남도");
+				if (gjFeature && jnFeature) {
+					let merged = mergeFeaturesToMultiPolygon([gjFeature, jnFeature], "전남광주통합특별시", "36");
+					data.features = data.features.filter(f => {
+						let n = f.properties.sidonm || f.properties.name;
+						return n !== "광주광역시" && n !== "전라남도";
+					});
+					data.features.push(merged);
+				}
 
-                let gbFeature = data.features.find(f => f.properties.name === "경상북도");
-                if (gbFeature) {
-                    if (gbFeature.geometry.type === 'Polygon') { gbFeature.geometry.type = 'MultiPolygon'; gbFeature.geometry.coordinates = [gbFeature.geometry.coordinates]; }
-                    gbFeature.geometry.coordinates.push(createIslandPolygon(130.86, 37.50, 0.08, 0.08));
-                    gbFeature.geometry.coordinates.push(createIslandPolygon(131.87, 37.24, 0.06, 0.06));
-                }
+				let gbFeature = data.features.find(f => (f.properties.sidonm || f.properties.name) === "경상북도");
+				if (gbFeature) {
+					if (gbFeature.geometry.type === 'Polygon') { gbFeature.geometry.type = 'MultiPolygon'; gbFeature.geometry.coordinates = [gbFeature.geometry.coordinates]; }
+					gbFeature.geometry.coordinates.push(createIslandPolygon(130.86, 37.50, 0.08, 0.08));
+					gbFeature.geometry.coordinates.push(createIslandPolygon(131.87, 37.24, 0.06, 0.06));
+				}
 
 				geojsonMain = L.geoJson(data, {
 					style: () => ({ fillColor: '#E5E7EB', weight: 1.5, opacity: 1, color: '#ffffff', fillOpacity: 0.9, className: 'cursor-pointer transition-colors duration-300' }),
-                    onEachFeature: (feature, layer) => {
-                        layer.bindTooltip(feature.properties.name, { className: 'bg-gray-800 border-none text-white font-bold text-sm rounded-lg shadow-xl px-3 py-1.5', sticky: true, direction: 'auto' });
-                        layer.on({
-                           mouseover: e => { 
+					onEachFeature: (feature, layer) => {
+						// 🚨 2. name 대신 sidonm 속성 할당
+						const rName = feature.properties.sidonm || feature.properties.name;
+
+						layer.bindTooltip(rName, { className: 'bg-gray-800 border-none text-white font-bold text-sm rounded-lg shadow-xl px-3 py-1.5', sticky: true, direction: 'auto' });
+						layer.on({
+							mouseover: e => { 
 								e.target.setStyle({ fillColor: '#FDBA1A', fillOpacity: 1 }); 
-								applyDataToUI(getRegionData(feature.properties.name), false, feature.properties.name); 
+								applyDataToUI(getRegionData(rName), false, rName); 
 							},
-                            mouseout: e => { 
+							mouseout: e => { 
 								geojsonMain.resetStyle(e.target); 
 								applyDataToUI(getRegionData("전국"), true, "전국"); 
 							},
-                            click: e => { currentProvince = feature.properties.name; currentMunicipality = '전체'; showDetailView(currentProvince); }
-                        });
-                    }
-                }).addTo(mapMain);
+							click: e => { 
+								currentProvince = rName; 
+								currentMunicipality = '전체'; 
+								showDetailView(currentProvince); 
+							}
+						});
+					}
+				}).addTo(mapMain);
 
-                setTimeout(() => { mapMain.invalidateSize(); mapMain.fitBounds(geojsonMain.getBounds(), { animate: false }); }, 100);
-            });
-        }
+				setTimeout(() => { mapMain.invalidateSize(); mapMain.fitBounds(geojsonMain.getBounds(), { animate: false }); }, 100);
+			});
+		}
 
         function showDetailView(regionName) {
             document.getElementById('detailRegionTitle').textContent = regionName;
@@ -1258,70 +1269,82 @@
                 }
             });
 
-            const renderMap = (data) => {
-                const codes = {
-                    "서울특별시": ["11"], "부산광역시": ["21"], "대구광역시": ["22"], "인천광역시": ["23"],
-                    "광주광역시": ["24"], "대전광역시": ["25"], "울산광역시": ["26"], "세종특별자치시": ["29"],
-                    "경기도": ["31"], "강원특별자치도": ["32"], "충청북도": ["33"],
-                    "충청남도": ["34"], "전라북도": ["35"], "전라남도": ["36"],
-                    "경상북도": ["37"], "경상남도": ["38"], "제주특별자치도": ["39"],
-                    "전남광주통합특별시": ["24", "36"]
-                };
+            // initDetailMap 함수 내부에 있는 renderMap 함수 전체 교체
+			const renderMap = (data) => {
+				// 🚨 1. 제공해주신 GeoJSON의 실제 'sido' 코드 체계에 맞춰 매핑 객체 완벽 수정
+				const codes = {
+					"서울특별시": ["11"], "부산광역시": ["26"], "대구광역시": ["27"], "인천광역시": ["28"],
+					"광주광역시": ["29"], "대전광역시": ["30"], "울산광역시": ["31"], "세종특별자치시": ["36"],
+					"경기도": ["41"], "강원특별자치도": ["42"], "충청북도": ["43"],
+					"충청남도": ["44"], "전라북도": ["45"], "전라남도": ["46"],
+					"경상북도": ["47"], "경상남도": ["48"], "제주특별자치도": ["50"],
+					"전남광주통합특별시": ["29", "46"]
+				};
 
-                const valid = codes[regionName] || [];
+				const valid = codes[regionName] || [];
 
-                let targetFeatures = data.features.filter(f => {
-                    let c = f.properties.code || f.properties.SIG_CD;
-                    if (c && valid.length) return valid.some(v => c.toString().startsWith(v));
-                    return false;
-                });
+				// 🚨 2. 필터 기준을 'sido' 속성으로 변경
+				let targetFeatures = data.features.filter(f => {
+					let c = f.properties.sido;
+					if (c && valid.length) return valid.some(v => c.toString().startsWith(v));
+					return false;
+				});
 
-                if (regionName === "경상북도") {
-                    targetFeatures.push({ "type": "Feature", "properties": { "name": "울릉군 (울릉도/독도)" }, "geometry": { "type": "MultiPolygon", "coordinates": [ createIslandPolygon(130.86, 37.50, 0.06, 0.06), createIslandPolygon(131.87, 37.24, 0.04, 0.04) ] } });
-                }
+				if (regionName === "경상북도") {
+					targetFeatures.push({ "type": "Feature", "properties": { "sggnm": "울릉군" }, "geometry": { "type": "MultiPolygon", "coordinates": [ createIslandPolygon(130.86, 37.50, 0.06, 0.06), createIslandPolygon(131.87, 37.24, 0.04, 0.04) ] } });
+				}
 
-                if (targetFeatures.length === 0) targetFeatures = data.features;
+				if (targetFeatures.length === 0) targetFeatures = data.features;
 
-                geojsonDetail = L.geoJson({ type: "FeatureCollection", features: targetFeatures }, {
-                    style: () => ({ fillColor: '#f8fafc', weight: 1.5, color: '#cbd5e1', fillOpacity: 1, className: 'cursor-pointer transition-all duration-300' }),
-                    onEachFeature: (feature, layer) => {
-                        layer.bindTooltip(feature.properties.name, { className: 'bg-brand-dark border-none text-brand-yellow font-bold text-xs rounded shadow-md px-2 py-1', sticky: true, direction: 'auto' });
-                        layer.on({
-                            mouseover: e => {
-                                if(currentMunicipality !== feature.properties.name) {
-                                    e.target.setStyle({ fillColor: '#e2e8f0' }); e.target.bringToFront();
-                                }
-                            },
-                            mouseout: e => {
-                                if(currentMunicipality !== feature.properties.name) {
-                                    geojsonDetail.resetStyle(e.target);
-                                }
-                            },
-                            click: e => {
-                                L.DomEvent.stopPropagation(e); 
-                                if(currentMunicipality === feature.properties.name) {
-                                    resetDetailMunicipality();
-                                } else {
-                                    geojsonDetail.eachLayer(l => geojsonDetail.resetStyle(l));
-                                    e.target.setStyle({ fillColor: '#FDBA1A', color: '#b45309', weight: 2 });
-                                    e.target.bringToFront();
+				geojsonDetail = L.geoJson({ type: "FeatureCollection", features: targetFeatures }, {
+					style: () => ({ fillColor: '#f8fafc', weight: 1.5, color: '#cbd5e1', fillOpacity: 1, className: 'cursor-pointer transition-all duration-300' }),
+					onEachFeature: (feature, layer) => {
+						// 🚨 3. 이름 툴팁을 'sggnm'(예: 북구, 금산군)으로 변경
+						const sggName = feature.properties.sggnm || "이름없음";
 
-                                    currentMunicipality = feature.properties.name;
-                                    document.getElementById('detailSubRegionTitle').textContent = currentMunicipality;
-                                    updateDetailPanel(currentProvince, currentMunicipality);
-                                }
-                            }
-                        });
-                    }
-                }).addTo(mapDetail);
+						layer.bindTooltip(sggName, { className: 'bg-brand-dark border-none text-brand-yellow font-bold text-xs rounded shadow-md px-2 py-1', sticky: true, direction: 'auto' });
+						layer.on({
+							mouseover: e => {
+								if(currentMunicipality !== sggName) {
+									e.target.setStyle({ fillColor: '#e2e8f0' }); e.target.bringToFront();
+								}
+							},
+							mouseout: e => {
+								if(currentMunicipality !== sggName) {
+									geojsonDetail.resetStyle(e.target);
+								}
+							},
+							click: e => {
+								L.DomEvent.stopPropagation(e); 
+								if(currentMunicipality === sggName) {
+									resetDetailMunicipality();
+								} else {
+									// 🚨 4. 읍면동 단위 폴리곤이므로, 클릭한 시군구(sggnm)와 동일한 모든 구역에 색을 칠함
+									geojsonDetail.eachLayer(l => {
+										if (l.feature.properties.sggnm === sggName) {
+											l.setStyle({ fillColor: '#FDBA1A', color: '#b45309', weight: 2 });
+											l.bringToFront();
+										} else {
+											geojsonDetail.resetStyle(l);
+										}
+									});
 
-                setTimeout(() => {
-                    mapDetail.invalidateSize();
-                    if(geojsonDetail && geojsonDetail.getBounds().isValid()) {
-                        mapDetail.fitBounds(geojsonDetail.getBounds(), { padding: [20, 20], animate: false });
-                    }
-                }, 100);
-            };
+									currentMunicipality = sggName;
+									document.getElementById('detailSubRegionTitle').textContent = currentMunicipality;
+									updateDetailPanel(currentProvince, currentMunicipality);
+								}
+							}
+						});
+					}
+				}).addTo(mapDetail);
+
+				setTimeout(() => {
+					mapDetail.invalidateSize();
+					if(geojsonDetail && geojsonDetail.getBounds().isValid()) {
+						mapDetail.fitBounds(geojsonDetail.getBounds(), { padding: [20, 20], animate: false });
+					}
+				}, 100);
+			};
 
             if (municipalitiesData) {
                 renderMap(municipalitiesData);
@@ -2408,35 +2431,36 @@
         }
 
         function updateTrendMapColors(dataObj, isPercentage = false) {
-            if (!geojsonTrend) return;
+			if (!geojsonTrend) return;
 
-            const values = Object.values(dataObj).filter(v => v > 0);
-            if (values.length === 0) return;
+			const values = Object.values(dataObj).filter(v => v > 0);
+			if (values.length === 0) return;
 
-            values.sort((a, b) => a - b);
-            const q1 = values[Math.floor(values.length * 0.2)];
-            const q2 = values[Math.floor(values.length * 0.4)];
-            const q3 = values[Math.floor(values.length * 0.6)];
-            const q4 = values[Math.floor(values.length * 0.8)];
+			values.sort((a, b) => a - b);
+			const q1 = values[Math.floor(values.length * 0.2)];
+			const q2 = values[Math.floor(values.length * 0.4)];
+			const q3 = values[Math.floor(values.length * 0.6)];
+			const q4 = values[Math.floor(values.length * 0.8)];
 
-            function getColor(d) {
-                return d > q4 ? '#1e293b' :
-                       d > q3 ? '#475569' :
-                       d > q2 ? '#94a3b8' :
-                       d > q1 ? '#cbd5e1' :
-                                '#f1f5f9';
-            }
+			function getColor(d) {
+				return d > q4 ? '#1e293b' :
+					   d > q3 ? '#475569' :
+					   d > q2 ? '#94a3b8' :
+					   d > q1 ? '#cbd5e1' :
+								'#f1f5f9';
+			}
 
-            geojsonTrend.eachLayer(layer => {
-                let rName = layer.feature.properties.name;
-                if(rName === "광주광역시" || rName === "전라남도") rName = "전남광주통합특별시";
-                const val = dataObj[rName] || 0;
-                layer.setStyle({ fillColor: getColor(val), fillOpacity: 0.9, weight: 1, color: '#94a3b8' });
+			geojsonTrend.eachLayer(layer => {
+				// 🚨 수정: sidonm 읽어오기
+				let rName = layer.feature.properties.sidonm || layer.feature.properties.name;
+				if(rName === "광주광역시" || rName === "전라남도") rName = "전남광주통합특별시";
+				const val = dataObj[rName] || 0;
+				layer.setStyle({ fillColor: getColor(val), fillOpacity: 0.9, weight: 1, color: '#94a3b8' });
 
-                let displayVal = isPercentage ? `${val}%` : val.toLocaleString();
-                layer.bindTooltip(`${rName}: ${displayVal}`, { className: 'bg-white border border-gray-200 text-brand-dark font-bold text-xs rounded shadow px-2 py-1', sticky: true });
-            });
-        }
+				let displayVal = isPercentage ? `${val}%` : val.toLocaleString();
+				layer.bindTooltip(`${rName}: ${displayVal}`, { className: 'bg-white border border-gray-200 text-brand-dark font-bold text-xs rounded shadow px-2 py-1', sticky: true });
+			});
+		}
 
         function slideYear(val) {
             const buttons = document.querySelectorAll('.year-btn');
