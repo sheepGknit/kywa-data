@@ -2475,6 +2475,34 @@
 					updateTrendMapColors(mapDataObj, true); 
 				}, 350);
 			}
+					else if (schoolItems.includes(title)) {
+						// [학교] 지역 청소년 인구 기준 비중
+						if (r === "전남광주통합특별시") {
+							let p1 = (popData["광주광역시"] && popData["광주광역시"]["소계"]) ? popData["광주광역시"]["소계"]["총인구수"][targetYearKey] || 0 : 0;
+							let p2 = (popData["전라남도"] && popData["전라남도"]["소계"]) ? popData["전라남도"]["소계"]["총인구수"][targetYearKey] || 0 : 0;
+							provPop = p1 + p2 ;
+						} else {
+							if (popData[r] && popData[r]["소계"]) {
+								provPop = popData[r]["소계"]["총인구수"][targetYearKey] || 0;
+							}
+						}
+						if (provPop === 0) provPop = 1; 
+						calculatedRatio = (numerator / provPop) * 100;
+					} 
+					else {
+						// [기타] 전국 청소년 인구 기준 비중
+						let totalNationPop = (popData["전국"] && popData["전국"]["전국"]) ? popData["전국"]["전국"]["총인구수"][targetYearKey] || 1 : 1;
+						calculatedRatio = (numerator / totalNationPop) * 100;
+					}
+
+					mapDataObj[r] = Number(calculatedRatio.toFixed(3));
+				});
+
+				// 🌟 타이밍 문제 방지: 지도가 렌더링될 시간을 0.35초 벌어줌
+				setTimeout(() => {
+					updateTrendMapColors(mapDataObj, true); 
+				}, 350);
+			}
 
 			// ==========================================
 			// [3] 하단 상세 데이터 표 출력 처리
@@ -3138,10 +3166,14 @@
 			const dataTable = document.getElementById('detailDataTable');
 			const headerDiv = tableContainer.querySelector('div.p-4');
 			
+			// 🚨 전체보기 여부 확인
+			const isAll = (type === '청소년시설 전체보기');
+			const displayTitle = isAll ? '전체 청소년시설' : type;
+
 			// 1. 표 제목 변경 + '목록 닫기' 버튼 추가
 			headerDiv.innerHTML = `
 				<h3 class="font-bold text-brand-dark text-sm">
-					<i class="ph-bold ph-list-dashes mr-1"></i> [${region}] ${type} 등록 현황
+					<i class="ph-bold ph-list-dashes mr-1"></i> [${region}] ${displayTitle} 등록 현황
 				</h3>
 				<button onclick="document.getElementById('dataTableContainer').classList.add('hidden')" class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded-md transition-colors font-bold flex items-center gap-1">
 					<i class="ph-bold ph-x"></i> 목록 닫기
@@ -3152,15 +3184,15 @@
 			let filteredList = [];
 			if (region === "전남광주통합특별시") {
 				filteredList = sisulData.filter(item => 
-					(item.ctpvNm.includes('광주') || item.ctpvNm.includes('전남')) && type.includes(item.sisulType)
+					(item.ctpvNm.includes('광주') || item.ctpvNm.includes('전남')) && (isAll || type.includes(item.sisulType))
 				);
 			} else {
 				filteredList = sisulData.filter(item => 
-					region.includes(item.ctpvNm) && type.includes(item.sisulType)
+					region.includes(item.ctpvNm) && (isAll || type.includes(item.sisulType))
 				);
 			}
 
-			// 🌟 3. 테이블 헤더 4단 구조로 변경 (No, 시설구분, 시설명, 주소)
+			// 3. 테이블 헤더 4단 구조로 변경 (No, 시설구분, 시설명, 주소)
 			let html = `
 				<thead class="bg-brand-dark text-brand-yellow text-xs uppercase text-center border-b border-gray-700">
 					<tr>
@@ -3189,7 +3221,7 @@
 					else if (item.sisulType === '야영장') typeStr = '청소년야영장';
 					else if (item.sisulType === '유스호스텔') typeStr = '유스호스텔';
 					
-					// 🌟 4. 데이터 행 출력
+					// 4. 데이터 행 출력
 					html += `
 						<tr class="hover:bg-blue-50 transition-colors">
 							<td class="py-3 px-4 text-gray-500 font-medium">${index + 1}</td>
@@ -3202,14 +3234,11 @@
 			}
 			html += `</tbody>`;
 			
-			// 5. 숨겨져 있던 표 컨테이너를 보이게 켜고, 내용 그리기
+			// 5. 표 띄우고 스크롤 이동
 			tableContainer.classList.remove('hidden');
 			dataTable.innerHTML = html;
-			
-			// 부드럽게 표 위치로 스크롤 이동
 			tableContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 		}
-		
     </script>
 	<div id="aiRegionalReportModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4 fade-in">
 		<div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
