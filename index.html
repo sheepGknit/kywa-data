@@ -545,7 +545,7 @@
                     <div>
                         <label class="block text-xs font-bold text-gray-600 mb-1">지역</label>
                         <select id="aiArea" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-brand-yellow transition-colors">
-                            <option>서울특별시</option><option>부산광역시</option><option>대구광역시</option><option>인천광역시</option><option>광주광역시</option><option>대전광역시</option><option>울산광역시</option><option>세종특별자치시</option><option>경기도</option><option>강원특별자치도</option><option>충청북도</option><option>충청남도</option><option>전북특별자치도</option><option>전라남도</option><option>경상북도</option><option>경상남도</option><option>제주특별자치도</option>
+                            <option>서울특별시</option><option>전남광주통합특별시</option><option>부산광역시</option><option>대구광역시</option><option>인천광역시</option><option>대전광역시</option><option>울산광역시</option><option>세종특별자치시</option><option>경기도</option><option>강원특별자치도</option><option>충청북도</option><option>충청남도</option><option>전북특별자치도</option><option>경상북도</option><option>경상남도</option><option>제주특별자치도</option>
                         </select>
                     </div>
                     <div>
@@ -757,7 +757,7 @@
         const parseNum = (val) => parseInt(String(val).replace(/,/g, ''), 10) || 0;
         const setText = (id, text) => { const el = document.getElementById(id); if(el) el.textContent = text; };
 
-        const regionsList = ["서울특별시", "부산광역시", "대구광역시", "인천광역시", "대전광역시", "울산광역시", "세종특별자치시", "경기도", "강원특별자치도", "충청북도", "충청남도", "전북특별자치도", "경상북도", "경상남도", "제주특별자치도", "전남광주통합특별시"];
+        const regionsList = ["서울특별시", "전남광주통합특별시", "부산광역시", "대구광역시", "인천광역시", "대전광역시", "울산광역시", "세종특별자치시", "경기도", "강원특별자치도", "충청북도", "충청남도", "전북특별자치도", "경상북도", "경상남도", "제주특별자치도"];
 
         const facilityDataStore = {
             '청소년수련관': [],'청소년문화의집': [], '청소년수련원': [],
@@ -856,7 +856,7 @@
 			const schoolTargetYear = (parseInt(currentYear) >= 2025) ? "2025년" : currentYear + "년";
 			const popKey = currentYear === "2026" ? "2026.06월" : currentYear + "년";
 			
-			// 🌟 방금 빼둔 맵핑 테이블을 사용해 지역 이름을 통일합니다. (이게 없어서 다 0이 떴습니다 ㅠㅠ)
+			// 🌟 방금 빼둔 맵핑 테이블을 사용해 지역 이름을 통일합니다. 
 			let mappedRegion = COMMON_REGION_MAP[regionName] || regionName;
 
 			let actualPop = 0;
