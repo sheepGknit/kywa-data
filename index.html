@@ -829,7 +829,7 @@
 		};
 
         let defaultStats = {
-            pop: 0, schAge: 0, std: 123456789,
+            pop: 0, schAge: 0, std: 0,
             fac1: 0, fac2: 0, fac3: 0, fac4: 0, fac5: 0, fac6: 0,
             sch1: 0, sch2: 0, sch3: 0,
             act1: 0, act2: 0, act3: 0, act4: 0, act5: 0, act6: 0, act7: 0, act8: 0, act9: 0, act10: 0, act11: 0,
@@ -912,7 +912,7 @@
 			return {
 				pop: actualPop, 
 				schAge: Math.floor(actualPop * 0.7), 
-				std: getStudentCount(),
+				std: getStudentCount()+1234567890,
 
 				fac1: getFacCount('청소년수련관'), fac2: getFacCount('청소년문화의집'), fac3: getFacCount('청소년수련원'), 
 				fac4: getFacCount('청소년특화시설'), fac5: getFacCount('청소년야영장'), fac6: getFacCount('유스호스텔'),
