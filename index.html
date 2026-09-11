@@ -2447,7 +2447,6 @@
 				const targetYearKey = "2026.06월"; 
 
 				regionsList.forEach((r, i) => {
-					let provPop = 0;
 					let numerator = totalDataArray[i]; 
 					let calculatedRatio = 0;
 
@@ -2475,34 +2474,6 @@
 				});
 
 				// 타이밍 문제 방지
-				setTimeout(() => {
-					updateTrendMapColors(mapDataObj, true); 
-				}, 350);
-			}
-					else if (schoolItems.includes(title)) {
-						// [학교] 지역 청소년 인구 기준 비중
-						if (r === "전남광주통합특별시") {
-							let p1 = (popData["광주광역시"] && popData["광주광역시"]["소계"]) ? popData["광주광역시"]["소계"]["총인구수"][targetYearKey] || 0 : 0;
-							let p2 = (popData["전라남도"] && popData["전라남도"]["소계"]) ? popData["전라남도"]["소계"]["총인구수"][targetYearKey] || 0 : 0;
-							provPop = p1 + p2 ;
-						} else {
-							if (popData[r] && popData[r]["소계"]) {
-								provPop = popData[r]["소계"]["총인구수"][targetYearKey] || 0;
-							}
-						}
-						if (provPop === 0) provPop = 1; 
-						calculatedRatio = (numerator / provPop) * 100;
-					} 
-					else {
-						// [기타] 전국 청소년 인구 기준 비중
-						let totalNationPop = (popData["전국"] && popData["전국"]["전국"]) ? popData["전국"]["전국"]["총인구수"][targetYearKey] || 1 : 1;
-						calculatedRatio = (numerator / totalNationPop) * 100;
-					}
-
-					mapDataObj[r] = Number(calculatedRatio.toFixed(3));
-				});
-
-				// 🌟 타이밍 문제 방지: 지도가 렌더링될 시간을 0.35초 벌어줌
 				setTimeout(() => {
 					updateTrendMapColors(mapDataObj, true); 
 				}, 350);
