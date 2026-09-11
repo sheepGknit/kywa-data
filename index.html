@@ -125,10 +125,7 @@
                         <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('연령별 청소년인구 (9~24세)')">
                             <span>연령별 청소년인구 (9~24세)</span><span class="font-bold text-white" id="statYouthPop">0명</span>
                         </div>
-                        <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('학령 인구')">
-                            <span>학령 인구</span><span class="font-bold text-white" id="statSchoolAge">0명</span>
-                        </div>
-                        <div class="py-3 px-2 flex justify-between pb-4 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('학생 인구')">
+                        <div class="py-3 px-2 flex justify-between pb-4 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('학교 전체보기')">
                             <span>학생인구</span><span class="font-bold text-white" id="statStudents">0명</span>
                         </div>
                     </div>
@@ -843,7 +840,7 @@
 		};
 
         let defaultStats = {
-            pop: 0, schAge: 0, std: 0,
+            pop: 0, std: 0,
             fac1: 0, fac2: 0, fac3: 0, fac4: 0, fac5: 0, fac6: 0,
             sch1: 0, sch2: 0, sch3: 0,
             act1: 0, act2: 0, act3: 0, act4: 0, act5: 0, act6: 0, act7: 0, act8: 0, act9: 0, act10: 0, act11: 0,
@@ -886,7 +883,7 @@
 			
 			// 🌟 [학생수] 맵핑된 이름으로 초,중,고,특수 학생수를 모두 더해 가져옵니다.
 			const getStudentCount = () => {
-				const schTypes = ['초등학교', '중학교', '고등학교', '특수학교'];
+				const schTypes = ['초등학교', '중학교', '고등학교', '대학교', '특수학교'];
 				let total = 0;
 				if (schoolData[mappedRegion]) {
 					schTypes.forEach(type => {
@@ -934,7 +931,6 @@
 
 			return {
 				pop: actualPop, 
-				schAge: Math.floor(actualPop * 0.7), 
 				std: getStudentCount(),
 
 				fac1: getFacCount('청소년수련관'), fac2: getFacCount('청소년문화의집'), fac3: getFacCount('청소년수련원'), 
@@ -971,7 +967,6 @@
             if(noticeEl) noticeEl.innerHTML = isDefault ? "(현재 전국 통합 보기)" : `현재 선택된 지역: <span class="text-brand-yellow font-bold">[ ${regionName} ]</span>`;
 
             setText('statYouthPop', parseNum(d.pop).toLocaleString() + "명"); 
-            setText('statSchoolAge', parseNum(d.schAge).toLocaleString() + "명"); 
             setText('statStudents', parseNum(d.std).toLocaleString() + "명");
 
             for(let i=1; i<=6; i++) setText('fac'+i, parseNum(d['fac'+i]).toLocaleString() + "개");
@@ -1152,7 +1147,6 @@
 				// 이제 힘들게 수식을 쓰지 않고, 방금 만든 똑똑한 getRegionData("전국")을 호출해서 값을 빼옵니다.
 				const initialNatData = getRegionData("전국");
 				defaultStats.pop = initialNatData.pop;
-				defaultStats.schAge = initialNatData.schAge;
 				defaultStats.std = initialNatData.std;
 
 				// 🌟 활동/정책 데이터도 세탁된 COMMON_REGION_MAP을 통해 알아서 통합특별시로 매핑됩니다.
