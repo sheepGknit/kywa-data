@@ -1270,24 +1270,29 @@
             });
 
             // initDetailMap 함수 내부에 있는 renderMap 함수 전체 교체
+			// initDetailMap 함수 내부에 있는 renderMap 함수 전체 교체
 			const renderMap = (data) => {
-				// 🚨 1. 제공해주신 GeoJSON의 실제 'sido' 코드 체계에 맞춰 매핑 객체 완벽 수정
-				const codes = {
-					"서울특별시": ["11"], "부산광역시": ["26"], "대구광역시": ["27"], "인천광역시": ["28"],
-					"광주광역시": ["29"], "대전광역시": ["30"], "울산광역시": ["31"], "세종특별자치시": ["36"],
-					"경기도": ["41"], "강원특별자치도": ["42"], "충청북도": ["43"],
-					"충청남도": ["44"], "전라북도": ["45"], "전라남도": ["46"],
-					"경상북도": ["47"], "경상남도": ["48"], "제주특별자치도": ["50"],
-					"전남광주통합특별시": ["29", "46"]
-				};
-
-				const valid = codes[regionName] || [];
-
-				// 🚨 2. 필터 기준을 'sido' 속성으로 변경
+				
+				// 🚨 1. 숫자 코드(codes) 매핑 방식을 버리고, 한글 이름(sidonm)으로 직관적 필터링
 				let targetFeatures = data.features.filter(f => {
-					let c = f.properties.sido;
-					if (c && valid.length) return valid.some(v => c.toString().startsWith(v));
-					return false;
+					let sName = f.properties.sidonm || f.properties.name || ""; // GeoJSON 안의 시도명
+					
+					// 데이터가 과거 이름(강원도, 전라북도)으로 되어있어도 호환되도록 처리
+					if (regionName === "강원특별자치도") {
+						return sName === "강원특별자치도" || sName === "강원도";
+					}
+					if (regionName === "전북특별자치도") {
+						return sName === "전북특별자치도" || sName === "전라북도";
+					}
+					if (regionName === "제주특별자치도") {
+						return sName === "제주특별자치도" || sName === "제주도";
+					}
+					// 전남-광주 통합 처리
+					if (regionName === "전남광주통합특별시") {
+						return sName === "광주광역시" || sName === "전라남도" || sName === "전남광주통합특별시";
+					}
+					
+					return sName === regionName;
 				});
 
 				if (regionName === "경상북도") {
@@ -1299,7 +1304,6 @@
 				geojsonDetail = L.geoJson({ type: "FeatureCollection", features: targetFeatures }, {
 					style: () => ({ fillColor: '#f8fafc', weight: 1.5, color: '#cbd5e1', fillOpacity: 1, className: 'cursor-pointer transition-all duration-300' }),
 					onEachFeature: (feature, layer) => {
-						// 🚨 3. 이름 툴팁을 'sggnm'(예: 북구, 금산군)으로 변경
 						const sggName = feature.properties.sggnm || "이름없음";
 
 						layer.bindTooltip(sggName, { className: 'bg-brand-dark border-none text-brand-yellow font-bold text-xs rounded shadow-md px-2 py-1', sticky: true, direction: 'auto' });
@@ -1319,7 +1323,7 @@
 								if(currentMunicipality === sggName) {
 									resetDetailMunicipality();
 								} else {
-									// 🚨 4. 읍면동 단위 폴리곤이므로, 클릭한 시군구(sggnm)와 동일한 모든 구역에 색을 칠함
+									// 읍면동 단위 폴리곤이므로, 클릭한 시군구와 동일한 이름(sggnm)을 가진 모든 구역에 불을 켬
 									geojsonDetail.eachLayer(l => {
 										if (l.feature.properties.sggnm === sggName) {
 											l.setStyle({ fillColor: '#FDBA1A', color: '#b45309', weight: 2 });
