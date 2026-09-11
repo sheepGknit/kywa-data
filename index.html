@@ -2434,7 +2434,31 @@
 
 				comboChartInstance = new Chart(canvas.getContext('2d'), {
 					type: 'bar', data: { labels: regionsList, datasets: datasets },
-					options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 20 } }, scales: { x: { stacked: isAllView, ticks: { font: { size: 12, weight: 'bold', family: "'Pretendard', sans-serif" }, maxRotation: 45, minRotation: 45 }, grid: { display: false } }, y: { stacked: isAllView, beginAtZero: true, grid: { color: '#f1f5f9' }, border: { display: false } } }, plugins: { legend: { display: isAllView, position: 'bottom', labels: { boxWidth: 10, font: { size: 11, family: "'Pretendard', sans-serif" } } } } }
+					options: { 
+						responsive: true, 
+						maintainAspectRatio: false, 
+						layout: { padding: { top: 20 } }, 
+						
+						// 🚨 정책사업 차트를 클릭했을 때 표를 띄우는 로직 추가
+						onClick: (event, elements, chart) => {
+							if (elements.length > 0) {
+								const elementIndex = elements[0].index;         
+								const datasetIndex = elements[0].datasetIndex;   
+								const clickedRegion = chart.data.labels[elementIndex]; 
+								
+								const clickedType = isAllView ? '청소년정책사업 전체보기' : chart.data.datasets[datasetIndex].label; 
+								
+								// 아까 만든 정책사업 전용 O/X 표 함수 호출
+								showPolicyDetailTable(clickedRegion, clickedType);
+							}
+						},
+
+						scales: { 
+							x: { stacked: isAllView, ticks: { font: { size: 12, weight: 'bold', family: "'Pretendard', sans-serif" }, maxRotation: 45, minRotation: 45 }, grid: { display: false } }, 
+							y: { stacked: isAllView, beginAtZero: true, grid: { color: '#f1f5f9' }, border: { display: false } } 
+						}, 
+						plugins: { legend: { display: isAllView, position: 'bottom', labels: { boxWidth: 10, font: { size: 11, family: "'Pretendard', sans-serif" } } } } 
+					}
 				});
 			}
 
@@ -3210,6 +3234,134 @@
 			html += `</tbody>`;
 			
 			// 5. 표 띄우고 스크롤 이동
+			tableContainer.classList.remove('hidden');
+			dataTable.innerHTML = html;
+			tableContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+		}
+		
+		// 🌟 정책사업 탭 전용: 기관별 운영 현황 O/X 매트릭스 표 출력 함수
+		function showPolicyDetailTable(region, type) {
+			const tableContainer = document.getElementById('dataTableContainer');
+			const dataTable = document.getElementById('detailDataTable');
+			const headerDiv = tableContainer.querySelector('div.p-4');
+			
+			const isAll = (type === '청소년정책사업 전체보기');
+			const displayTitle = isAll ? '전체 정책사업' : type;
+
+			// 1. 표 제목 변경
+			headerDiv.innerHTML = `
+				<h3 class="font-bold text-brand-dark text-sm">
+					<i class="ph-bold ph-matrix-logo mr-1"></i> [${region}] ${displayTitle} 기관별 운영 현황
+				</h3>
+				<button onclick="document.getElementById('dataTableContainer').classList.add('hidden')" class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded-md transition-colors font-bold flex items-center gap-1">
+					<i class="ph-bold ph-x"></i> 목록 닫기
+				</button>
+			`;
+
+			// 2. 지역 내 시설 데이터 및 정책 데이터 가져오기
+			let facilitiesInRegion = sisulData.filter(item => {
+				let cNm = item.ctpvNm || "";
+				if (region === "전남광주통합특별시") return cNm.includes('광주') || cNm.includes('전남');
+				return region.includes(cNm);
+			});
+
+			let policiesInRegion = programsPoliData.filter(item => {
+				let sNm = item.sidoNm || "";
+				if (region === "전남광주통합특별시") return sNm.includes('광주') || sNm.includes('전남');
+				return region.includes(sNm);
+			});
+
+			// 3. 기관별 O/X 데이터 매핑을 위한 객체 생성
+			let facMap = {};
+
+			// 지역 내 모든 시설 이름 등록 (기본값 X)
+			facilitiesInRegion.forEach(fac => {
+				let name = (fac.sisulNm || fac.facilityName || fac.fcltNm || "").trim();
+				if (name) {
+					if (!facMap[name]) facMap[name] = { '청소년방과후아카데미': false, '국제청소년성취포상제': false, '청소년자기도전포상제': false, '활동인증제': false, '활동신고제': false, '그룹활동': false };
+				}
+			});
+
+			// 정책 데이터를 순회하며 운영 중인 사업(O) 체크
+			policiesInRegion.forEach(item => {
+				let name = (item.facilityName || "").trim();
+				let pType = item.programType || "";
+				
+				let mappedType = "";
+				if (pType === '방과후 아카데미') mappedType = '청소년방과후아카데미';
+				else if (pType === '국제청소년성취포상제') mappedType = '국제청소년성취포상제';
+				else if (pType === '청소년자기도전포상제') mappedType = '청소년자기도전포상제';
+				else if (pType === '인증연계(실시) 프로그램' || pType === '인증연계 프로그램') mappedType = '활동인증제';
+				else if (pType === '신고연계 프로그램') mappedType = '활동신고제';
+				else if (pType === '유스내비 프로그램') mappedType = '그룹활동';
+
+				// 정책 데이터에 있는 시설인데 기존 시설목록(sisulData)에 없었던 경우 추가
+				if (name && mappedType) {
+					if (!facMap[name]) {
+						facMap[name] = { '청소년방과후아카데미': false, '국제청소년성취포상제': false, '청소년자기도전포상제': false, '활동인증제': false, '활동신고제': false, '그룹활동': false };
+					}
+					facMap[name][mappedType] = true;
+				}
+			});
+
+			// 4. 객체를 배열로 변환 및 정렬 (사업을 많이 운영하는 우수 기관이 상단에 오도록 정렬)
+			let facList = Object.keys(facMap).map(name => {
+				let counts = 0;
+				Object.values(facMap[name]).forEach(hasProgram => { if(hasProgram) counts++; });
+				return { name, programs: facMap[name], counts };
+			});
+
+			// 특정 정책만 클릭했을 경우, 해당 정책을 운영하는 기관만 필터링
+			if (!isAll) {
+				let targetKey = type;
+				if(type === '수련활동인증제') targetKey = '활동인증제';
+				if(type === '수련활동신고제') targetKey = '활동신고제';
+				facList = facList.filter(f => f.programs[targetKey]);
+			}
+
+			facList.sort((a, b) => b.counts - a.counts || a.name.localeCompare(b.name));
+
+			// 5. O/X 매트릭스 표 HTML 생성
+			let html = `
+				<thead class="bg-brand-dark text-brand-yellow text-[11px] uppercase text-center border-b border-gray-700">
+					<tr>
+						<th class="py-3 px-2 w-1/4">시설명</th>
+						<th class="py-3 px-1 whitespace-nowrap">방과후<br>아카데미</th>
+						<th class="py-3 px-1 whitespace-nowrap">국제성취<br>포상제</th>
+						<th class="py-3 px-1 whitespace-nowrap">자기도전<br>포상제</th>
+						<th class="py-3 px-1 whitespace-nowrap">활동<br>인증제</th>
+						<th class="py-3 px-1 whitespace-nowrap">활동<br>신고제</th>
+						<th class="py-3 px-1 whitespace-nowrap">그룹<br>활동</th>
+					</tr>
+				</thead>
+				<tbody class="text-center bg-white divide-y divide-gray-100 text-xs">
+			`;
+
+			if (facList.length === 0) {
+				html += `<tr><td colspan="7" class="py-8 text-gray-400 font-bold">해당 지역에 정책사업을 운영하는 기관이 없습니다.</td></tr>`;
+			} else {
+				const drawOX = (hasProgram) => {
+					return hasProgram 
+						? `<span class="text-blue-600 font-black text-sm">O</span>` 
+						: `<span class="text-gray-300 font-bold text-[10px]">X</span>`;
+				};
+
+				facList.forEach(fac => {
+					html += `
+						<tr class="hover:bg-blue-50 transition-colors">
+							<td class="py-2.5 px-3 font-bold text-brand-dark bg-gray-50 text-left leading-tight break-keep" style="min-width: 120px;">${fac.name}</td>
+							<td class="py-2.5 px-1 border-l border-gray-100">${drawOX(fac.programs['청소년방과후아카데미'])}</td>
+							<td class="py-2.5 px-1 border-l border-gray-100">${drawOX(fac.programs['국제청소년성취포상제'])}</td>
+							<td class="py-2.5 px-1 border-l border-gray-100">${drawOX(fac.programs['청소년자기도전포상제'])}</td>
+							<td class="py-2.5 px-1 border-l border-gray-100">${drawOX(fac.programs['활동인증제'])}</td>
+							<td class="py-2.5 px-1 border-l border-gray-100">${drawOX(fac.programs['활동신고제'])}</td>
+							<td class="py-2.5 px-1 border-l border-gray-100">${drawOX(fac.programs['그룹활동'])}</td>
+						</tr>
+					`;
+				});
+			}
+			html += `</tbody>`;
+
 			tableContainer.classList.remove('hidden');
 			dataTable.innerHTML = html;
 			tableContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
