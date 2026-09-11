@@ -865,11 +865,13 @@
 
 			let actualPop = 0;
 			if (mappedRegion === "전국") {
-				actualPop = (popData["전국"] && popData["전국"]["전국"]) ? popData["전국"]["전국"]["총인구수"][popKey] || 0 : 0;
-			} else if (popData[mappedRegion] && popData[mappedRegion]["소계"]) {
-				actualPop = popData[mappedRegion]["소계"]["총인구수"][popKey] || 0;
+				// 새 데이터에는 '전국' 키가 없으므로 17개 시도의 합계를 구함
+				Object.keys(popData).forEach(r => {
+					actualPop += popData[r]?.["합계"]?.["청소년"]?.["청소년전체"] || 0;
+				});
+			} else {
+				actualPop = popData[mappedRegion]?.["합계"]?.["청소년"]?.["청소년전체"] || 0;
 			}
-
 			let rIdx = regionsList.indexOf(regionName);
 			
 			const getFacCount = (type) => {
@@ -1012,7 +1014,7 @@
 				fetch(URL_MUNICIPALITIES).then(res => res.json()),
 				fetch('data/sisul.json').then(res => res.json()),
 				fetch('data/jidoja.json').then(res => res.json()),
-				fetch('data/pop_data.json').then(res => res.json()),
+				fetch('data/population_result.json').then(res => res.json()),
 				fetch('data/school.json').then(res => res.json()),
 				fetch('data/programs_eyouth.json').then(res => res.json()),
 				fetch('data/programs_poli.json').then(res => res.json()),
@@ -1036,11 +1038,6 @@
 				municipalitiesData = munData;
 
 				// 🌟 [세탁 4] 인구(pop) & 학교(school) 데이터 세탁: 두 지역의 모든 수치를 더하고 원본은 삭제합니다.
-				if (pop["광주광역시"] || pop["전라남도"]) {
-					pop["전남광주통합특별시"] = deepMergeNumbers(pop["광주광역시"], pop["전라남도"]);
-					delete pop["광주광역시"];
-					delete pop["전라남도"];
-				}
 				if (school["광주광역시"] || school["전라남도"]) {
 					school["전남광주통합특별시"] = deepMergeNumbers(school["광주광역시"], school["전라남도"]);
 					delete school["광주광역시"];
@@ -1415,38 +1412,25 @@
 
 			await new Promise(resolve => setTimeout(resolve, 50));
 			
-			// 1. 청소년 인구수 (기존 로직 유지)
+			// 1. 청소년 인구수 (population_result.json 기반으로 '청소년' 인구 추출)
 			let regionalPop = 0;
+			let mappedProv = COMMON_REGION_MAP[province] || province;
 			let safeMunicipality = municipality !== '전체' ? municipality.replace(/\s/g, '') : '';
 
-			if (province === "전남광주통합특별시") {
+			if (popData[mappedProv]) {
 				if (isAll) {
-					let p1 = popData["광주광역시"] ? (popData["광주광역시"]["소계"]["총인구수"]["2026.06월"] || 0) : 0;
-					let p2 = popData["전라남도"] ? (popData["전라남도"]["소계"]["총인구수"]["2026.06월"] || 0) : 0;
-					regionalPop = p1 + p2;
+					regionalPop = popData[mappedProv]?.["합계"]?.["청소년"]?.["청소년전체"] || 0;
 				} else {
-					if (popData["광주광역시"]) {
-						let key1 = Object.keys(popData["광주광역시"]).find(k => k.replace(/\s/g, '') === safeMunicipality);
-						if (key1) regionalPop = popData["광주광역시"][key1]["총인구수"]["2026.06월"] || 0;
-					}
-					if (regionalPop === 0 && popData["전라남도"]) {
-						let key2 = Object.keys(popData["전라남도"]).find(k => k.replace(/\s/g, '') === safeMunicipality);
-						if (key2) regionalPop = popData["전라남도"][key2]["총인구수"]["2026.06월"] || 0;
-					}
-				}
-			} else if (popData[province]) {
-				if (isAll) {
-					if (popData[province]["소계"]) {
-						regionalPop = popData[province]["소계"]["총인구수"]["2026.06월"] || 0;
-					}
-				} else {
-					let foundKey = Object.keys(popData[province]).find(k => k.replace(/\s/g, '') === safeMunicipality);
-					if (foundKey && popData[province][foundKey]) {
-						regionalPop = popData[province][foundKey]["총인구수"]["2026.06월"] || 0;
+					let sigunguData = popData[mappedProv]?.["시군구"];
+					if (sigunguData) {
+						let foundKey = Object.keys(sigunguData).find(k => k.replace(/\s/g, '') === safeMunicipality);
+						if (foundKey && sigunguData[foundKey]) {
+							regionalPop = sigunguData[foundKey]?.["청소년"]?.["청소년전체"] || 0;
+						}
 					}
 				}
 			}
-			if (regionalPop === 0) regionalPop = 1; // 0 나누기 방지
+			if (regionalPop === 0) regionalPop = 1;
 
 			// 2. 수련시설수
 			let filteredFacilities = sisulData.filter(item => {
@@ -1526,16 +1510,18 @@
 			if (isAll) {
 				regionsList.forEach(r => {
 					let mR = COMMON_REGION_MAP[r] || r;
-					let tPop = popData[r]?.["소계"]?.["총인구수"]?.["2026.06월"] || 1;
-					if (r === "전남광주통합특별시") tPop = (popData["광주광역시"]?.["소계"]?.["총인구수"]?.["2026.06월"]||0) + (popData["전라남도"]?.["소계"]?.["총인구수"]?.["2026.06월"]||0);
-					if (tPop === 0) tPop = 1;
+					
+					// 🚨 수정: "합계" 안의 청소년 인구수 사용
+					let tPop = popData[r]?.["합계"]?.["청소년"]?.["청소년전체"] || 0;
+					if (tPop === 0) tPop = 10000; // 결측치 방어
 
 					let tFac = sisulData.filter(i => (r === "전남광주통합특별시" ? (i.ctpvNm === "광주광역시" || i.ctpvNm === "전라남도") : i.ctpvNm === r)).length;
 					let tPol = programsPoliData.filter(i => (r === "전남광주통합특별시" ? (i.sidoNm === "광주광역시" || i.sidoNm === "전라남도" || i.sidoNm === "전남광주통합특별시") : i.sidoNm === r)).length;
 					
-					let tArea = areaData[mR]?.["소계"] || areaData[r]?.["소계"] || 1;
+					let tArea = areaData[mR]?.["소계"] || areaData[r]?.["소계"] || 0;
 					if (r === "전남광주통합특별시") tArea = (areaData["광주광역시"]?.["소계"]||0) + (areaData["전라남도"]?.["소계"]||0);
-					let tAreaKm2 = tArea / 1000000 || 1;
+					
+					let tAreaKm2 = tArea > 0 ? (tArea / 1000000) : 1; 
 
 					allIndices.push({ name: r, raw: ((tFac + tPol)/tPop) * ((tFac + tPol)/tAreaKm2) });
 				});
@@ -1544,18 +1530,21 @@
 				if (province === "전남광주통합특별시") districts = [...(districtData["광주광역시"]||[]), ...(districtData["전라남도"]||[])];
 
 				districts.forEach(d => {
-					let tPop = popData[province]?.[d]?.["총인구수"]?.["2026.06월"] || 1;
-					if (!popData[province]?.[d]) {
-						let foundKey = Object.keys(popData[province]||{}).find(k => k.replace(/\s/g, '') === d.replace(/\s/g, ''));
-						if (foundKey) tPop = popData[province][foundKey]["총인구수"]?.["2026.06월"] || 1;
+					// 🚨 수정: "시군구" 안의 청소년 인구수 사용
+					let sigunguObj = popData[province]?.["시군구"] || {};
+					let tPop = sigunguObj[d]?.["청소년"]?.["청소년전체"] || 0;
+					
+					if (!sigunguObj[d]) {
+						let foundKey = Object.keys(sigunguObj).find(k => k.replace(/\s/g, '') === d.replace(/\s/g, ''));
+						if (foundKey) tPop = sigunguObj[foundKey]?.["청소년"]?.["청소년전체"] || 0;
 					}
-					if (tPop === 0) tPop = 1;
+					if (tPop === 0) tPop = 10000; 
 
 					let tFac = sisulData.filter(i => (i.ctpvNm === province || (province==="전남광주통합특별시" && (i.ctpvNm==="광주광역시"||i.ctpvNm==="전라남도"))) && (i.sggNm && i.sggNm.replace(/\s/g, '') === d.replace(/\s/g, ''))).length;
 					let tPol = programsPoliData.filter(i => (i.sidoNm === province || (province==="전남광주통합특별시" && (i.sidoNm==="광주광역시"||i.sidoNm==="전라남도"||i.sidoNm==="전남광주통합특별시"))) && (i.sggNm && i.sggNm.replace(/\s/g, '') === d.replace(/\s/g, ''))).length;
 					
-					let tArea = areaData[mappedProv]?.[d] || areaData[province]?.[d] || 1;
-					let tAreaKm2 = tArea / 1000000 || 1;
+					let tArea = areaData[mappedProv]?.[d] || areaData[province]?.[d] || 0;
+					let tAreaKm2 = tArea > 0 ? (tArea / 1000000) : 1; 
 
 					allIndices.push({ name: d, raw: ((tFac + tPol)/tPop) * ((tFac + tPol)/tAreaKm2) });
 				});
@@ -2795,31 +2784,17 @@
 			let totalMale = 0;
 			let totalFemale = 0;
 
-			regionsList.forEach((region, i) => {
-				if (region === "전남광주통합특별시") {
-					let m1=0, f1=0, m2=0, f2=0;
-					if(popData["광주광역시"] && popData["광주광역시"]["소계"]) {
-						m1 = popData["광주광역시"]["소계"]["남자인구수"][targetYearKeyPop] || 0;
-						f1 = popData["광주광역시"]["소계"]["여자인구수"][targetYearKeyPop] || 0;
-					}
-					if(popData["전라남도"] && popData["전라남도"]["소계"]) {
-						m2 = popData["전라남도"]["소계"]["남자인구수"][targetYearKeyPop] || 0;
-						f2 = popData["전라남도"]["소계"]["여자인구수"][targetYearKeyPop] || 0;
-					}
-					currentMale[i] = m1 + m2;
-					currentFemale[i] = f1 + f2;
-				} else {
-					if(popData[region] && popData[region]["소계"]) {
-						currentMale[i] = popData[region]["소계"]["남자인구수"][targetYearKeyPop] || 0;
-						currentFemale[i] = popData[region]["소계"]["여자인구수"][targetYearKeyPop] || 0;
-					}
+			rregionsList.forEach((region, i) => {
+				let mappedR = COMMON_REGION_MAP[region] || region;
+				let youthData = popData[mappedR]?.["합계"]?.["청소년"];
+				
+				if (youthData) {
+					currentMale[i] = youthData["청소년남자"] || 0;
+					currentFemale[i] = youthData["청소년여자"] || 0;
+					totalMale += currentMale[i];
+					totalFemale += currentFemale[i];
 				}
 			});
-
-			if (popData["전국"] && popData["전국"]["전국"]) {
-				totalMale = popData["전국"]["전국"]["남자인구수"][targetYearKeyPop] || 0;
-				totalFemale = popData["전국"]["전국"]["여자인구수"][targetYearKeyPop] || 0;
-			}
 
 			let totalPop = totalMale + totalFemale;
 
@@ -2944,7 +2919,7 @@
 
 		function generateMockIndicators(regionName, mode) {
 			const targetYear = "2025년";
-			const targetPopMonth = "2026.06월";
+            // 새 데이터는 기준일이 고정되어 있으므로 targetPopMonth 삭제
 
 			if (!mode) {
 				const provModeUI = document.getElementById('compProvModeUI');
@@ -2952,23 +2927,31 @@
 			}
 
 			let currentProv = document.getElementById('compDistProv') ? document.getElementById('compDistProv').value : "서울특별시";
+            let mappedProv = COMMON_REGION_MAP[currentProv] || currentProv;
 
-			let natPop = (popData["전국"] && popData["전국"]["전국"]) ? popData["전국"]["전국"]["총인구수"][targetPopMonth] || 1 : 10000000;
+            // 1. 전국 청소년 총인구 합산 (새 데이터에는 '전국' 키가 없음)
+			let natPop = 0;
+            Object.keys(popData).forEach(r => {
+                if (popData[r]?.["합계"]) {
+                    natPop += popData[r]["합계"]["청소년"]["청소년전체"] || 0;
+                }
+            });
+            if (natPop === 0) natPop = 10000000;
+
 			let natFac = sisulData.length || 1;
 			let natSchool = 11750;
 
 			let provPop = 0, provFac = 0, provSchool = 0;
 
+            // 2. 현재 선택된 도/광역시 기준 인프라 산출
+            provPop = popData[mappedProv]?.["합계"]?.["청소년"]?.["청소년전체"] || 100000;
+
 			if (currentProv === "전남광주통합특별시") {
-				let p1 = popData["광주광역시"]?.["소계"]?.["총인구수"]?.[targetPopMonth] || 0;
-				let p2 = popData["전라남도"]?.["소계"]?.["총인구수"]?.[targetPopMonth] || 0;
-				provPop = p1 + p2;
-				provFac = sisulData.filter(i => i.ctpvNm === "광주광역시" || i.ctpvNm === "전라남도").length;
-				["광주광역시", "전라남도"].forEach(p => {
-					if(schoolData[p]) Object.keys(schoolData[p]).forEach(t => provSchool += schoolData[p][t]?.[targetYear]?.["학교수"] || 0);
-				});
+				provFac = sisulData.filter(i => i.ctpvNm === "광주광역시" || i.ctpvNm === "전라남도" || i.ctpvNm === "전남광주통합특별시").length;
+				if(schoolData["전남광주통합특별시"]) {
+                    Object.keys(schoolData["전남광주통합특별시"]).forEach(t => provSchool += schoolData["전남광주통합특별시"][t]?.[targetYear]?.["학교수"] || 0);
+                }
 			} else {
-				provPop = popData[currentProv]?.["소계"]?.["총인구수"]?.[targetPopMonth] || 100000;
 				provFac = sisulData.filter(i => i.ctpvNm === currentProv).length || 1;
 				if(schoolData[currentProv]) {
 					Object.keys(schoolData[currentProv]).forEach(t => provSchool += schoolData[currentProv][t]?.[targetYear]?.["학교수"] || 0);
@@ -2978,14 +2961,17 @@
 
 			let pop = 0, facCount = 0, schoolCount = 0;
 
+            // 3. 비교 모드에 따른 개별 지역 지표 추출
 			if (mode === 'province') {
 				if (regionName === '전체') {
 					pop = natPop / 17; facCount = natFac / 17; schoolCount = natSchool / 17;
 				} else {
+                    let mappedReg = COMMON_REGION_MAP[regionName] || regionName;
+                    pop = popData[mappedReg]?.["합계"]?.["청소년"]?.["청소년전체"] || 0;
+
 					if (regionName === "전남광주통합특별시") {
-						pop = provPop; facCount = provFac; schoolCount = provSchool;
+						facCount = provFac; schoolCount = provSchool;
 					} else {
-						pop = popData[regionName]?.["소계"]?.["총인구수"]?.[targetPopMonth] || 0;
 						facCount = sisulData.filter(i => i.ctpvNm === regionName).length;
 						if(schoolData[regionName]) {
 							Object.keys(schoolData[regionName]).forEach(t => schoolCount += schoolData[regionName][t]?.[targetYear]?.["학교수"] || 0);
@@ -2997,20 +2983,19 @@
 				if (regionName === '전체') {
 					pop = provPop / distCount; facCount = provFac / distCount; schoolCount = provSchool / distCount;
 				} else {
-					if (popData[currentProv]) {
-						if (popData[currentProv][regionName]) {
-							pop = popData[currentProv][regionName]["총인구수"]?.[targetPopMonth] || 0;
-						} else {
-							let foundKey = Object.keys(popData[currentProv]).find(k => k.includes(regionName));
-							if (foundKey) {
-								pop = popData[currentProv][foundKey]["총인구수"]?.[targetPopMonth] || 0;
-							}
-						}
-					}
+                    // 시군구 청소년 인구 추출
+                    let sigunguObj = popData[mappedProv]?.["시군구"] || {};
+                    pop = sigunguObj[regionName]?.["청소년"]?.["청소년전체"] || 0;
+                    
+                    if (pop === 0) {
+                        let foundKey = Object.keys(sigunguObj).find(k => k.replace(/\s/g, '') === regionName.replace(/\s/g, ''));
+                        if (foundKey) pop = sigunguObj[foundKey]?.["청소년"]?.["청소년전체"] || 0;
+                    }
+
 					if (currentProv === "전남광주통합특별시") {
-						facCount = sisulData.filter(i => (i.ctpvNm === "광주광역시" || i.ctpvNm === "전라남도") && i.sggNm === regionName).length;
+						facCount = sisulData.filter(i => (i.ctpvNm === "광주광역시" || i.ctpvNm === "전라남도" || i.ctpvNm === "전남광주통합특별시") && i.sggNm && i.sggNm.replace(/\s/g, '') === regionName.replace(/\s/g, '')).length;
 					} else {
-						facCount = sisulData.filter(i => i.ctpvNm === currentProv && i.sggNm === regionName).length;
+						facCount = sisulData.filter(i => i.ctpvNm === currentProv && i.sggNm && i.sggNm.replace(/\s/g, '') === regionName.replace(/\s/g, '')).length;
 					}
 					schoolCount = Math.floor(facCount * (provSchool / provFac)) || 1;
 				}
@@ -3520,13 +3505,7 @@
 
 				// ③ 청소년 인구수
 				let pop = 1;
-				if (r === "전남광주통합특별시") {
-					let p1 = (popData["광주광역시"] && popData["광주광역시"]["소계"]) ? popData["광주광역시"]["소계"]["총인구수"][targetYearKey] || 0 : 0;
-					let p2 = (popData["전라남도"] && popData["전라남도"]["소계"]) ? popData["전라남도"]["소계"]["총인구수"][targetYearKey] || 0 : 0;
-					pop = p1 + p2;
-				} else {
-					pop = (popData[r] && popData[r]["소계"]) ? popData[r]["소계"]["총인구수"][targetYearKey] || 0 : 1;
-				}
+				let pop = popData[mappedR]?.["합계"]?.["청소년"]?.["청소년전체"] || 1;
 				if (pop === 0) pop = 1;
 
 				// ④ 행정구역 면적(km²)
