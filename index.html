@@ -2323,22 +2323,50 @@
 					return arr;
 				};
 
+				// 🌟 최적화: 표와 차트에 쓸 데이터를 미리 한 번에 계산해서 모아둡니다.
+				let schDataByType = {};
+				let stdDataByType = {};
+				types.forEach(type => {
+					schDataByType[type] = getSchoolArrayForChart(type, "학교수");
+					stdDataByType[type] = getSchoolArrayForChart(type, "학생수");
+				});
+
+				// 🚨 1. '학교 전체보기' 모드일 때 통합 표 그리기
 				if (isAllView) {
 					types.forEach((type, idx) => {
-						let typeDataArr = getSchoolArrayForChart(type, "학교수");
+						let typeDataArr = schDataByType[type];
 						datasets.push({ label: type, data: typeDataArr, backgroundColor: colors[idx], borderRadius: 0, barPercentage: 0.5 });
 						typeDataArr.forEach((val, i) => totalDataArray[i] += val);
 					});
-				} else {
+
+					tableHeaders = ['시도명', '초등학교', '중학교', '고등학교', '대학교', '특수학교'];
+					
+					regionsList.forEach((r, i) => {
+						let row = [r]; // 시도명 추가
+						types.forEach(type => {
+							let schCount = schDataByType[type][i];
+							let stdCount = stdDataByType[type][i];
+							// 🌟 100개 (1,000명) 형식으로 가독성 좋게 출력
+							row.push(`${schCount.toLocaleString()}개 <span class="text-[11px] text-gray-500 whitespace-nowrap">(${stdCount.toLocaleString()}명)</span>`);
+						});
+						tableRows.push(row);
+					});
+				} 
+				// 🚨 2. 개별 학교 탭일 때 표 그리기 (기준연도 삭제)
+				else {
 					const idx = types.indexOf(title);
-					let typeDataArr = getSchoolArrayForChart(title, "학교수");
+					let typeDataArr = schDataByType[title];
 					datasets = [{ label: title, data: typeDataArr, backgroundColor: colors[idx] || '#3b82f6', borderRadius: 0, barPercentage: 0.5 }];
 					totalDataArray = [...typeDataArr];
 
-					tableHeaders = ['시도명', '기준 연도', '학교수 (개교)', '학생수 (명)'];
-					let studentArr = getSchoolArrayForChart(title, "학생수");
+					tableHeaders = ['시도명', '학교수 (개교)', '학생수 (명)'];
+					let studentArr = stdDataByType[title];
 					regionsList.forEach((r, i) => {
-						tableRows.push([r, targetYear, typeDataArr[i].toLocaleString(), `<span class="text-brand-dark">${studentArr[i].toLocaleString()}</span>`]);
+						tableRows.push([
+							r, 
+							`${typeDataArr[i].toLocaleString()}개`, 
+							`<span class="text-brand-dark font-bold">${studentArr[i].toLocaleString()}명</span>`
+						]);
 					});
 				}
 				mapDataExtracted = true;
