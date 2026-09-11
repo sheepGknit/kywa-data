@@ -2080,7 +2080,7 @@
                 } else if (activityItems.includes(title) || policyItems.includes(title)) {
                     formulaEl.innerHTML = `(지역 내 <b>프로그램 수</b> ÷ 전국 <b>총 청소년 인구</b>) × 100`;
                 } else if (policyItems.includes(title) || policyItems.includes(title)) {
-                    formulaEl.innerHTML = `(지역 내 <b>프로그램 수</b> ÷ 전국 <b>총 청소년 인구</b>) × 100`;
+                    formulaEl.innerHTML = `(지역 내 <b>정책사업 운영 시설 수</b> ÷ <b>전체 시설 수</b>) × 100`;
                 } else if (leaderItems.includes(title)) {
                     formulaEl.innerHTML = `(지역 내 <b>지도자/상담사 수</b> ÷ 전국 <b>총 청소년 인구</b>) × 100`;
                 } else if (title === '학생 인구') {
@@ -2474,8 +2474,8 @@
 					let numerator = totalDataArray[i]; 
 					let calculatedRatio = 0;
 
-					// 🚨 시설과 학교 모두 면적(km²) 기준으로 통합!
 					if (facilityItems.includes(title) || schoolItems.includes(title)) {
+						// [시설 & 학교] 면적(km²) 기준 밀집도
 						let rArea = 1;
 						let mappedR = COMMON_REGION_MAP[r] || r;
 						
@@ -2488,8 +2488,54 @@
 						let rAreaKm2 = rArea / 1000000;
 						calculatedRatio = (numerator / rAreaKm2) * 100;
 					} 
+					else if (policyItems.includes(title)) {
+						// 🚨 [정책사업] 적극성 지표: (정책 운영 시설 수 / 전체 시설 수) * 100
+						
+						// 1. 해당 지역의 전체 시설 수 구하기
+						let totalFacCount = sisulData.filter(item => {
+							let cNm = item.ctpvNm || "";
+							if (r === "전남광주통합특별시") return cNm.includes('광주') || cNm.includes('전남');
+							return r.includes(cNm);
+						}).length;
+
+						if (totalFacCount === 0) totalFacCount = 1; // 0으로 나누기 방지
+
+						// 2. 선택한 정책사업을 운영하는 고유 시설 수(중복 제외) 구하기
+						const isAll = (title === '청소년정책사업 전체보기');
+						let targetType = title;
+						if (title === '수련활동인증제') targetType = '활동인증제';
+						if (title === '수련활동신고제') targetType = '활동신고제';
+
+						let activeFacSet = new Set();
+						
+						programsPoliData.forEach(item => {
+							let sNm = item.sidoNm || "";
+							let isMatchRegion = (r === "전남광주통합특별시") ? (sNm.includes('광주') || sNm.includes('전남')) : r.includes(sNm);
+
+							if (isMatchRegion) {
+								let facName = (item.facilityName || "").trim();
+								let pType = item.programType || "";
+								
+								let mappedType = "";
+								if (pType === '방과후 아카데미') mappedType = '청소년방과후아카데미';
+								else if (pType === '국제청소년성취포상제') mappedType = '국제청소년성취포상제';
+								else if (pType === '청소년자기도전포상제') mappedType = '청소년자기도전포상제';
+								else if (pType === '인증연계(실시) 프로그램' || pType === '인증연계 프로그램') mappedType = '활동인증제';
+								else if (pType === '신고연계 프로그램') mappedType = '활동신고제';
+								else if (pType === '유스내비 프로그램') mappedType = '그룹활동';
+
+								// 기관 이름이 있고 조건에 맞으면 Set에 추가하여 중복 방지
+								if (facName && (isAll || mappedType === targetType)) {
+									activeFacSet.add(facName);
+								}
+							}
+						});
+
+						let activeFacCount = activeFacSet.size;
+						calculatedRatio = (activeFacCount / totalFacCount) * 100;
+					}
 					else {
-						// [기타 활동, 정책 등] 전국 청소년 인구 기준 비중 유지
+						// [기타 활동 등] 전국 청소년 인구 기준 비중
 						let totalNationPop = (popData["전국"] && popData["전국"]["전국"]) ? popData["전국"]["전국"]["총인구수"][targetYearKey] || 1 : 1;
 						calculatedRatio = (numerator / totalNationPop) * 100;
 					}
@@ -2497,7 +2543,7 @@
 					mapDataObj[r] = Number(calculatedRatio.toFixed(3));
 				});
 
-				// 타이밍 문제 방지
+				// 🌟 타이밍 문제 방지: 지도가 렌더링될 시간을 0.35초 벌어줌
 				setTimeout(() => {
 					updateTrendMapColors(mapDataObj, true); 
 				}, 350);
