@@ -838,25 +838,25 @@
         };
 
         function getRegionData(regionName) {
-			// 🌟 1. 슬라이더 연도 가져오기
+			// 1. 슬라이더 연도 가져오기
 			const sliderElement = document.getElementById('yearSlider');
 			const currentYear = sliderElement ? sliderElement.value : "2026"; 
-			const targetYear = currentYear + "년"; // 학교 데이터용 (예: "2025년")
 			
-			// 인구 데이터용 키값 (예: 2026년은 "2026.06월", 나머지는 "2025.12월" 등 원본에 맞게 설정)
+			// 🌟 학교 데이터는 2026년이 없으므로, 2026이 선택되면 2025년으로 대체합니다.
+			const schoolTargetYear = (parseInt(currentYear) >= 2025) ? "2025년" : currentYear + "년";
+			
+			// 인구 데이터용 키값
 			const popKey = currentYear === "2026" ? "2026.06월" : currentYear + "년";
 			
 			let actualPop = 0;
-			// 🌟 1. 인구 데이터: 통합특별시 덧셈 로직 삭제됨 (세탁된 데이터 그대로 사용)
 			if (regionName === "전국") {
-				actualPop = (popData["전국"] && popData["전국"]["전국"]) ? popData["전국"]["전국"]["총인구수"]["2026.06월"] || 0 : 0;
+				actualPop = (popData["전국"] && popData["전국"]["전국"]) ? popData["전국"]["전국"]["총인구수"][popKey] || 0 : 0;
 			} else if (popData[regionName] && popData[regionName]["소계"]) {
-				actualPop = popData[regionName]["소계"]["총인구수"]["2026.06월"] || 0;
+				actualPop = popData[regionName]["소계"]["총인구수"][popKey] || 0;
 			}
 
 			let rIdx = regionsList.indexOf(regionName);
 			
-			// 🌟 2. 시설 데이터: 통합특별시 덧셈 로직 삭제됨
 			const getFacCount = (type) => {
 				if (regionName === "전국") {
 					return facilityDataStore[type].reduce((a, b) => a + b, 0);
@@ -864,69 +864,61 @@
 				return rIdx !== -1 ? facilityDataStore[type][rIdx] : 0;
 			};
 
-			const targetYear = "2025년"; 
-			// 🌟 3. 학교 데이터: 통합특별시 덧셈 로직 삭제됨
+			// 🌟 targetYear 대신 방금 만든 schoolTargetYear를 사용합니다.
 			const getSchCount = (schType) => {
 				if (regionName === "전국") {
 					let total = 0;
 					regionsList.forEach(r => {
-						if (schoolData[r] && schoolData[r][schType] && schoolData[r][schType][targetYear]) {
-							total += schoolData[r][schType][targetYear]["학교수"] || 0;
+						if (schoolData[r] && schoolData[r][schType] && schoolData[r][schType][schoolTargetYear]) {
+							total += schoolData[r][schType][schoolTargetYear]["학교수"] || 0;
 						}
 					});
-					if (schoolData["전국"] && schoolData["전국"][schType] && schoolData["전국"][schType][targetYear]) {
-						return schoolData["전국"][schType][targetYear]["학교수"] || 0;
+					if (schoolData["전국"] && schoolData["전국"][schType] && schoolData["전국"][schType][schoolTargetYear]) {
+						return schoolData["전국"][schType][schoolTargetYear]["학교수"] || 0;
 					}
 					return total;
 				}
 
-				if (schoolData[regionName] && schoolData[regionName][schType] && schoolData[regionName][schType][targetYear]) {
-					return schoolData[regionName][schType][targetYear]["학교수"] || 0;
+				if (schoolData[regionName] && schoolData[regionName][schType] && schoolData[regionName][schType][schoolTargetYear]) {
+					return schoolData[regionName][schType][schoolTargetYear]["학교수"] || 0;
 				}
 				return 0;
 			};
 			
-			// 🌟 1. 새로 추가: 실제 학생수를 모두 더해주는 함수
 			const getStudentCount = () => {
-				// 합산할 학교 유형 (보통 청소년/학령인구와 비교할 땐 대학교를 뺍니다. 필요시 '대학교' 추가 가능)
 				const schTypes = ['초등학교', '중학교', '고등학교', '특수학교'];
 				let total = 0;
 
 				if (regionName === "전국") {
-					// 전국일 경우: 모든 지역(또는 전국 데이터)의 학생수 합산
 					let natTotal = 0;
 					schTypes.forEach(type => {
-						if (schoolData["전국"] && schoolData["전국"][type] && schoolData["전국"][type][targetYear]) {
-							natTotal += schoolData["전국"][type][targetYear]["학생수"] || 0;
+						if (schoolData["전국"] && schoolData["전국"][type] && schoolData["전국"][type][schoolTargetYear]) {
+							natTotal += schoolData["전국"][type][schoolTargetYear]["학생수"] || 0;
 						}
 					});
 					if (natTotal > 0) return natTotal;
 
 					regionsList.forEach(r => {
 						schTypes.forEach(type => {
-							if (schoolData[r] && schoolData[r][type] && schoolData[r][type][targetYear]) {
-								total += schoolData[r][type][targetYear]["학생수"] || 0;
+							if (schoolData[r] && schoolData[r][type] && schoolData[r][type][schoolTargetYear]) {
+								total += schoolData[r][type][schoolTargetYear]["학생수"] || 0;
 							}
 						});
 					});
 					return total;
 				}
 
-				// 특정 시/도일 경우: 해당 지역의 초+중+고+특 학생수 합산
 				schTypes.forEach(type => {
-					if (schoolData[regionName] && schoolData[regionName][type] && schoolData[regionName][type][targetYear]) {
-						total += schoolData[regionName][type][targetYear]["학생수"] || 0;
+					if (schoolData[regionName] && schoolData[regionName][type] && schoolData[regionName][type][schoolTargetYear]) {
+						total += schoolData[regionName][type][schoolTargetYear]["학생수"] || 0;
 					}
 				});
-				console.log(total);
 				return total;
 			};
 
-			const seed = regionName.length + (regionName.charCodeAt(0) % 10) || 5;
-
+			// 🌟 중복 선언되어 있던 seed 변수 삭제(하나만 남김)
 			const seed = regionName.length + (regionName.charCodeAt(0) % 10) || 5; 
 
-			// 🌟 4. 프로그램 데이터: 복잡한 광주/전남/통합특별시 판별 로직 완전 삭제됨
 			const getCountByRegion = (targetType, dataset) => {
 				if (!dataset || dataset.length === 0) return 0;
 
@@ -944,7 +936,6 @@
 
 					if (mappedType === targetType) {
 						let sido = (item.sidoNm || "").trim();
-						// 이미 세탁되어 sido가 '전남광주통합특별시'로 나오므로 그냥 똑같은지만 비교하면 됨!
 						if (regionName === "전국" || sido === regionName) count++;
 					}
 				});
@@ -954,7 +945,6 @@
 			const lead1_val = regionName === "전국" ? 79793 : seed * 120 + 300;
 			const lead2_val = regionName === "전국" ? 47020 : seed * 120 + 300;
 			
-			// 🌟 5. 그룹활동 데이터: 통합특별시 덧셈 로직 삭제됨
 			const getGroupActivityCount =() => {
 				if(regionName === "전국"){
 					return Object.values(groupActivityDataStore).reduce((a, b) => a + b, 0);
@@ -2275,6 +2265,7 @@
                     plugins: [customLabelPlugin]
                 });
             }
+            // (renderCharts 함수 내부)
             else if (schoolItems.includes(title)) {
                 const isAllView = title === '학교 전체보기';
                 const types = ['초등학교', '중학교', '고등학교', '대학교', '특수학교'];
@@ -2283,18 +2274,13 @@
                 let sliderVal = document.getElementById('yearSlider').value;
                 let targetYear = (parseInt(sliderVal) >= 2026) ? "2025년" : sliderVal + "년";
 
+                // 🌟 복잡했던 광주/전남 수동 합산 로직 완전 삭제!
                 const getSchoolArrayForChart = (schType, metric="학교수") => {
                     let arr = [];
                     regionsList.forEach(region => {
                         let val = 0;
-                        if (region === "전남광주통합특별시") {
-                            let v1 = (schoolData["광주광역시"] && schoolData["광주광역시"][schType] && schoolData["광주광역시"][schType][targetYear]) ? schoolData["광주광역시"][schType][targetYear][metric] || 0 : 0;
-                            let v2 = (schoolData["전라남도"] && schoolData["전라남도"][schType] && schoolData["전라남도"][schType][targetYear]) ? schoolData["전라남도"][schType][targetYear][metric] || 0 : 0;
-                            val = v1 + v2;
-                        } else {
-                            if (schoolData[region] && schoolData[region][schType] && schoolData[region][schType][targetYear]) {
-                                val = schoolData[region][schType][targetYear][metric] || 0;
-                            }
+                        if (schoolData[region] && schoolData[region][schType] && schoolData[region][schType][targetYear]) {
+                            val = schoolData[region][schType][targetYear][metric] || 0;
                         }
                         arr.push(val);
                     });
