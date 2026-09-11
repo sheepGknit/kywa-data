@@ -331,6 +331,10 @@
                             <i class="ph-bold ph-calendar-check mr-1"></i> 신청 가능 활동
                             <span class="absolute top-3 right-3 lg:right-6 w-2 h-2 bg-seoul-red rounded-full animate-ping"></span>
                         </button>
+						<!-- 🚨 여기에 격차지수 탭 버튼 추가 -->
+						<button onclick="switchDetailTab('gap')" id="tab-btn-gap" class="flex-1 py-4 text-sm font-bold text-gray-500 hover:text-gray-700 border-b-2 border-transparent transition-colors">
+							<i class="ph-bold ph-chart-line-up mr-1"></i> 지역 격차지수
+						</button>
                     </div>
                     <div class="flex-1 overflow-y-auto p-4 custom-scroll" id="detailTabContent"></div>
                 </div>
@@ -1410,6 +1414,8 @@
 			insightEl.innerHTML = `<i class="ph ph-spinner animate-spin inline-block mr-1"></i> AI가 <span class="text-brand-yellow font-bold">${targetRegionName}</span>의 데이터를 분석 중입니다...`;
 
 			await new Promise(resolve => setTimeout(resolve, 50));
+			
+			// 1. 청소년 인구수 (기존 로직 유지)
 			let regionalPop = 0;
 			let safeMunicipality = municipality !== '전체' ? municipality.replace(/\s/g, '') : '';
 
@@ -1440,80 +1446,27 @@
 					}
 				}
 			}
+			if (regionalPop === 0) regionalPop = 1; // 0 나누기 방지
 
-            let filteredFacilities = sisulData.filter(item => {
-                let matchSido = false;
-                let ctpv = (item.ctpvNm || "").trim();
+			// 2. 수련시설수
+			let filteredFacilities = sisulData.filter(item => {
+				let matchSido = false;
+				let ctpv = (item.ctpvNm || "").trim();
 
-                if (province === "전남광주통합특별시") {
-                    matchSido = (ctpv === "광주광역시" || ctpv === "전라남도" || ctpv === "전남광주통합특별시");
-                } else if (province === "광주광역시" || province === "전라남도") {
-                    matchSido = (ctpv === province || ctpv === "전남광주통합특별시");
-                } else {
-                    matchSido = (ctpv === province);
-                }
+				if (province === "전남광주통합특별시") {
+					matchSido = (ctpv === "광주광역시" || ctpv === "전라남도" || ctpv === "전남광주통합특별시");
+				} else if (province === "광주광역시" || province === "전라남도") {
+					matchSido = (ctpv === province || ctpv === "전남광주통합특별시");
+				} else {
+					matchSido = (ctpv === province);
+				}
 
-                if (!matchSido) return false;
-
-                if (!isAll) {
-                    return item.sggNm && item.sggNm.replace(/\s/g, '') === municipality.replace(/\s/g, '');
-                }
-                return true;
-            });
-
-            filteredFacilities = Array.from(
-                new Map(filteredFacilities.map(fac => {
-                    const name = fac.facilityName || fac.sisulNm || fac.fcltNm || '';
-                    return [name, fac];
-                })).values()
-            );
-
-            let localPrograms = programsData.filter(item => {
-                let matchSido = false;
-                let sido = (item.sidoNm || "").trim();
-
-                if (province === "전남광주통합특별시") {
-                    matchSido = (sido === "광주광역시" || sido === "전라남도" || sido === "전남광주통합특별시");
-                } else if (province === "광주광역시" || province === "전라남도") {
-                    matchSido = (sido === province || sido === "전남광주통합특별시");
-                } else {
-                    matchSido = (sido === province);
-                }
-
-                if (!matchSido) return false;
-                if (!isAll) {
-                    return item.sggNm && item.sggNm.replace(/\s/g, '') === municipality.replace(/\s/g, '');
-                }
-                return true;
-            });
-
-            const isLivingZoneFac = (item) => {
-                return item.sisulType === '수련관' || item.sisulType === '문화의집'; 
-            };
-            const isLivingZoneProg = (item) => {
-                return item.facilityName && (item.facilityName.includes('수련관') || item.facilityName.includes('문화의집') || item.facilityName.includes('청소년센터') || item.facilityName.includes('유스센터'));
-            };
-
-            const fac = filteredFacilities.filter(isLivingZoneFac).length;
-            const progCount = localPrograms.filter(isLivingZoneProg).length;
-
-            const ratio = regionalPop > 0 ? ((filteredFacilities.length / regionalPop) * 10000).toFixed(1) : "0.0";
-            const progRatio = regionalPop > 0 ? ((localPrograms.length / regionalPop) * 10000).toFixed(1) : "0.0";
-
-            const supplyScore = fac + (progCount * 0.2); 
-            const demandScore = regionalPop > 0 ? (regionalPop / 10000) : 1;
-            const gapIndex = supplyScore / demandScore;
-
-            let badgeText = "", badgeClass = "";
-            if (regionalPop === 0) {
-                badgeText = "데이터 없음"; badgeClass = "bg-gray-200 text-gray-600 border-gray-300";
-            } else if (gapIndex < 1.5) {
-                badgeText = "🚨 우선지원지역"; badgeClass = "bg-red-100 text-seoul-red border border-red-200 animate-pulse";
-            } else if (gapIndex < 3.0) {
-                badgeText = "⚠️ 관심지역"; badgeClass = "bg-orange-100 text-orange-600 border border-orange-200";
-            } else {
-                badgeText = "✅ 양호지역"; badgeClass = "bg-emerald-100 text-emerald-600 border border-emerald-200";
-            }
+				if (!matchSido) return false;
+				if (!isAll) {
+					return item.sggNm && item.sggNm.replace(/\s/g, '') === municipality.replace(/\s/g, '');
+				}
+				return true;
+			});
 
 			const uniqueFacilities = Array.from(
 				new Map(filteredFacilities.map(fac => {
@@ -1521,77 +1474,166 @@
 					return [name, fac];
 				})).values()
 			);
+			let facCount = uniqueFacilities.length;
 
-            const badgeEl = document.getElementById('detailGapBadge');
-            badgeEl.textContent = badgeText;
-            badgeEl.className = `px-3 py-1 text-xs font-black rounded-full shadow-sm ml-2 border ${badgeClass} fade-in`;
-            badgeEl.classList.remove('hidden');
+			// 3. 🚨 정책사업수 (기존 일반 프로그램에서 정책사업 데이터로 변경)
+			let localPolicies = programsPoliData.filter(item => {
+				let matchSido = false;
+				let sido = (item.sidoNm || "").trim();
 
-            document.getElementById('detailStatPop').textContent = regionalPop.toLocaleString() + '명';
-            document.getElementById('detailStatFac').textContent = uniqueFacilities.length + '개소'; 
-            document.getElementById('detailStatRatio').textContent = ratio;
-            document.getElementById('detailProgRatio').textContent = progRatio;
+				if (province === "전남광주통합특별시") {
+					matchSido = (sido === "광주광역시" || sido === "전라남도" || sido === "전남광주통합특별시");
+				} else if (province === "광주광역시" || province === "전라남도") {
+					matchSido = (sido === province || sido === "전남광주통합특별시");
+				} else {
+					matchSido = (sido === province);
+				}
 
-            renderTabContent(province, municipality, targetRegionName.length, uniqueFacilities);
+				if (!matchSido) return false;
+				if (!isAll) {
+					return item.sggNm && item.sggNm.replace(/\s/g, '') === municipality.replace(/\s/g, '');
+				}
+				return true;
+			});
+			let polCount = localPolicies.length;
 
-            let natPop = (popData["전국"] && popData["전국"]["전국"]) ? popData["전국"]["전국"]["총인구수"]["2026.06월"] || 10000000 : 10000000;
-            let natFac = sisulData.filter(isLivingZoneFac).length || 1;
-            let natProg = programsData.filter(isLivingZoneProg).length || 1;
-            let natAvgGap = ((natFac + (natProg * 0.2)) / (natPop / 10000)) *100;
+			// 4. 🚨 면적 구하기 (km²)
+			let mappedProv = COMMON_REGION_MAP[province] || province;
+			let areaVal = 1;
+			if (province === "전남광주통합특별시") {
+				if (isAll) {
+					areaVal = (areaData["광주광역시"]?.["소계"] || 0) + (areaData["전라남도"]?.["소계"] || 0);
+				} else {
+					areaVal = areaData["광주광역시"]?.[municipality] || areaData["전라남도"]?.[municipality] || 1;
+				}
+			} else {
+				if (isAll) {
+					areaVal = areaData[mappedProv]?.["소계"] || areaData[province]?.["소계"] || 1;
+				} else {
+					areaVal = areaData[mappedProv]?.[municipality] || areaData[province]?.[municipality] || 1;
+				}
+			}
+			let areaKm2 = areaVal / 1000000;
+			if (areaKm2 === 0) areaKm2 = 1;
 
-            let allIndices = [];
-            if (isAll) {
-                regionsList.forEach(r => {
-                    let tPop = popData[r]?.["소계"]?.["총인구수"]?.["2026.06월"] || 100000;
-                    if (r === "전남광주통합특별시") tPop = (popData["광주광역시"]?.["소계"]?.["총인구수"]?.["2026.06월"]||0) + (popData["전라남도"]?.["소계"]?.["총인구수"]?.["2026.06월"]||0);
+			// 5. 🚨 새 격차지수(원시지수) 산출식 적용
+			let totalInfra = facCount + polCount;
+			let currentRawIndex = (totalInfra / regionalPop) * (totalInfra / areaKm2);
 
-                    let tFac = sisulData.filter(i => (r === "전남광주통합특별시" ? (i.ctpvNm === "광주광역시" || i.ctpvNm === "전라남도") : i.ctpvNm === r) && isLivingZoneFac(i)).length;
-                    let tProg = programsData.filter(i => (r === "전남광주통합특별시" ? (i.sidoNm === "광주광역시" || i.sidoNm === "전라남도" || i.sidoNm === "전남광주통합특별시") : i.sidoNm === r) && isLivingZoneProg(i)).length;
+			// 6. 비교 그룹(전국 시도 OR 해당 도내 시군구) 전체 원시지수 계산 및 표준화
+			let allIndices = [];
+			
+			if (isAll) {
+				regionsList.forEach(r => {
+					let mR = COMMON_REGION_MAP[r] || r;
+					let tPop = popData[r]?.["소계"]?.["총인구수"]?.["2026.06월"] || 1;
+					if (r === "전남광주통합특별시") tPop = (popData["광주광역시"]?.["소계"]?.["총인구수"]?.["2026.06월"]||0) + (popData["전라남도"]?.["소계"]?.["총인구수"]?.["2026.06월"]||0);
+					if (tPop === 0) tPop = 1;
 
-                    allIndices.push((tFac + tProg * 0.2) / (tPop > 0 ? tPop / 10000 : 1));
-                });
-            } else {
-                let districts = districtData[province] || [];
-                if (province === "전남광주통합특별시") districts = [...(districtData["광주광역시"]||[]), ...(districtData["전라남도"]||[])];
+					let tFac = sisulData.filter(i => (r === "전남광주통합특별시" ? (i.ctpvNm === "광주광역시" || i.ctpvNm === "전라남도") : i.ctpvNm === r)).length;
+					let tPol = programsPoliData.filter(i => (r === "전남광주통합특별시" ? (i.sidoNm === "광주광역시" || i.sidoNm === "전라남도" || i.sidoNm === "전남광주통합특별시") : i.sidoNm === r)).length;
+					
+					let tArea = areaData[mR]?.["소계"] || areaData[r]?.["소계"] || 1;
+					if (r === "전남광주통합특별시") tArea = (areaData["광주광역시"]?.["소계"]||0) + (areaData["전라남도"]?.["소계"]||0);
+					let tAreaKm2 = tArea / 1000000 || 1;
 
-                districts.forEach(d => {
-                    let tPop = popData[province]?.[d]?.["총인구수"]?.["2026.06월"] || 10000;
-                    if (!popData[province]?.[d]) {
-                        let foundKey = Object.keys(popData[province]||{}).find(k => k.includes(d));
-                        if (foundKey) tPop = popData[province][foundKey]["총인구수"]?.["2026.06월"] || 10000;
-                    }
+					allIndices.push({ name: r, raw: ((tFac + tPol)/tPop) * ((tFac + tPol)/tAreaKm2) });
+				});
+			} else {
+				let districts = districtData[province] || [];
+				if (province === "전남광주통합특별시") districts = [...(districtData["광주광역시"]||[]), ...(districtData["전라남도"]||[])];
 
-                    let tFac = sisulData.filter(i => (i.ctpvNm === province || (province==="전남광주통합특별시" && (i.ctpvNm==="광주광역시"||i.ctpvNm==="전라남도"))) && i.sggNm === d && isLivingZoneFac(i)).length;
-                    let tProg = programsData.filter(i => (i.sidoNm === province || (province==="전남광주통합특별시" && (i.sidoNm==="광주광역시"||i.sidoNm==="전라남도"||i.sidoNm==="전남광주통합특별시"))) && i.sggNm === d && isLivingZoneProg(i)).length;
+				districts.forEach(d => {
+					let tPop = popData[province]?.[d]?.["총인구수"]?.["2026.06월"] || 1;
+					if (!popData[province]?.[d]) {
+						let foundKey = Object.keys(popData[province]||{}).find(k => k.replace(/\s/g, '') === d.replace(/\s/g, ''));
+						if (foundKey) tPop = popData[province][foundKey]["총인구수"]?.["2026.06월"] || 1;
+					}
+					if (tPop === 0) tPop = 1;
 
-                    allIndices.push((tFac + tProg * 0.2) / (tPop > 0 ? tPop / 10000 : 1));
-                });
-            }
+					let tFac = sisulData.filter(i => (i.ctpvNm === province || (province==="전남광주통합특별시" && (i.ctpvNm==="광주광역시"||i.ctpvNm==="전라남도"))) && (i.sggNm && i.sggNm.replace(/\s/g, '') === d.replace(/\s/g, ''))).length;
+					let tPol = programsPoliData.filter(i => (i.sidoNm === province || (province==="전남광주통합특별시" && (i.sidoNm==="광주광역시"||i.sidoNm==="전라남도"||i.sidoNm==="전남광주통합특별시"))) && (i.sggNm && i.sggNm.replace(/\s/g, '') === d.replace(/\s/g, ''))).length;
+					
+					let tArea = areaData[mappedProv]?.[d] || areaData[province]?.[d] || 1;
+					let tAreaKm2 = tArea / 1000000 || 1;
 
-            allIndices.sort((a, b) => b - a);
-            let rank = allIndices.filter(v => v > gapIndex).length + 1; 
-            let percentile = Math.max(1, Math.round((rank / Math.max(allIndices.length, 1)) * 100));
+					allIndices.push({ name: d, raw: ((tFac + tPol)/tPop) * ((tFac + tPol)/tAreaKm2) });
+				});
+			}
 
-            insightEl.innerHTML = `
-                <p>현재 지역의 <strong>'격차지수'는 <span class="text-brand-yellow text-base">${gapIndex.toFixed(2)}</span></strong> 입니다. 격차지수는</p>
-                <p class="bg-brand-dark/50 px-3 py-1.5 rounded inline-block text-gray-300 font-mono text-[11px] my-1">
-                    지역의 [(생활권 청소년기관 수) + (운영 프로그램 수) * 0.2 / (지역 청소년 수)/10000 ]*100
-                </p>
-                <p>로 산정 되었으며, 전국 평균은 <strong>${natAvgGap.toFixed(2)}</strong> 입니다. <span class="text-white font-bold">${targetRegionName}</span> 지역은 상위 <strong>${percentile}%</strong>에 해당합니다.</p>
-                <p class="text-[11px] text-gray-400 mt-2 border-t border-gray-600/50 pt-2">
-                    실제 해당 지역 청소년들이 적극 이용 가능한 청소년 인프라를 도출하기 위해 [생활권 청소년시설]을 기반으로 함을 참고 바랍니다.
-                </p>
-            `;
+			// 7. 표준화 점수(전국/도내 평균=100) 및 상/중/하위 그룹 분류
+			let avgRaw = allIndices.reduce((sum, item) => sum + item.raw, 0) / allIndices.length;
+			if (avgRaw === 0) avgRaw = 1;
 
-            window.currentReportData = {
-                regionName: targetRegionName,
-                badgeText: badgeText.replace(/[^가-힣]/g, ''),
-                pop: regionalPop,
-                fac: fac,
-                ratio: ratio,
-                prog: progCount,
-                progRatio: progRatio
-            };
+			allIndices.forEach(item => {
+				item.stdScore = (item.raw / avgRaw) * 100;
+			});
+
+			// 점수 내림차순 정렬 (높을수록 인프라 양호)
+			allIndices.sort((a, b) => b.stdScore - a.stdScore);
+
+			// 현재 지역의 순위 및 데이터 추출
+			let rankIndex = allIndices.findIndex(item => item.name.replace(/\s/g, '') === (isAll ? province.replace(/\s/g, '') : municipality.replace(/\s/g, '')));
+			if (rankIndex === -1) rankIndex = 0; 
+			
+			let currentStdScore = allIndices[rankIndex]?.stdScore || 0;
+			let rank = rankIndex + 1;
+
+			// 25% (양호), 50% (관심), 25% (우선) 판별
+			let top25Cutoff = Math.ceil(allIndices.length * 0.25);
+			let bottom25Cutoff = Math.floor(allIndices.length * 0.75);
+
+			let badgeText = "", badgeClass = "", insightColor = "";
+			if (regionalPop === 1 && totalInfra === 0) {
+				badgeText = "데이터 없음"; badgeClass = "bg-gray-200 text-gray-600 border-gray-300"; insightColor = "#9ca3af";
+			} else if (rankIndex < top25Cutoff) {
+				badgeText = "✅ 양호지역"; badgeClass = "bg-blue-100 text-blue-600 border border-blue-200"; insightColor = "#3b82f6";
+			} else if (rankIndex >= bottom25Cutoff) {
+				badgeText = "🚨 우선지원지역"; badgeClass = "bg-red-100 text-seoul-red border border-red-200 animate-pulse"; insightColor = "#f43f5e";
+			} else {
+				badgeText = "⚠️ 관심지역"; badgeClass = "bg-orange-100 text-orange-600 border border-orange-200"; insightColor = "#f59e0b";
+			}
+
+			// 8. 화면 UI 업데이트
+			const badgeEl = document.getElementById('detailGapBadge');
+			badgeEl.textContent = badgeText;
+			badgeEl.className = `px-3 py-1 text-xs font-black rounded-full shadow-sm ml-2 border ${badgeClass} fade-in`;
+			badgeEl.classList.remove('hidden');
+
+			// 패널 3종 지표 업데이트
+			const ratio = ((facCount / regionalPop) * 10000).toFixed(1);
+			const progRatio = ((polCount / regionalPop) * 10000).toFixed(1);
+			document.getElementById('detailStatPop').textContent = (regionalPop === 1 ? 0 : regionalPop).toLocaleString() + '명';
+			document.getElementById('detailStatFac').textContent = facCount + '개소'; 
+			document.getElementById('detailStatRatio').textContent = ratio;
+			document.getElementById('detailProgRatio').textContent = progRatio; // 활동 대신 정책사업 비율로 표시됨
+
+			// 기존 탭 콘텐츠 렌더링
+			renderTabContent(province, municipality, targetRegionName.length, uniqueFacilities);
+
+			// 9. 🚨 새로운 AI 분석 텍스트 출력
+			let compareTarget = isAll ? "전국 17개 시·도" : "해당 도내 시·군·구";
+			insightEl.innerHTML = `
+				<p>현재 지역의 <strong>표준화 격차지수는 <span class="text-brand-yellow text-base">${currentStdScore.toFixed(1)}점</span></strong> 입니다. (평균 100점)</p>
+				<p class="bg-brand-dark/50 px-3 py-1.5 rounded inline-block text-gray-300 font-mono text-[11px] my-1">
+					원시지수 산출식: (시설수+정책수 / 지역 청소년수) × (시설수+정책수 / 행정구역 면적)
+				</p>
+				<p>종합 분석 결과 <span class="px-1.5 py-0.5 rounded text-[11px] font-bold text-white ml-0.5 mr-0.5" style="background-color: ${insightColor}">${badgeText.replace(/[^가-힣]/g, '')}</span>에 해당하며, ${compareTarget} 중 <strong>${rank}위</strong>(상위 ${Math.round((rank/allIndices.length)*100)}%)를 기록했습니다.</p>
+				<p class="text-[11px] text-gray-400 mt-2 border-t border-gray-600/50 pt-2">
+					※ 해당 지표는 인구 밀집도 대비 접근성과 물리적 거리(면적) 대비 접근성을 복합적으로 고려하여 산출되었습니다.
+				</p>
+			`;
+
+			// 글로벌 객체 업데이트 (필요 시 다른 곳에서 사용)
+			window.currentReportData = {
+				regionName: targetRegionName,
+				badgeText: badgeText.replace(/[^가-힣]/g, ''),
+				pop: regionalPop === 1 ? 0 : regionalPop,
+				fac: facCount,
+				ratio: ratio,
+				prog: polCount,
+				progRatio: progRatio
+			};
 		}
 
         function switchDetailTab(tabId) {
@@ -3420,6 +3462,88 @@
 			tableContainer.classList.remove('hidden');
 			dataTable.innerHTML = html;
 			tableContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+		}
+		
+		// 🌟 인프라 격차지수 계산 및 그룹(양호/관심/우선) 분류 함수
+		function calculateGapIndex() {
+			const targetYearKey = "2026.06월";
+			let gapDataList = [];
+			let rawIndices = [];
+
+			// 1. 각 지역별 데이터 수집 및 원시지수 계산
+			regionsList.forEach(r => {
+				let mappedR = COMMON_REGION_MAP[r] || r;
+
+				// ① 수련시설수
+				let facCount = sisulData.filter(item => {
+					let cNm = item.ctpvNm || "";
+					if (r === "전남광주통합특별시") return cNm.includes('광주') || cNm.includes('전남');
+					return r.includes(cNm);
+				}).length;
+
+				// ② 정책사업수
+				let polCount = programsPoliData.filter(item => {
+					let sNm = item.sidoNm || "";
+					if (r === "전남광주통합특별시") return sNm.includes('광주') || sNm.includes('전남');
+					return r.includes(sNm);
+				}).length;
+				
+				let totalInfra = facCount + polCount;
+
+				// ③ 청소년 인구수
+				let pop = 1;
+				if (r === "전남광주통합특별시") {
+					let p1 = (popData["광주광역시"] && popData["광주광역시"]["소계"]) ? popData["광주광역시"]["소계"]["총인구수"][targetYearKey] || 0 : 0;
+					let p2 = (popData["전라남도"] && popData["전라남도"]["소계"]) ? popData["전라남도"]["소계"]["총인구수"][targetYearKey] || 0 : 0;
+					pop = p1 + p2;
+				} else {
+					pop = (popData[r] && popData[r]["소계"]) ? popData[r]["소계"]["총인구수"][targetYearKey] || 0 : 1;
+				}
+				if (pop === 0) pop = 1;
+
+				// ④ 행정구역 면적(km²)
+				let area = (areaData[r] && areaData[r]["소계"]) 
+						 || (areaData[mappedR] && areaData[mappedR]["소계"])
+						 || (areaData[r.replace("도", "특별자치도")] && areaData[r.replace("도", "특별자치도")]["소계"])
+						 || (areaData[r.replace("특별자치도", "도")] && areaData[r.replace("특별자치도", "도")]["소계"])
+						 || 1;
+				let areaKm2 = area / 1000000;
+
+				// ⑤ 원시지수 계산: (인프라/인구) * (인프라/면적)
+				let rawIndex = (totalInfra / pop) * (totalInfra / areaKm2);
+				
+				gapDataList.push({ region: r, rawIndex: rawIndex });
+				rawIndices.push(rawIndex);
+			});
+
+			// 2. 전국 평균 원시지수 계산
+			let sumRaw = rawIndices.reduce((a, b) => a + b, 0);
+			let avgRaw = sumRaw / regionsList.length;
+
+			// 3. 표준화 점수(전국 평균=100) 계산 및 내림차순 정렬
+			gapDataList.forEach(d => {
+				d.stdScore = (d.rawIndex / avgRaw) * 100;
+			});
+			
+			// 점수가 높을수록 인프라가 풍부함
+			gapDataList.sort((a, b) => b.stdScore - a.stdScore);
+
+			// 4. 그룹 분류 (상위 25% / 중위 50% / 하위 25%)
+			// 17개 시도 기준: 상위 4곳(양호), 하위 4곳(우선), 나머지 9곳(관심)
+			gapDataList.forEach((d, i) => {
+				if (i < 4) {
+					d.grade = "양호지역";
+					d.color = "#3b82f6"; // 파란색
+				} else if (i >= gapDataList.length - 4) {
+					d.grade = "우선지역";
+					d.color = "#f43f5e"; // 빨간색
+				} else {
+					d.grade = "관심지역";
+					d.color = "#f59e0b"; // 노란색
+				}
+			});
+
+			return gapDataList;
 		}
 		
     </script>
