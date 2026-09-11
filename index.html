@@ -2432,7 +2432,7 @@
 							let a2 = (areaData["전라남도"] && areaData["전라남도"]["소계"]) ? areaData["전라남도"]["소계"] : 0;
 							rArea = a1 + a2;
 						} else if (areaData[mappedR] && areaData[mappedR]["소계"]) {
-							rArea = areaData[mappedR]["소계"];|| (areaData[mappedR] && areaData[mappedR]["소계"])
+							rArea = areaData[mappedR]["소계"] || (areaData[mappedR] && areaData[mappedR]["소계"])
 								|| (areaData[r.replace("도", "특별자치도")] && areaData[r.replace("도", "특별자치도")]["소계"])
 								|| (areaData[r.replace("특별자치도", "도")] && areaData[r.replace("특별자치도", "도")]["소계"])
 								|| 1;
