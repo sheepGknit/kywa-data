@@ -1825,15 +1825,22 @@
                 else btn.className = "fac-tab px-4 py-2 text-sm rounded-lg transition-colors bg-[#1e293b] text-gray-400 hover:text-white border border-gray-600 font-bold";
             });
         }
-        function filterFacility(type) { updateFacilityTabUI(type); renderCharts(type); }
+        function filterFacility(type) { 
+			document.getElementById('trendViewTitle').textContent = type;
+			updateFacilityTabUI(type); 
+			renderCharts(type); 
+		}
 
         function updateSchoolTabUI(activeTitle) {
             document.querySelectorAll(".sch-tab").forEach(btn => {
+				
                 if (btn.textContent.trim() === (activeTitle === '학교 전체보기' ? '전체보기' : activeTitle) || activeTitle === btn.textContent.trim()) btn.className = "sch-tab px-4 py-2 text-sm rounded-lg transition-colors bg-brand-yellow text-brand-dark font-black shadow-[0_0_10px_rgba(253,186,26,0.4)]";
                 else btn.className = "sch-tab px-4 py-2 text-sm rounded-lg transition-colors bg-[#1e293b] text-gray-400 hover:text-white border border-gray-600 font-bold";
             });
         }
-        function filterSchool(type) { updateSchoolTabUI(type); renderCharts(type); }
+        function filterSchool(type) { 
+			document.getElementById('trendViewTitle').textContent = type;
+			updateSchoolTabUI(type); renderCharts(type); }
 
         function updateActivityTabUI(activeTitle) {
             document.querySelectorAll(".activity-tab").forEach(btn => {
@@ -1845,7 +1852,9 @@
                 else btn.className = "activity-tab px-3 py-1.5 text-[13px] rounded-lg transition-colors bg-[#1e293b] text-gray-400 hover:text-white border border-gray-600 font-bold";
             });
         }
-        function filterActivity(type) { updateActivityTabUI(type); renderCharts(type); }
+        function filterActivity(type) {
+			document.getElementById('trendViewTitle').textContent = type;
+			updateActivityTabUI(type); renderCharts(type); }
 
 		function updatePolicyTabUI(activeTitle) {
 			document.querySelectorAll(".policy-tab").forEach(btn => {
@@ -1862,7 +1871,9 @@
 				else btn.className = "policy-tab px-3 py-1.5 text-[13px] rounded-lg transition-colors bg-[#1e293b] text-gray-400 hover:text-white border border-gray-600 font-bold";
 			});
 		}
-		function filterPolicy(type) { updatePolicyTabUI(type); renderCharts(type); }
+		function filterPolicy(type) { 
+			document.getElementById('trendViewTitle').textContent = type;
+			updatePolicyTabUI(type); renderCharts(type); }
 
 		function updateLeaderTabUI(activeTitle) {
             document.querySelectorAll(".leader-tab").forEach(btn => {
