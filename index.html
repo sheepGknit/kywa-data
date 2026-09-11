@@ -701,8 +701,8 @@
 		let programsEyouthData = [];
 		let programsPoliData = [];
 		let programsData = []; // 통합 프로그램 데이터
-        const URL_PROVINCES = 'data/skorea_provinces_geo_simple.json';
-        const URL_MUNICIPALITIES = 'data/skorea_municipalities_geo_simple.json';
+        const URL_PROVINCES = 'data/sidodata.geojson';
+        const URL_MUNICIPALITIES = 'data/sggdata.geojson';
         let provincesData = null;
         let municipalitiesData = null;
 
@@ -844,10 +844,6 @@
 			
 			// 🌟 학교 데이터는 2026년이 없으므로, 2026이 선택되면 2025년으로 대체합니다.
 			const schoolTargetYear = (parseInt(currentYear) >= 2025) ? "2025년" : currentYear + "년";
-			
-			// 인구 데이터용 키값
-			const popKey = currentYear === "2026" ? "2026.06월" : currentYear + "년";
-			
 			let actualPop = 0;
 			if (regionName === "전국") {
 				actualPop = (popData["전국"] && popData["전국"]["전국"]) ? popData["전국"]["전국"]["총인구수"][popKey] || 0 : 0;
@@ -863,65 +859,24 @@
 				}
 				return rIdx !== -1 ? facilityDataStore[type][rIdx] : 0;
 			};
-
-			// 🌟 targetYear 대신 방금 만든 schoolTargetYear를 사용합니다.
+			// 🌟 [학교수] 꼼수 없이 세탁된 원본 데이터를 그대로 씁니다!
 			const getSchCount = (schType) => {
-				if (regionName === "전국") {
-					let total = 0;
-					regionsList.forEach(r => {
-						if (schoolData[r] && schoolData[r][schType] && schoolData[r][schType][schoolTargetYear]) {
-							total += schoolData[r][schType][schoolTargetYear]["학교수"] || 0;
-						}
-					});
-					if (schoolData["전국"] && schoolData["전국"][schType] && schoolData["전국"][schType][schoolTargetYear]) {
-						return schoolData["전국"][schType][schoolTargetYear]["학교수"] || 0;
-					}
-					return total;
-				}
-
-				if (schoolData[regionName] && schoolData[regionName][schType] && schoolData[regionName][schType][schoolTargetYear]) {
-					return schoolData[regionName][schType][schoolTargetYear]["학교수"] || 0;
-				}
-				return 0;
+				return schoolData[regionName]?.[schType]?.[schoolTargetYear]?.["학교수"] || 0;
 			};
 			
+			// 🌟 [학생수] 꼼수 없이 초,중,고,특수 학생수를 모두 더해 가져옵니다!
 			const getStudentCount = () => {
 				const schTypes = ['초등학교', '중학교', '고등학교', '특수학교'];
 				let total = 0;
-
-				if (regionName === "전국") {
-					let natTotal = 0;
-					schTypes.forEach(type => {
-						if (schoolData["전국"] && schoolData["전국"][type] && schoolData["전국"][type][schoolTargetYear]) {
-							natTotal += schoolData["전국"][type][schoolTargetYear]["학생수"] || 0;
-						}
-					});
-					if (natTotal > 0) return natTotal;
-
-					regionsList.forEach(r => {
-						schTypes.forEach(type => {
-							if (schoolData[r] && schoolData[r][type] && schoolData[r][type][schoolTargetYear]) {
-								total += schoolData[r][type][schoolTargetYear]["학생수"] || 0;
-							}
-						});
-					});
-					return total;
-				}
-
 				schTypes.forEach(type => {
-					if (schoolData[regionName] && schoolData[regionName][type] && schoolData[regionName][type][schoolTargetYear]) {
-						total += schoolData[regionName][type][schoolTargetYear]["학생수"] || 0;
-					}
+					total += schoolData[regionName]?.[type]?.[schoolTargetYear]?.["학생수"] || 0;
 				});
 				return total;
-			};
-
-			// 🌟 중복 선언되어 있던 seed 변수 삭제(하나만 남김)
+			};// 🌟 에러의 원흉이었던 seed 중복 선언 삭제! (하나만 남김)
 			const seed = regionName.length + (regionName.charCodeAt(0) % 10) || 5; 
 
 			const getCountByRegion = (targetType, dataset) => {
 				if (!dataset || dataset.length === 0) return 0;
-
 				let count = 0;
 				dataset.forEach(item => {
 					let pType = item.programType;
@@ -930,6 +885,8 @@
 					if (dataset === programsPoliData) {
 						if (pType === '신고연계 프로그램') mappedType = '수련활동신고제';
 						else if (pType === '인증연계(실시) 프로그램' || pType === '인증연계 프로그램') mappedType = '수련활동인증제';
+						else if (pType === '국제청소년성취포상제') mappedType = '국제청소년성취포상제';
+						else if (pType === '청소년자기도전포상제') mappedType = '청소년자기도전포상제';
 						else if (pType === '유스내비 프로그램') mappedType = '그룹활동';
 						else if (pType === '방과후 아카데미') mappedType = '청소년방과후아카데미';
 					}
