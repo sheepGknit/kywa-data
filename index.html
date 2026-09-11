@@ -3357,16 +3357,25 @@
 				return { name, programs: facMap[name], counts };
 			});
 
-			// 특정 정책만 클릭했을 경우, 해당 정책을 운영하는 기관만 필터링
+			// 🚨 기존에 있던 필터링(filter) 삭제하고 정렬(sort) 기준으로 변경
+			let targetKey = null;
 			if (!isAll) {
-				let targetKey = type;
+				targetKey = type;
 				if(type === '수련활동인증제') targetKey = '활동인증제';
 				if(type === '수련활동신고제') targetKey = '활동신고제';
-				facList = facList.filter(f => f.programs[targetKey]);
 			}
 
-			facList.sort((a, b) => b.counts - a.counts || a.name.localeCompare(b.name));
-
+			facList.sort((a, b) => {
+				// 특정 정책 탭을 클릭한 경우, 해당 사업을 하는 기관(O)을 최상단으로 배치
+				if (targetKey) {
+					let aHas = a.programs[targetKey] ? 1 : 0;
+					let bHas = b.programs[targetKey] ? 1 : 0;
+					if (aHas !== bHas) return bHas - aHas; 
+				}
+				// 그 외에는 전체 사업 운영 개수가 많은 순 -> 이름 가나다순 정렬
+				return b.counts - a.counts || a.name.localeCompare(b.name);
+			});
+			
 			// 5. O/X 매트릭스 표 HTML 생성
 			let html = `
 				<thead class="bg-brand-dark text-brand-yellow text-[11px] uppercase text-center border-b border-gray-700">
