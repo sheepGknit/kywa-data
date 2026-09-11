@@ -694,6 +694,20 @@
           "경상남도": ["창원시의창구", "창원시성산구", "창원시마산합포구", "창원시마산회원구", "창원시진해구", "진주시", "통영시", "사천시", "김해시", "밀양시", "거제시", "양산시", "의령군", "함안군", "창녕군", "고성군", "남해군", "하동군", "산청군", "함양군", "거창군", "합천군"],
           "제주특별자치도": ["제주시", "서귀포시"]
         };
+		
+		const COMMON_REGION_MAP = {
+			"서울": "서울특별시", "부산": "부산광역시", "대구": "대구광역시", "인천": "인천광역시", 
+			"광주": "전남광주통합특별시", "광주광역시": "전남광주통합특별시", 
+			"대전": "대전광역시", "울산": "울산광역시", "세종": "세종특별자치시", 
+			"경기": "경기도", "강원": "강원도", "강원도": "강원도", "강원특별자치도": "강원도", 
+			"충북": "충청북도", "충남": "충청남도", "전북": "전라북도", "전북특별자치도": "전라북도", 
+			"전남": "전남광주통합특별시", "전라남도": "전남광주통합특별시", 
+			"경북": "경상북도", "경남": "경상남도", 
+			"제주": "제주특별자치도", "제주도": "제주특별자치도", 
+			"전남광주통합특별시": "전남광주통합특별시",
+			"전국": "전국"
+		};
+
 
         let sisulData = [];
         let popData = {}; 
@@ -838,41 +852,52 @@
         };
 
         function getRegionData(regionName) {
-			// 1. 슬라이더 연도 가져오기
 			const sliderElement = document.getElementById('yearSlider');
 			const currentYear = sliderElement ? sliderElement.value : "2026"; 
 			
-			// 🌟 학교 데이터는 2026년이 없으므로, 2026이 선택되면 2025년으로 대체합니다.
+			// 🌟 학교 데이터는 2026년이 없으므로 2025년으로 고정
 			const schoolTargetYear = (parseInt(currentYear) >= 2025) ? "2025년" : currentYear + "년";
+			const popKey = currentYear === "2026" ? "2026.06월" : currentYear + "년";
+			
+			// 🌟 방금 빼둔 맵핑 테이블을 사용해 지역 이름을 통일합니다. (이게 없어서 다 0이 떴습니다 ㅠㅠ)
+			let mappedRegion = COMMON_REGION_MAP[regionName] || regionName;
+
 			let actualPop = 0;
-			if (regionName === "전국") {
+			if (mappedRegion === "전국") {
 				actualPop = (popData["전국"] && popData["전국"]["전국"]) ? popData["전국"]["전국"]["총인구수"][popKey] || 0 : 0;
-			} else if (popData[regionName] && popData[regionName]["소계"]) {
-				actualPop = popData[regionName]["소계"]["총인구수"][popKey] || 0;
+			} else if (popData[mappedRegion] && popData[mappedRegion]["소계"]) {
+				actualPop = popData[mappedRegion]["소계"]["총인구수"][popKey] || 0;
 			}
 
 			let rIdx = regionsList.indexOf(regionName);
 			
 			const getFacCount = (type) => {
-				if (regionName === "전국") {
-					return facilityDataStore[type].reduce((a, b) => a + b, 0);
-				}
+				if (mappedRegion === "전국") return facilityDataStore[type].reduce((a, b) => a + b, 0);
 				return rIdx !== -1 ? facilityDataStore[type][rIdx] : 0;
 			};
-			// 🌟 [학교수] 꼼수 없이 세탁된 원본 데이터를 그대로 씁니다!
+
+			// 🌟 [학교수] 맵핑된 이름으로 원본 데이터를 정확히 찾아옵니다.
 			const getSchCount = (schType) => {
-				return schoolData[regionName]?.[schType]?.[schoolTargetYear]?.["학교수"] || 0;
+				if (schoolData[mappedRegion] && schoolData[mappedRegion][schType] && schoolData[mappedRegion][schType][schoolTargetYear]) {
+					return schoolData[mappedRegion][schType][schoolTargetYear]["학교수"] || 0;
+				}
+				return 0;
 			};
 			
-			// 🌟 [학생수] 꼼수 없이 초,중,고,특수 학생수를 모두 더해 가져옵니다!
+			// 🌟 [학생수] 맵핑된 이름으로 초,중,고,특수 학생수를 모두 더해 가져옵니다.
 			const getStudentCount = () => {
 				const schTypes = ['초등학교', '중학교', '고등학교', '특수학교'];
 				let total = 0;
-				schTypes.forEach(type => {
-					total += schoolData[regionName]?.[type]?.[schoolTargetYear]?.["학생수"] || 0;
-				});
+				if (schoolData[mappedRegion]) {
+					schTypes.forEach(type => {
+						if (schoolData[mappedRegion][type] && schoolData[mappedRegion][type][schoolTargetYear]) {
+							total += schoolData[mappedRegion][type][schoolTargetYear]["학생수"] || 0;
+						}
+					});
+				}
 				return total;
-			};// 🌟 에러의 원흉이었던 seed 중복 선언 삭제! (하나만 남김)
+			};
+
 			const seed = regionName.length + (regionName.charCodeAt(0) % 10) || 5; 
 
 			const getCountByRegion = (targetType, dataset) => {
@@ -885,8 +910,6 @@
 					if (dataset === programsPoliData) {
 						if (pType === '신고연계 프로그램') mappedType = '수련활동신고제';
 						else if (pType === '인증연계(실시) 프로그램' || pType === '인증연계 프로그램') mappedType = '수련활동인증제';
-						else if (pType === '국제청소년성취포상제') mappedType = '국제청소년성취포상제';
-						else if (pType === '청소년자기도전포상제') mappedType = '청소년자기도전포상제';
 						else if (pType === '유스내비 프로그램') mappedType = '그룹활동';
 						else if (pType === '방과후 아카데미') mappedType = '청소년방과후아카데미';
 					}
@@ -912,7 +935,7 @@
 			return {
 				pop: actualPop, 
 				schAge: Math.floor(actualPop * 0.7), 
-				std: getStudentCount()+1234567890,
+				std: getStudentCount(),
 
 				fac1: getFacCount('청소년수련관'), fac2: getFacCount('청소년문화의집'), fac3: getFacCount('청소년수련원'), 
 				fac4: getFacCount('청소년특화시설'), fac5: getFacCount('청소년야영장'), fac6: getFacCount('유스호스텔'),
@@ -968,19 +991,6 @@
 
         document.addEventListener('DOMContentLoaded', () => {
 			initMainMap();
-
-			// 🌟 [세탁 1] 매핑 테이블 수정: 광주와 전남 관련 키워드가 모두 '전남광주통합특별시'로 향하도록 수정합니다.
-			const COMMON_REGION_MAP = {
-				"서울": "서울특별시", "부산": "부산광역시", "대구": "대구광역시", "인천": "인천광역시", 
-				"광주": "전남광주통합특별시", "광주광역시": "전남광주통합특별시", 
-				"대전": "대전광역시", "울산": "울산광역시", "세종": "세종특별자치시", 
-				"경기": "경기도", "강원": "강원특별자치도", "강원도": "강원특별자치도", "강원특별자치도": "강원특별자치도", 
-				"충북": "충청북도", "충남": "충청남도", "전북": "전라북도", "전북특별자치도": "전라북도", 
-				"전남": "전남광주통합특별시", "전라남도": "전남광주통합특별시", 
-				"경북": "경상북도", "경남": "경상남도", 
-				"제주": "제주특별자치도", "제주도": "제주특별자치도", 
-				"전남광주통합특별시": "전남광주통합특별시"
-			};
 
 			// 🌟 [세탁 2] 객체 심층 병합 함수: 인구와 학교 데이터 안의 모든 숫자들을 알아서 더해주는 마법의 함수입니다.
 			function deepMergeNumbers(obj1, obj2) {
@@ -2231,15 +2241,16 @@
                 let sliderVal = document.getElementById('yearSlider').value;
                 let targetYear = (parseInt(sliderVal) >= 2026) ? "2025년" : sliderVal + "년";
 
-                // 🌟 복잡했던 광주/전남 수동 합산 로직 완전 삭제!
+                // 🌟 있는 그대로 직관적으로 원본에서 뽑아옵니다.
                 const getSchoolArrayForChart = (schType, metric="학교수") => {
                     let arr = [];
                     regionsList.forEach(region => {
-                        let val = 0;
-                        if (schoolData[region] && schoolData[region][schType] && schoolData[region][schType][targetYear]) {
-                            val = schoolData[region][schType][targetYear][metric] || 0;
+                        let mappedR = COMMON_REGION_MAP[region] || region;
+                        if (schoolData[mappedR] && schoolData[mappedR][schType] && schoolData[mappedR][schType][targetYear]) {
+                            arr.push(schoolData[mappedR][schType][targetYear][metric] || 0);
+                        } else {
+                            arr.push(0);
                         }
-                        arr.push(val);
                     });
                     return arr;
                 };
