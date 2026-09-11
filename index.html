@@ -1270,28 +1270,14 @@
             });
 
             // initDetailMap 함수 내부에 있는 renderMap 함수 전체 교체
-			// initDetailMap 함수 내부에 있는 renderMap 함수 전체 교체
 			const renderMap = (data) => {
 				
-				// 🚨 1. 숫자 코드(codes) 매핑 방식을 버리고, 한글 이름(sidonm)으로 직관적 필터링
 				let targetFeatures = data.features.filter(f => {
-					let sName = f.properties.sidonm || f.properties.name || ""; // GeoJSON 안의 시도명
-					
-					// 데이터가 과거 이름(강원도, 전라북도)으로 되어있어도 호환되도록 처리
-					if (regionName === "강원특별자치도") {
-						return sName === "강원특별자치도" || sName === "강원도";
-					}
-					if (regionName === "전북특별자치도") {
-						return sName === "전북특별자치도" || sName === "전라북도";
-					}
-					if (regionName === "제주특별자치도") {
-						return sName === "제주특별자치도" || sName === "제주도";
-					}
-					// 전남-광주 통합 처리
-					if (regionName === "전남광주통합특별시") {
-						return sName === "광주광역시" || sName === "전라남도" || sName === "전남광주통합특별시";
-					}
-					
+					let sName = f.properties.sidonm || f.properties.name || ""; 
+					if (regionName === "강원특별자치도") return sName === "강원특별자치도" || sName === "강원도";
+					if (regionName === "전북특별자치도") return sName === "전북특별자치도" || sName === "전라북도";
+					if (regionName === "제주특별자치도") return sName === "제주특별자치도" || sName === "제주도";
+					if (regionName === "전남광주통합특별시") return sName === "광주광역시" || sName === "전라남도" || sName === "전남광주통합특별시";
 					return sName === regionName;
 				});
 
@@ -1301,12 +1287,23 @@
 
 				if (targetFeatures.length === 0) targetFeatures = data.features;
 
+				// 🚨 1. 시군구별 정중앙 좌표를 계산하기 위한 객체 생성
+				const sggBounds = {};
+
 				geojsonDetail = L.geoJson({ type: "FeatureCollection", features: targetFeatures }, {
 					style: () => ({ fillColor: '#f8fafc', weight: 1.5, color: '#cbd5e1', fillOpacity: 1, className: 'cursor-pointer transition-all duration-300' }),
 					onEachFeature: (feature, layer) => {
 						const sggName = feature.properties.sggnm || "이름없음";
 
+						// 🚨 2. 해당 시군구의 영역(Bounds)을 누적해서 합침
+						if (!sggBounds[sggName]) {
+							sggBounds[sggName] = L.latLngBounds(layer.getBounds());
+						} else {
+							sggBounds[sggName].extend(layer.getBounds());
+						}
+
 						layer.bindTooltip(sggName, { className: 'bg-brand-dark border-none text-brand-yellow font-bold text-xs rounded shadow-md px-2 py-1', sticky: true, direction: 'auto' });
+						
 						layer.on({
 							mouseover: e => {
 								if(currentMunicipality !== sggName) {
@@ -1323,7 +1320,6 @@
 								if(currentMunicipality === sggName) {
 									resetDetailMunicipality();
 								} else {
-									// 읍면동 단위 폴리곤이므로, 클릭한 시군구와 동일한 이름(sggnm)을 가진 모든 구역에 불을 켬
 									geojsonDetail.eachLayer(l => {
 										if (l.feature.properties.sggnm === sggName) {
 											l.setStyle({ fillColor: '#FDBA1A', color: '#b45309', weight: 2 });
@@ -1341,6 +1337,22 @@
 						});
 					}
 				}).addTo(mapDetail);
+
+				// 🚨 3. 계산된 시군구별 정중앙 좌표에 텍스트 라벨 고정 배치
+				Object.keys(sggBounds).forEach(sggName => {
+					const center = sggBounds[sggName].getCenter();
+					L.marker(center, {
+						icon: L.divIcon({
+							// Tailwind 클래스를 이용해 배경 투명화, 글자색 설정 및 클릭 방해 방지(pointer-events-none)
+							className: 'bg-transparent text-gray-600 font-black text-[11px] whitespace-nowrap text-center pointer-events-none',
+							// 글자가 경계선에 묻히지 않도록 하얀색 테두리(text-shadow) 효과 추가
+							html: `<div style="text-shadow: -1.5px -1.5px 0 #fff, 1.5px -1.5px 0 #fff, -1.5px 1.5px 0 #fff, 1.5px 1.5px 0 #fff;">${sggName}</div>`,
+							iconSize: [60, 20],
+							iconAnchor: [30, 10]
+						}),
+						interactive: false // 마우스 이벤트 무시 (클릭 방해 금지)
+					}).addTo(mapDetail);
+				});
 
 				setTimeout(() => {
 					mapDetail.invalidateSize();
