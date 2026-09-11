@@ -2284,14 +2284,18 @@
 					data: { labels: regionsList, datasets: datasets },
 					options: { 
 						responsive: true, maintainAspectRatio: false, layout: { padding: { top: 20 } }, 
+						// (renderCharts 함수 안쪽 facilityItems 차트 설정 부분)
 						onClick: (event, elements, chart) => {
 							// 막대 클릭 시 상세 표 노출
 							if (elements.length > 0) {
 								const elementIndex = elements[0].index;         
 								const datasetIndex = elements[0].datasetIndex;   
 								const clickedRegion = chart.data.labels[elementIndex]; 
-								const clickedType = chart.data.datasets[datasetIndex].label; 
-								showFacilityDetailTable(clickedRegion, clickedType, title);
+								
+								// 🚨 수정: 전체보기 모드일 경우 색상(종류)에 상관없이 무조건 '전체보기'로 넘김
+								const clickedType = isAllView ? '청소년시설 전체보기' : chart.data.datasets[datasetIndex].label; 
+								
+								showFacilityDetailTable(clickedRegion, clickedType);
 							}
 						},
 						scales: { 
@@ -3239,6 +3243,7 @@
 			dataTable.innerHTML = html;
 			tableContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 		}
+		
     </script>
 	<div id="aiRegionalReportModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4 fade-in">
 		<div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
