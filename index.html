@@ -745,7 +745,7 @@
         const parseNum = (val) => parseInt(String(val).replace(/,/g, ''), 10) || 0;
         const setText = (id, text) => { const el = document.getElementById(id); if(el) el.textContent = text; };
 
-        const regionsList = ["서울특별시", "부산광역시", "대구광역시", "인천광역시", "광주광역시", "대전광역시", "울산광역시", "세종특별자치시", "경기도", "강원도", "충청북도", "충청남도", "전라북도", "전라남도", "경상북도", "경상남도", "제주특별자치도"];
+        const regionsList = ["서울특별시", "부산광역시", "대구광역시", "인천광역시", "대전광역시", "울산광역시", "세종특별자치시", "경기도", "강원도", "충청북도", "충청남도", "전라북도", "경상북도", "경상남도", "제주특별자치도", "전남광주통합특별시"];
 
         const facilityDataStore = {
             '청소년수련관': [],'청소년문화의집': [], '청소년수련원': [],
@@ -813,8 +813,8 @@
 		};
 
         const leaderDataByRegionStore = {
-            '청소년지도사 인원': [1200, 350, 280, 310, 220, 180, 150, 50, 1450, 210, 190, 240, 260, 270, 290, 310, 80],
-            '청소년상담사 인원': [950, 260, 210, 240, 170, 140, 110, 40, 1100, 160, 140, 180, 190, 200, 220, 240, 60]
+            '청소년지도사 인원': [],
+            '청소년상담사 인원': []
         };
 
 		const leaderTrendData = {
@@ -838,30 +838,25 @@
 
         function getRegionData(regionName) {
 			let actualPop = 0;
-			if (regionName === "전남광주통합특별시") {
-				let pop1 = (popData["광주광역시"] && popData["광주광역시"]["소계"]) ? popData["광주광역시"]["소계"]["총인구수"]["2026.06월"] || 0 : 0;
-				let pop2 = (popData["전라남도"] && popData["전라남도"]["소계"]) ? popData["전라남도"]["소계"]["총인구수"]["2026.06월"] || 0 : 0;
-				actualPop = pop1 + pop2;
-			} else if (regionName === "전국") {
+			// 🌟 1. 인구 데이터: 통합특별시 덧셈 로직 삭제됨 (세탁된 데이터 그대로 사용)
+			if (regionName === "전국") {
 				actualPop = (popData["전국"] && popData["전국"]["전국"]) ? popData["전국"]["전국"]["총인구수"]["2026.06월"] || 0 : 0;
 			} else if (popData[regionName] && popData[regionName]["소계"]) {
 				actualPop = popData[regionName]["소계"]["총인구수"]["2026.06월"] || 0;
 			}
 
 			let rIdx = regionsList.indexOf(regionName);
+			
+			// 🌟 2. 시설 데이터: 통합특별시 덧셈 로직 삭제됨
 			const getFacCount = (type) => {
 				if (regionName === "전국") {
 					return facilityDataStore[type].reduce((a, b) => a + b, 0);
-				}
-				if (regionName === "전남광주통합특별시") {
-					const idx1 = regionsList.indexOf("광주광역시");
-					const idx2 = regionsList.indexOf("전라남도");
-					return (facilityDataStore[type][idx1] || 0) + (facilityDataStore[type][idx2] || 0);
 				}
 				return rIdx !== -1 ? facilityDataStore[type][rIdx] : 0;
 			};
 
 			const targetYear = "2025년"; 
+			// 🌟 3. 학교 데이터: 통합특별시 덧셈 로직 삭제됨
 			const getSchCount = (schType) => {
 				if (regionName === "전국") {
 					let total = 0;
@@ -876,11 +871,6 @@
 					return total;
 				}
 
-				if (regionName === "전남광주통합특별시") {
-					let s1 = (schoolData["광주광역시"] && schoolData["광주광역시"][schType] && schoolData["광주광역시"][schType][targetYear]) ? schoolData["광주광역시"][schType][targetYear]["학교수"] || 0 : 0;
-					let s2 = (schoolData["전라남도"] && schoolData["전라남도"][schType] && schoolData["전라남도"][schType][targetYear]) ? schoolData["전라남도"][schType][targetYear]["학교수"] || 0 : 0;
-					return s1 + s2;
-				}
 				if (schoolData[regionName] && schoolData[regionName][schType] && schoolData[regionName][schType][targetYear]) {
 					return schoolData[regionName][schType][targetYear]["학교수"] || 0;
 				}
@@ -889,6 +879,7 @@
 
 			const seed = regionName.length + (regionName.charCodeAt(0) % 10) || 5; 
 
+			// 🌟 4. 프로그램 데이터: 복잡한 광주/전남/통합특별시 판별 로직 완전 삭제됨
 			const getCountByRegion = (targetType, dataset) => {
 				if (!dataset || dataset.length === 0) return 0;
 
@@ -906,10 +897,8 @@
 
 					if (mappedType === targetType) {
 						let sido = (item.sidoNm || "").trim();
-						if (regionName === "전국") count++;
-						else if (regionName === "전남광주통합특별시" && (sido === "광주광역시" || sido === "전라남도" || sido === "전남광주통합특별시")) count++;
-						else if ((regionName === "광주광역시" || regionName === "전라남도") && (sido === regionName || sido === "전남광주통합특별시")) count++;
-						else if (sido === regionName) count++;
+						// 이미 세탁되어 sido가 '전남광주통합특별시'로 나오므로 그냥 똑같은지만 비교하면 됨!
+						if (regionName === "전국" || sido === regionName) count++;
 					}
 				});
 				return count;
@@ -918,18 +907,13 @@
 			const lead1_val = regionName === "전국" ? 79793 : seed * 120 + 300;
 			const lead2_val = regionName === "전국" ? 47020 : seed * 120 + 300;
 			
+			// 🌟 5. 그룹활동 데이터: 통합특별시 덧셈 로직 삭제됨
 			const getGroupActivityCount =() => {
 				if(regionName === "전국"){
 					return Object.values(groupActivityDataStore).reduce((a, b) => a + b, 0);
 				}
-				
-				if (regionName === "전남광주통합특별시") {
-                    // 통합특별시일 경우 광주와 전남 합산
-                    return (groupActivityDataStore["광주광역시"] || 0) + (groupActivityDataStore["전라남도"] || 0);
-                }
-                // 일반 지역일 경우 해당 지역 값 반환
-                return groupActivityDataStore[regionName] || 0;
-            };
+				return groupActivityDataStore[regionName] || 0;
+			};
 
 			return {
 				pop: actualPop, 
@@ -991,15 +975,35 @@
         document.addEventListener('DOMContentLoaded', () => {
 			initMainMap();
 
+			// 🌟 [세탁 1] 매핑 테이블 수정: 광주와 전남 관련 키워드가 모두 '전남광주통합특별시'로 향하도록 수정합니다.
 			const COMMON_REGION_MAP = {
 				"서울": "서울특별시", "부산": "부산광역시", "대구": "대구광역시", "인천": "인천광역시", 
-				"광주": "광주광역시", "대전": "대전광역시", "울산": "울산광역시", "세종": "세종특별자치시", 
-				"경기": "경기도", "강원": "강원도", "강원특별자치도": "강원도", 
+				"광주": "전남광주통합특별시", "광주광역시": "전남광주통합특별시", 
+				"대전": "대전광역시", "울산": "울산광역시", "세종": "세종특별자치시", 
+				"경기": "경기도", "강원": "강원특별자치도", "강원도": "강원특별자치도", "강원특별자치도": "강원특별자치도", 
 				"충북": "충청북도", "충남": "충청남도", "전북": "전라북도", "전북특별자치도": "전라북도", 
-				"전남": "전라남도", "경북": "경상북도", "경남": "경상남도", 
+				"전남": "전남광주통합특별시", "전라남도": "전남광주통합특별시", 
+				"경북": "경상북도", "경남": "경상남도", 
 				"제주": "제주특별자치도", "제주도": "제주특별자치도", 
 				"전남광주통합특별시": "전남광주통합특별시"
 			};
+
+			// 🌟 [세탁 2] 객체 심층 병합 함수: 인구와 학교 데이터 안의 모든 숫자들을 알아서 더해주는 마법의 함수입니다.
+			function deepMergeNumbers(obj1, obj2) {
+				if (!obj1) return obj2;
+				if (!obj2) return obj1;
+				const result = { ...obj1 };
+				for (let key in obj2) {
+					if (typeof obj2[key] === 'object' && obj2[key] !== null) {
+						result[key] = deepMergeNumbers(result[key] || {}, obj2[key]);
+					} else if (typeof obj2[key] === 'number') {
+						result[key] = (result[key] || 0) + obj2[key];
+					} else {
+						result[key] = obj2[key] || result[key];
+					}
+				}
+				return result;
+			}
 
 			Promise.all([
 				fetch(URL_MUNICIPALITIES).then(res => res.json()),
@@ -1011,13 +1015,39 @@
 				fetch('data/programs_poli.json').then(res => res.json())
 			])
 			.then(([munData, sisul, jidoja, pop, school, eyouth, poli]) => {
+				
+				// 🌟 [세탁 3] 지도(GeoJSON) 데이터 세탁: 광주의 다각형 좌표를 전남 안에 쏟아붓고 이름을 바꿉니다.
+				if (munData && munData.features) {
+					const gwangjuIdx = munData.features.findIndex(f => f.properties.name === '광주광역시');
+					const jeonnamIdx = munData.features.findIndex(f => f.properties.name === '전라남도');
+					
+					if (gwangjuIdx > -1 && jeonnamIdx > -1) {
+						munData.features[jeonnamIdx].geometry.coordinates.push(...munData.features[gwangjuIdx].geometry.coordinates);
+						munData.features[jeonnamIdx].properties.name = '전남광주통합특별시';
+						munData.features.splice(gwangjuIdx, 1); // 원본 광주광역시 폴리곤은 삭제
+					}
+				}
 				municipalitiesData = munData;
 
+				// 🌟 [세탁 4] 인구(pop) & 학교(school) 데이터 세탁: 두 지역의 모든 수치를 더하고 원본은 삭제합니다.
+				if (pop["광주광역시"] || pop["전라남도"]) {
+					pop["전남광주통합특별시"] = deepMergeNumbers(pop["광주광역시"], pop["전라남도"]);
+					delete pop["광주광역시"];
+					delete pop["전라남도"];
+				}
+				if (school["광주광역시"] || school["전라남도"]) {
+					school["전남광주통합특별시"] = deepMergeNumbers(school["광주광역시"], school["전라남도"]);
+					delete school["광주광역시"];
+					delete school["전라남도"];
+				}
+
+				// --- 여기서부터 기존 파싱 로직 ---
 				sisulData = Array.isArray(sisul) ? sisul : (sisul.records || []);
 				const types = ['청소년수련관', '청소년문화의집', '청소년수련원', '청소년특화시설', '청소년야영장', '유스호스텔'];
 				types.forEach(t => facilityDataStore[t] = new Array(17).fill(0));
 
 				sisulData.forEach(item => {
+					// 🌟 시설 데이터도 세탁된 COMMON_REGION_MAP을 거치며 알아서 통합특별시로 매핑됩니다.
 					const rawName = (item.ctpvNm || "").trim(); 
 					item.ctpvNm = COMMON_REGION_MAP[rawName] || rawName;
 
@@ -1030,7 +1060,7 @@
 					else if(item.sisulType === '수련원') type = '청소년수련원';
 					else if(item.sisulType === '특화시설') type = '청소년특화시설';
 					else if(item.sisulType === '야영장') type = '청소년야영장';
-					else if(item.sisulType === '유스호스텔') type = '유스호스텔';
+					else if(item.sisulType === '유스호스텔') type = '유스호스텔'
 					else if(facilityName.includes('수련관')) type = '청소년수련관'; 
 					else if(facilityName.includes('문화의집')) type = '청소년문화의집'; 
 					else if(facilityName.includes('수련원')) type = '청소년수련원'; 
@@ -1069,39 +1099,36 @@
 					const yearMatch = row["구분"].match(/\d+/);
 					if (!yearMatch) return;
 					const year = parseInt(yearMatch[0], 10);
-                    if (year >= 22 && year <= 26) {
-                        leaderTrendData['청소년지도사 인원'].cum.push(currentCum1); 
-                        leaderTrendData['청소년지도사 인원'].new.push(row["총계"]);  
-                        // 🌟 연도별 1, 2, 3급 데이터 추출 추가
-                        leaderTrendData['청소년지도사 인원'].grade1.push(row["1급"] || 0);
-                        leaderTrendData['청소년지도사 인원'].grade2.push(row["2급"] || 0);
-                        leaderTrendData['청소년지도사 인원'].grade3.push(row["3급"] || 0);
-                    }
-                    currentCum1 += row["총계"]; 
-                });
+					if (year >= 22 && year <= 26) {
+						leaderTrendData['청소년지도사 인원'].cum.push(currentCum1); 
+						leaderTrendData['청소년지도사 인원'].new.push(row["총계"]);  
+						leaderTrendData['청소년지도사 인원'].grade1.push(row["1급"] || 0);
+						leaderTrendData['청소년지도사 인원'].grade2.push(row["2급"] || 0);
+						leaderTrendData['청소년지도사 인원'].grade3.push(row["3급"] || 0);
+					}
+					currentCum1 += row["총계"]; 
+				});
 
 				let currentCum2 = 0;
 				sangdamsaData.forEach(row => {
 					if (!row || !row["구분"]) return;
 					if (row["구분"] === "총 계") { 
-                        defaultStats.lead2 = row["총계"]; 
-                        // 🌟 상담사 1, 2, 3급 누적 데이터 저장
-                        leaderGradeData['청소년상담사'] = [row["1급"] || 0, row["2급"] || 0, row["3급"] || 0];
-                        return; 
-                    }
+						defaultStats.lead2 = row["총계"]; 
+						leaderGradeData['청소년상담사'] = [row["1급"] || 0, row["2급"] || 0, row["3급"] || 0];
+						return; 
+					}
 					const yearMatch = row["구분"].match(/\d+/);
 					if (!yearMatch) return;
 					const year = parseInt(yearMatch[0], 10);
-                    if (year >= 22 && year <= 26) {
-                        leaderTrendData['청소년상담사 인원'].cum.push(currentCum2); 
-                        leaderTrendData['청소년상담사 인원'].new.push(row["총계"]);  
-                        // 🌟 연도별 1, 2, 3급 데이터 추출 추가
-                        leaderTrendData['청소년상담사 인원'].grade1.push(row["1급"] || 0);
-                        leaderTrendData['청소년상담사 인원'].grade2.push(row["2급"] || 0);
-                        leaderTrendData['청소년상담사 인원'].grade3.push(row["3급"] || 0);
-                    }
-                    currentCum2 += row["총계"]; 
-                });
+					if (year >= 22 && year <= 26) {
+						leaderTrendData['청소년상담사 인원'].cum.push(currentCum2); 
+						leaderTrendData['청소년상담사 인원'].new.push(row["총계"]);  
+						leaderTrendData['청소년상담사 인원'].grade1.push(row["1급"] || 0);
+						leaderTrendData['청소년상담사 인원'].grade2.push(row["2급"] || 0);
+						leaderTrendData['청소년상담사 인원'].grade3.push(row["3급"] || 0);
+					}
+					currentCum2 += row["총계"]; 
+				});
 
 				popData = {};
 				Object.keys(pop).forEach(key => {
@@ -1120,6 +1147,7 @@
 					schoolData[newKey] = school[key];
 				});
 
+				// 🌟 활동/정책 데이터도 세탁된 COMMON_REGION_MAP을 통해 알아서 통합특별시로 매핑됩니다.
 				let rawEyouth = Array.isArray(eyouth) ? eyouth : (eyouth.records || []);
 				programsEyouthData = rawEyouth.map(item => ({
 					...item, sidoNm: COMMON_REGION_MAP[(item.sidoNm || "").trim()] || (item.sidoNm || "").trim()
@@ -1130,7 +1158,7 @@
 					...item, sidoNm: COMMON_REGION_MAP[(item.sidoNm || "").trim()] || (item.sidoNm || "").trim()
 				}));
                 
-                programsData = [...programsEyouthData, ...programsPoliData]; // 통합 프로그램 데이터 생성
+				programsData = [...programsEyouthData, ...programsPoliData]; // 통합 프로그램 데이터 생성
 
 				applyDataToUI(getRegionData("전국"), true, "전국");
 			})
