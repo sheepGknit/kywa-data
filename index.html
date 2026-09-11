@@ -838,6 +838,14 @@
         };
 
         function getRegionData(regionName) {
+			// 🌟 1. 슬라이더 연도 가져오기
+			const sliderElement = document.getElementById('yearSlider');
+			const currentYear = sliderElement ? sliderElement.value : "2026"; 
+			const targetYear = currentYear + "년"; // 학교 데이터용 (예: "2025년")
+			
+			// 인구 데이터용 키값 (예: 2026년은 "2026.06월", 나머지는 "2025.12월" 등 원본에 맞게 설정)
+			const popKey = currentYear === "2026" ? "2026.06월" : currentYear + "년";
+			
 			let actualPop = 0;
 			// 🌟 1. 인구 데이터: 통합특별시 덧셈 로직 삭제됨 (세탁된 데이터 그대로 사용)
 			if (regionName === "전국") {
@@ -953,7 +961,6 @@
 				}
 				return groupActivityDataStore[regionName] || 0;
 			};
-			console.log('학생수:'+getStudentCount());
 
 			return {
 				pop: actualPop, 
@@ -1170,22 +1177,26 @@
 					currentCum2 += row["총계"]; 
 				});
 
+				// 🌟 1. 인구 데이터 세탁 (단순 덮어쓰기가 아니라 알아서 더해지게 deepMergeNumbers 사용!)
 				popData = {};
 				Object.keys(pop).forEach(key => {
 					let newKey = COMMON_REGION_MAP[key.trim()] || key.trim();
-					popData[newKey] = pop[key];
+					popData[newKey] = deepMergeNumbers(popData[newKey], pop[key]);
 				});
-				if(popData["전국"] && popData["전국"]["전국"]) {
-					defaultStats.pop = popData["전국"]["전국"]["총인구수"]["2026.06월"] || 0;
-					defaultStats.schAge = Math.floor(defaultStats.pop * 0.7);
-					defaultStats.std = Math.floor(defaultStats.pop * 0.65);
-				}
 
+				// 🌟 2. 학교 데이터 세탁
 				schoolData = {};
 				Object.keys(school).forEach(key => {
 					let newKey = COMMON_REGION_MAP[key.trim()] || key.trim();
-					schoolData[newKey] = school[key];
+					schoolData[newKey] = deepMergeNumbers(schoolData[newKey], school[key]);
 				});
+
+				// 🌟 3. 초기화 (하드코딩 삭제!)
+				// 이제 힘들게 수식을 쓰지 않고, 방금 만든 똑똑한 getRegionData("전국")을 호출해서 값을 빼옵니다.
+				const initialNatData = getRegionData("전국");
+				defaultStats.pop = initialNatData.pop;
+				defaultStats.schAge = initialNatData.schAge;
+				defaultStats.std = initialNatData.std;
 
 				// 🌟 활동/정책 데이터도 세탁된 COMMON_REGION_MAP을 통해 알아서 통합특별시로 매핑됩니다.
 				let rawEyouth = Array.isArray(eyouth) ? eyouth : (eyouth.records || []);
