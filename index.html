@@ -2076,7 +2076,7 @@
                 if (facilityItems.includes(title)) {
                     formulaEl.innerHTML = `(지역 내 <b>시설 개소수</b> ÷ 지역 <b>면적(km²)</b>) × 100`;
                 } else if (schoolItems.includes(title)) {
-                    formulaEl.innerHTML = `(지역 내 <b>학교수</b> ÷ 지역 내 <b>청소년 인구</b>) × 100`;
+                    formulaEl.innerHTML = `(지역 내 <b>학교수</b> ÷ 지역 <b>면적(km²)</b>) × 100`;
                 } else if (activityItems.includes(title) || policyItems.includes(title)) {
                     formulaEl.innerHTML = `(지역 내 <b>프로그램 수</b> ÷ 전국 <b>총 청소년 인구</b>) × 100`;
                 } else if (policyItems.includes(title) || policyItems.includes(title)) {
@@ -2447,8 +2447,8 @@
 					let numerator = totalDataArray[i]; 
 					let calculatedRatio = 0;
 
-					if (facilityItems.includes(title)) {
-						// [시설] 면적(km²) 기준 밀집도
+					// 🚨 시설과 학교 모두 면적(km²) 기준으로 통합!
+					if (facilityItems.includes(title) || schoolItems.includes(title)) {
 						let rArea = 1;
 						let mappedR = COMMON_REGION_MAP[r] || r;
 						
@@ -2461,22 +2461,8 @@
 						let rAreaKm2 = rArea / 1000000;
 						calculatedRatio = (numerator / rAreaKm2) * 100;
 					} 
-					else if (schoolItems.includes(title)) {
-						// [학교] 지역 청소년 인구 기준 비중
-						if (r === "전남광주통합특별시") {
-							let p1 = (popData["광주광역시"] && popData["광주광역시"]["소계"]) ? popData["광주광역시"]["소계"]["총인구수"][targetYearKey] || 0 : 0;
-							let p2 = (popData["전라남도"] && popData["전라남도"]["소계"]) ? popData["전라남도"]["소계"]["총인구수"][targetYearKey] || 0 : 0;
-							provPop = p1 + p2 ;
-						} else {
-							if (popData[r] && popData[r]["소계"]) {
-								provPop = popData[r]["소계"]["총인구수"][targetYearKey] || 0;
-							}
-						}
-						if (provPop === 0) provPop = 1; 
-						calculatedRatio = (numerator / provPop) * 100;
-					} 
 					else {
-						// [기타] 전국 청소년 인구 기준 비중
+						// [기타 활동, 정책 등] 전국 청소년 인구 기준 비중 유지
 						let totalNationPop = (popData["전국"] && popData["전국"]["전국"]) ? popData["전국"]["전국"]["총인구수"][targetYearKey] || 1 : 1;
 						calculatedRatio = (numerator / totalNationPop) * 100;
 					}
@@ -2484,7 +2470,7 @@
 					mapDataObj[r] = Number(calculatedRatio.toFixed(3));
 				});
 
-				// 🌟 타이밍 문제 방지: 지도가 렌더링될 시간을 0.35초 벌어줌
+				// 타이밍 문제 방지
 				setTimeout(() => {
 					updateTrendMapColors(mapDataObj, true); 
 				}, 350);
