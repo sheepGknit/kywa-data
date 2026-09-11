@@ -1289,7 +1289,6 @@
 
 				// 🚨 1. 시군구별 정중앙 좌표를 계산하기 위한 객체 생성
 				const sggBounds = {};
-R
 				geojsonDetail = L.geoJson({ type: "FeatureCollection", features: targetFeatures }, {
 					style: () => ({ fillColor: '#f8fafc', weight: 1.5, color: '#cbd5e1', fillOpacity: 1, className: 'cursor-pointer transition-all duration-300' }),
 					onEachFeature: (feature, layer) => {
