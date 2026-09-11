@@ -364,7 +364,6 @@
                     <span class="text-brand-yellow font-black whitespace-nowrap flex-shrink-0"><i class="ph-bold ph-clock-counter-clockwise"></i> 연도 선택</span>
                     <input type="range" id="yearSlider" min="2021" max="2026" value="2026" class="w-60 md:w-96 h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-brand-yellow flex-shrink-0" oninput="slideYear(this.value)">
                     <div class="flex items-center gap-1.5 flex-shrink-0" id="yearButtons">
-                        <button class="year-btn px-3 py-1 text-sm rounded bg-gray-600 text-gray-300 hover:text-white transition-colors" onclick="slideYear(2021)">2021</button>
                         <button class="year-btn px-3 py-1 text-sm rounded bg-gray-600 text-gray-300 transition-colors" onclick="slideYear(2022)">2022</button>
                         <button class="year-btn px-3 py-1 text-sm rounded bg-gray-600 text-gray-300 transition-colors" onclick="slideYear(2023)">2023</button>
                         <button class="year-btn px-3 py-1 text-sm rounded bg-gray-600 text-gray-300 transition-colors" onclick="slideYear(2024)">2024</button>
@@ -712,6 +711,7 @@
 		let programsEyouthData = [];
 		let programsPoliData = [];
 		let programsData = []; // 통합 프로그램 데이터
+		let areaData = {};
         const URL_PROVINCES = 'data/sidodata.geojson';
         const URL_MUNICIPALITIES = 'data/sggdata.geojson';
         let provincesData = null;
@@ -1011,10 +1011,13 @@
 				fetch('data/pop_data.json').then(res => res.json()),
 				fetch('data/school.json').then(res => res.json()),
 				fetch('data/programs_eyouth.json').then(res => res.json()),
-				fetch('data/programs_poli.json').then(res => res.json())
-			])
-			.then(([munData, sisul, jidoja, pop, school, eyouth, poli]) => {
+				fetch('data/programs_poli.json').then(res => res.json()),
+				fetch('data/area.json').then(res => res.json())
 				
+			])
+			.then(([munData, sisul, jidoja, pop, school, eyouth, poli, area]) => {
+				
+				areaData = area;
 				// 🌟 [세탁 3] 지도(GeoJSON) 데이터 세탁: 광주의 다각형 좌표를 전남 안에 쏟아붓고 이름을 바꿉니다.
 				if (munData && munData.features) {
 					const gwangjuIdx = munData.features.findIndex(f => f.properties.name === '광주광역시');
@@ -2060,7 +2063,7 @@
 
             if (formulaEl) {
                 if (facilityItems.includes(title)) {
-                    formulaEl.innerHTML = `(지역 내 <b>시설 개소수</b> ÷ 지역 내 <b>청소년 인구</b>) × 100`;
+                    formulaEl.innerHTML = `(지역 내 <b>시설 개소수</b> ÷ 지역 <b>면적(km²)</b>) × 100`;
                 } else if (schoolItems.includes(title)) {
                     formulaEl.innerHTML = `(지역 내 <b>학교수</b> ÷ 지역 내 <b>청소년 인구</b>) × 100`;
                 } else if (activityItems.includes(title) || policyItems.includes(title)) {
@@ -2408,42 +2411,61 @@
                 });
             }
 			
+			// renderCharts 함수 내부의 mapDataExtracted = true; 이후 부분
 			if (mapDataExtracted) {
-                const mapDataObj = {};
-                const targetYearKey = "2026.06월"; 
+				const mapDataObj = {};
+				const targetYearKey = "2026.06월"; 
 
-                regionsList.forEach((r, i) => {
-                    let provPop = 0;
-                    if (r === "전남광주통합특별시") {
-                        let p1 = (popData["광주광역시"] && popData["광주광역시"]["소계"]) ? popData["광주광역시"]["소계"]["총인구수"][targetYearKey] || 0 : 0;
-                        let p2 = (popData["전라남도"] && popData["전라남도"]["소계"]) ? popData["전라남도"]["소계"]["총인구수"][targetYearKey] || 0 : 0;
-                        provPop = p1 + p2 ;
-                    } else {
-                        if (popData[r] && popData[r]["소계"]) {
-                            provPop = popData[r]["소계"]["총인구수"][targetYearKey] || 0;
-                        }
-                    }
-                    if (provPop === 0) provPop = 1; 
+				regionsList.forEach((r, i) => {
+					let provPop = 0;
+					let numerator = totalDataArray[i]; 
+					let calculatedRatio = 0;
 
-                    let numerator = totalDataArray[i]; 
-                    let calculatedRatio = 0;
+					// 🚨 1. 시설 데이터일 경우 면적(km²) 기준으로 계산
+					if (facilityItems.includes(title)) {
+						let rArea = 1;
+						let mappedR = COMMON_REGION_MAP[r] || r;
+						
+						// 전남광주통합특별시 예외 처리
+						if (mappedR === "전남광주통합특별시") {
+							let a1 = (areaData["광주광역시"] && areaData["광주광역시"]["소계"]) ? areaData["광주광역시"]["소계"] : 0;
+							let a2 = (areaData["전라남도"] && areaData["전라남도"]["소계"]) ? areaData["전라남도"]["소계"] : 0;
+							rArea = a1 + a2;
+						} else if (areaData[mappedR] && areaData[mappedR]["소계"]) {
+							rArea = areaData[mappedR]["소계"];
+						}
+						if (rArea === 0) rArea = 1;
 
-                    if (facilityItems.includes(title)) {
-                        calculatedRatio = (numerator / provPop) * 100;
-                    } 
-                    else if (schoolItems.includes(title)) {
-                        calculatedRatio = (numerator / provPop) * 100;
-                    } 
-                    else {
-                        let totalNationPop = (popData["전국"] && popData["전국"]["전국"]) ? popData["전국"]["전국"]["총인구수"][targetYearKey] || 1 : 1;
-                        calculatedRatio = (numerator / totalNationPop) * 100;
-                    }
+						// m²를 km²로 변환하여 계산
+						let rAreaKm2 = rArea / 1000000;
+						calculatedRatio = (numerator / rAreaKm2) * 100;
+					} 
+					// 🚨 2. 학교 데이터일 경우 기존처럼 청소년 인구 기준 유지
+					else if (schoolItems.includes(title)) {
+						if (r === "전남광주통합특별시") {
+							let p1 = (popData["광주광역시"] && popData["광주광역시"]["소계"]) ? popData["광주광역시"]["소계"]["총인구수"][targetYearKey] || 0 : 0;
+							let p2 = (popData["전라남도"] && popData["전라남도"]["소계"]) ? popData["전라남도"]["소계"]["총인구수"][targetYearKey] || 0 : 0;
+							provPop = p1 + p2 ;
+						} else {
+							if (popData[r] && popData[r]["소계"]) {
+								provPop = popData[r]["소계"]["총인구수"][targetYearKey] || 0;
+							}
+						}
+						if (provPop === 0) provPop = 1; 
 
-                    mapDataObj[r] = Number(calculatedRatio.toFixed(3));
-                });
+						calculatedRatio = (numerator / provPop) * 100;
+					} 
+					// 🚨 3. 그 외 활동, 정책 데이터 등은 기존 방식 유지
+					else {
+						let totalNationPop = (popData["전국"] && popData["전국"]["전국"]) ? popData["전국"]["전국"]["총인구수"][targetYearKey] || 1 : 1;
+						calculatedRatio = (numerator / totalNationPop) * 100;
+					}
 
-                updateTrendMapColors(mapDataObj, true); 
-            }
+					mapDataObj[r] = Number(calculatedRatio.toFixed(3));
+				});
+
+				updateTrendMapColors(mapDataObj, true); 
+			}
 
             const tableContainer = document.getElementById('dataTableContainer');
             const dataTable = document.getElementById('detailDataTable');
@@ -3097,68 +3119,82 @@
             }
 		}
 		// 🌟 클릭 시 하단에 '상세 시설 리스트' 표를 열어주는 함수
-        function showFacilityDetailTable(region, type) {
-            const tableContainer = document.getElementById('dataTableContainer');
-            const dataTable = document.getElementById('detailDataTable');
-            const headerDiv = tableContainer.querySelector('div.p-4');
-            
-            // 1. 표 제목 변경 + '목록 닫기' 버튼 추가 (요약표로 돌아가기가 아님)
-            headerDiv.innerHTML = `
-                <h3 class="font-bold text-brand-dark text-sm">
-                    <i class="ph-bold ph-list-dashes mr-1"></i> [${region}] ${type} 등록 현황
-                </h3>
-                <button onclick="document.getElementById('dataTableContainer').classList.add('hidden')" class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded-md transition-colors font-bold flex items-center gap-1">
-                    <i class="ph-bold ph-x"></i> 목록 닫기
-                </button>
-            `;
+		function showFacilityDetailTable(region, type) {
+			const tableContainer = document.getElementById('dataTableContainer');
+			const dataTable = document.getElementById('detailDataTable');
+			const headerDiv = tableContainer.querySelector('div.p-4');
+			
+			// 1. 표 제목 변경 + '목록 닫기' 버튼 추가
+			headerDiv.innerHTML = `
+				<h3 class="font-bold text-brand-dark text-sm">
+					<i class="ph-bold ph-list-dashes mr-1"></i> [${region}] ${type} 등록 현황
+				</h3>
+				<button onclick="document.getElementById('dataTableContainer').classList.add('hidden')" class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded-md transition-colors font-bold flex items-center gap-1">
+					<i class="ph-bold ph-x"></i> 목록 닫기
+				</button>
+			`;
 
-            // 2. 원본 데이터(sisulData)에서 해당 지역 & 시설 종류 필터링
-            let filteredList = [];
-            if (region === "전남광주통합특별시") {
-                filteredList = sisulData.filter(item => 
-                    (item.ctpvNm.includes('광주') || item.ctpvNm.includes('전남')) && type.includes(item.sisulType)
-                );
-            } else {
-                filteredList = sisulData.filter(item => 
-                    region.includes(item.ctpvNm) && type.includes(item.sisulType)
-                );
-            }
+			// 2. 원본 데이터(sisulData)에서 해당 지역 & 시설 종류 필터링
+			let filteredList = [];
+			if (region === "전남광주통합특별시") {
+				filteredList = sisulData.filter(item => 
+					(item.ctpvNm.includes('광주') || item.ctpvNm.includes('전남')) && type.includes(item.sisulType)
+				);
+			} else {
+				filteredList = sisulData.filter(item => 
+					region.includes(item.ctpvNm) && type.includes(item.sisulType)
+				);
+			}
 
-            let html = `
-                <thead class="bg-brand-dark text-brand-yellow text-xs uppercase text-center border-b border-gray-700">
-                    <tr>
-                        <th class="py-3 px-4 w-1/3">시설명</th>
-                        <th class="py-3 px-4 w-2/3">주소 (위치)</th>
-                    </tr>
-                </thead>
-                <tbody class="text-center bg-white divide-y divide-gray-100">
-            `;
+			// 🌟 3. 테이블 헤더 4단 구조로 변경 (No, 시설구분, 시설명, 주소)
+			let html = `
+				<thead class="bg-brand-dark text-brand-yellow text-xs uppercase text-center border-b border-gray-700">
+					<tr>
+						<th class="py-3 px-4 w-12">No.</th>
+						<th class="py-3 px-4 w-1/6 whitespace-nowrap">시설구분</th>
+						<th class="py-3 px-4 w-1/3">시설명</th>
+						<th class="py-3 px-4 w-auto">주소 (위치)</th>
+					</tr>
+				</thead>
+				<tbody class="text-center bg-white divide-y divide-gray-100">
+			`;
 
-            if (filteredList.length === 0) {
-                html += `<tr><td colspan="2" class="py-8 text-gray-400 font-bold">해당 지역에 등록된 시설이 없습니다.</td></tr>`;
-            } else {
-                filteredList.forEach(item => {
-                    // 🌟 JSON의 실제 키 값(sisulNm, lctnRoadNm)으로 데이터를 가져옵니다.
-                    const name = item.sisulNm || '-';
-                    const address = item.lctnRoadNm || '-';
-                    
-                    html += `
-                        <tr class="hover:bg-blue-50 transition-colors">
-                            <td class="py-3 px-4 font-bold text-brand-dark bg-gray-50 text-left">${name}</td>
-                            <td class="py-3 px-4 text-gray-600 text-left">${address}</td>
-                        </tr>
-                    `;
-                });
-            }
-            html += `</tbody>`;
-            
-            // 4. 숨겨져 있던 표 컨테이너를 보이게 켜고, 내용 그리기
-            tableContainer.classList.remove('hidden');
-            dataTable.innerHTML = html;
-            
-            // 부드럽게 표 위치로 스크롤 이동
-            tableContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
+			if (filteredList.length === 0) {
+				html += `<tr><td colspan="4" class="py-8 text-gray-400 font-bold">해당 지역에 등록된 시설이 없습니다.</td></tr>`;
+			} else {
+				filteredList.forEach((item, index) => {
+					const name = item.sisulNm || '-';
+					const address = item.lctnRoadNm || item.lctnLotnoAddr || '-';
+					
+					// 시설구분 풀네임 매핑
+					let typeStr = '청소년시설';
+					if (item.sisulType === '수련관') typeStr = '청소년수련관';
+					else if (item.sisulType === '문화의집') typeStr = '청소년문화의집';
+					else if (item.sisulType === '수련원') typeStr = '청소년수련원';
+					else if (item.sisulType === '특화시설') typeStr = '청소년특화시설';
+					else if (item.sisulType === '야영장') typeStr = '청소년야영장';
+					else if (item.sisulType === '유스호스텔') typeStr = '유스호스텔';
+					
+					// 🌟 4. 데이터 행 출력
+					html += `
+						<tr class="hover:bg-blue-50 transition-colors">
+							<td class="py-3 px-4 text-gray-500 font-medium">${index + 1}</td>
+							<td class="py-3 px-4 text-gray-600 font-bold whitespace-nowrap">${typeStr}</td>
+							<td class="py-3 px-4 font-bold text-brand-dark bg-gray-50 text-left">${name}</td>
+							<td class="py-3 px-4 text-gray-600 text-left">${address}</td>
+						</tr>
+					`;
+				});
+			}
+			html += `</tbody>`;
+			
+			// 5. 숨겨져 있던 표 컨테이너를 보이게 켜고, 내용 그리기
+			tableContainer.classList.remove('hidden');
+			dataTable.innerHTML = html;
+			
+			// 부드럽게 표 위치로 스크롤 이동
+			tableContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+		}
 		
     </script>
 	<div id="aiRegionalReportModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4 fade-in">
