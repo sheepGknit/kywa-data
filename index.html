@@ -2527,8 +2527,8 @@
 			// 🌟 [추가] 1. '학생 인구' 모드일 때의 로직
 			if (currentTitle === '학생 인구') {
 				sumTotalEl.previousElementSibling.textContent = "총 학생수 (전국)";
-				sumMaleEl.previousElementSibling.textContent = "초·중·고등학생";
-				sumFemaleEl.previousElementSibling.textContent = "대학생 및 특수학교";
+				sumMaleEl.parentElement.previousElementSibling.textContent = "초·중·고등학생";
+				sumFemaleEl.parentElement.previousElementSibling.textContent = "대학생 및 특수학교";
 
 				const types = ['초등학교', '중학교', '고등학교', '대학교', '특수학교'];
 				const colors = ['#3b82f6', '#10b981', '#f97316', '#a855f7', '#ec4899'];
@@ -2607,8 +2607,8 @@
 
 			// 🌟 2. 원래 인구수(남/녀 성별) 모드 로직 복구
 			sumTotalEl.previousElementSibling.textContent = "총 청소년 인구";
-			sumMaleEl.previousElementSibling.textContent = "남성 청소년";
-			sumFemaleEl.previousElementSibling.textContent = "여성 청소년";
+			sumMaleEl.parentElement.previousElementSibling.textContent = "남성 청소년";
+			sumFemaleEl.parentElement.previousElementSibling.textContent = "여성 청소년";
 
 			let currentMale = new Array(regionsList.length).fill(0);
 			let currentFemale = new Array(regionsList.length).fill(0);
