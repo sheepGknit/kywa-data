@@ -1593,6 +1593,34 @@
 			} else {
 				badgeText = "⚠️ 관심지역"; badgeClass = "bg-orange-100 text-orange-600 border border-orange-200"; insightColor = "#f59e0b";
 			}
+			// 🔍 [디버깅] 격차지수 계산 단계별 데이터 추적
+			console.group(`🧭 [격차지수 디버깅] ${targetRegionName}`);
+			console.log("1. 기본 입력값:", {
+				province,
+				municipality,
+				isAll,
+				targetRegionName
+			});
+			console.log("2. 추출된 원시 지표:", {
+				"청소년 인구(명)": regionalPop,
+				"수련시설 수(개소)": facCount,
+				"정책사업 수(개)": polCount,
+				"총 인프라(합)": totalInfra,
+				"면적(km²)": areaKm2,
+				"산출된 원시지수": currentRawIndex
+			});
+			console.log("3. 전체 비교 그룹 현황:", {
+				"비교 대상 수": allIndices.length,
+				"평균 원시지수": avgRaw,
+				"전체 목록 샘플": allIndices.slice(0, 3)
+			});
+			console.log("4. 순위 및 점수 매칭 결과:", {
+				"찾은 인덱스(rankIndex)": rankIndex,
+				"매칭된 데이터": allIndices[rankIndex],
+				"최종 표준화점수(currentStdScore)": currentStdScore
+			});
+			console.groupEnd();
+			
 
 			// 8. 화면 UI 업데이트
 			const badgeEl = document.getElementById('detailGapBadge');
