@@ -2212,206 +2212,193 @@
         }
 
         function renderCharts(title) {
-            const canvas = document.getElementById('mainComboChart');
-            if(!canvas) return;
+			const canvas = document.getElementById('mainComboChart');
+			if (!canvas) return;
 
-            if (comboChartInstance) {
-                comboChartInstance.destroy();
-                comboChartInstance = null;
-            }
+			// 1. 기존 차트 파기
+			if (comboChartInstance) {
+				comboChartInstance.destroy();
+				comboChartInstance = null;
+			}
 
-            const facilityItems = ['청소년시설 전체보기', '청소년수련관', '청소년문화의집', '청소년수련원', '청소년특화시설', '청소년야영장', '유스호스텔'];
-            const schoolItems = ['학교 전체보기', '초등학교', '중학교', '고등학교', '대학교', '특수학교'];
-            const activityItems = ['청소년활동 전체보기', '건강/스포츠', '모험개척', '역사탐방', '봉사협력', '교류', '과학정보', '진로탐구', '자기개발', '문화예술', '환경보존', '기타'];
-            const policyItems = ['청소년정책사업 전체보기', '청소년방과후아카데미', '국제청소년성취포상제', '청소년자기도전포상제', '수련활동인증제', '수련활동신고제', '그룹활동'];
-            const leaderItems = ['청소년지도자 전체보기', '청소년지도사 인원', '청소년상담사 인원'];
+			const facilityItems = ['청소년시설 전체보기', '청소년수련관', '청소년문화의집', '청소년수련원', '청소년특화시설', '청소년야영장', '유스호스텔'];
+			const schoolItems = ['학교 전체보기', '초등학교', '중학교', '고등학교', '대학교', '특수학교'];
+			const activityItems = ['청소년활동 전체보기', '건강/스포츠', '모험개척', '역사탐방', '봉사협력', '교류', '과학정보', '진로탐구', '자기개발', '문화예술', '환경보존', '기타'];
+			const policyItems = ['청소년정책사업 전체보기', '청소년방과후아카데미', '국제청소년성취포상제', '청소년자기도전포상제', '수련활동인증제', '수련활동신고제', '그룹활동'];
+			
+			let datasets = [];
+			let totalDataArray = new Array(regionsList.length).fill(0);
+			let mapDataExtracted = false;
+			let tableHeaders = [];
+			let tableRows = [];
 
-            let datasets = [];
-            let totalDataArray = new Array(regionsList.length).fill(0);
-            let mapDataExtracted = false;
-            let tableHeaders = [];
-            let tableRows = [];
+			// ==========================================
+			// [1] 차트 데이터 생성 및 렌더링
+			// ==========================================
 
-            if (facilityItems.includes(title)) {
-                const isAllView = title === '청소년시설 전체보기';
-                if (isAllView) {
-                    const types = ['청소년수련관', '청소년문화의집', '청소년수련원', '청소년특화시설', '청소년야영장', '유스호스텔'];
-                    const colors = ['#f43f5e', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6'];
-                    types.forEach((type, idx) => {
-                        datasets.push({ label: type, data: facilityDataStore[type], backgroundColor: colors[idx], borderRadius: 0, barPercentage: 0.5 });
-                        facilityDataStore[type].forEach((val, i) => totalDataArray[i] += val);
-                    });
-                } else {
-                    datasets = [{ label: title, data: facilityDataStore[title], backgroundColor: '#FDBA1A', borderRadius: 0, barPercentage: 0.5 }];
-                    totalDataArray = [...facilityDataStore[title]];
-                }
-                mapDataExtracted = true;
+			if (facilityItems.includes(title)) {
+				const isAllView = title === '청소년시설 전체보기';
+				if (isAllView) {
+					const types = ['청소년수련관', '청소년문화의집', '청소년수련원', '청소년특화시설', '청소년야영장', '유스호스텔'];
+					const colors = ['#f43f5e', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6'];
+					types.forEach((type, idx) => {
+						datasets.push({ label: type, data: facilityDataStore[type], backgroundColor: colors[idx], borderRadius: 0, barPercentage: 0.5 });
+						facilityDataStore[type].forEach((val, i) => totalDataArray[i] += val);
+					});
+				} else {
+					datasets = [{ label: title, data: facilityDataStore[title], backgroundColor: '#FDBA1A', borderRadius: 0, barPercentage: 0.5 }];
+					totalDataArray = [...facilityDataStore[title]];
+				}
+				mapDataExtracted = true;
 
-                const customLabelPlugin = {
-                    id: 'customLabelPlugin',
-                    afterDatasetsDraw(chart) {
-                        const { ctx, data, scales: { y } } = chart;
-                        ctx.save(); ctx.font = 'bold 12px "Pretendard", sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillStyle = '#64748b';
-                        data.labels.forEach((_, i) => {
-                            let total = 0; let barX;
-                            for (let j = 0; j < data.datasets.length; j++) {
-                                const meta = chart.getDatasetMeta(j);
-                                if (!meta.hidden) { total += data.datasets[j].data[i]; if (!barX && meta.data[i]) barX = meta.data[i].x; }
-                            }
-                            if (total > 0 && barX) { const barY = y.getPixelForValue(total); ctx.fillText(`${total.toLocaleString()}`, barX, barY - 5); }
-                        });
-                        ctx.restore();
-                    }
-                };
+				const customLabelPlugin = {
+					id: 'customLabelPlugin',
+					afterDatasetsDraw(chart) {
+						const { ctx, data, scales: { y } } = chart;
+						ctx.save(); ctx.font = 'bold 12px "Pretendard", sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillStyle = '#64748b';
+						data.labels.forEach((_, i) => {
+							let total = 0; let barX;
+							for (let j = 0; j < data.datasets.length; j++) {
+								const meta = chart.getDatasetMeta(j);
+								if (!meta.hidden) { total += data.datasets[j].data[i]; if (!barX && meta.data[i]) barX = meta.data[i].x; }
+							}
+							if (total > 0 && barX) { const barY = y.getPixelForValue(total); ctx.fillText(`${total.toLocaleString()}`, barX, barY - 5); }
+						});
+						ctx.restore();
+					}
+				};
 
-                // (renderCharts 함수 안쪽) 시설 차트 생성 부분
-                comboChartInstance = new Chart(canvas.getContext('2d'), {
-                    type: 'bar', 
-                    data: { labels: regionsList, datasets: datasets },
-                    options: { 
-                        responsive: true, 
-                        maintainAspectRatio: false, 
-                        layout: { padding: { top: 20 } }, 
-                        
-                        // (renderCharts 함수 안쪽 comboChartInstance 설정 부분)
-                        onClick: (event, elements, chart) => {
-                            // 시설 탭일 때, 그리고 막대기를 정확히 클릭했을 때만 실행
-                            if (facilityItems.includes(title) && elements.length > 0) {
-                                const elementIndex = elements[0].index;          
-                                const datasetIndex = elements[0].datasetIndex;   
-                                
-                                const clickedRegion = chart.data.labels[elementIndex]; 
-                                const clickedType = chart.data.datasets[datasetIndex].label; 
-                                
-                                // 🌟 팝업 대신 하단 표를 리스트로 바꾸는 함수 호출
-                                showFacilityDetailTable(clickedRegion, clickedType, title);
-                            }
-                        },
-                        
-                        scales: { 
-                            x: { stacked: isAllView, ticks: { font: { size: 12, weight: 'bold', family: "'Pretendard', sans-serif" }, maxRotation: 45, minRotation: 45 }, grid: { display: false } }, 
-                            y: { stacked: isAllView, beginAtZero: true, grid: { color: '#f1f5f9' }, border: { display: false } } 
-                        }, 
-                        plugins: { legend: { display: isAllView, position: 'bottom', labels: { boxWidth: 10, font: { size: 12, family: "'Pretendard', sans-serif" } } } } 
-                    },
-                    plugins: [customLabelPlugin]
-                });
-            }
-            // (renderCharts 함수 내부)
-            else if (schoolItems.includes(title)) {
-                const isAllView = title === '학교 전체보기';
-                const types = ['초등학교', '중학교', '고등학교', '대학교', '특수학교'];
-                const colors = ['#3b82f6', '#10b981', '#f97316', '#a855f7', '#ec4899'];
+				comboChartInstance = new Chart(canvas.getContext('2d'), {
+					type: 'bar', 
+					data: { labels: regionsList, datasets: datasets },
+					options: { 
+						responsive: true, maintainAspectRatio: false, layout: { padding: { top: 20 } }, 
+						onClick: (event, elements, chart) => {
+							// 막대 클릭 시 상세 표 노출
+							if (elements.length > 0) {
+								const elementIndex = elements[0].index;         
+								const datasetIndex = elements[0].datasetIndex;   
+								const clickedRegion = chart.data.labels[elementIndex]; 
+								const clickedType = chart.data.datasets[datasetIndex].label; 
+								showFacilityDetailTable(clickedRegion, clickedType, title);
+							}
+						},
+						scales: { 
+							x: { stacked: isAllView, ticks: { font: { size: 12, weight: 'bold', family: "'Pretendard', sans-serif" }, maxRotation: 45, minRotation: 45 }, grid: { display: false } }, 
+							y: { stacked: isAllView, beginAtZero: true, grid: { color: '#f1f5f9' }, border: { display: false } } 
+						}, 
+						plugins: { legend: { display: isAllView, position: 'bottom', labels: { boxWidth: 10, font: { size: 12, family: "'Pretendard', sans-serif" } } } } 
+					},
+					plugins: [customLabelPlugin]
+				});
+			}
+			
+			else if (schoolItems.includes(title)) {
+				const isAllView = title === '학교 전체보기';
+				const types = ['초등학교', '중학교', '고등학교', '대학교', '특수학교'];
+				const colors = ['#3b82f6', '#10b981', '#f97316', '#a855f7', '#ec4899'];
 
-                let sliderVal = document.getElementById('yearSlider').value;
-                let targetYear = (parseInt(sliderVal) >= 2026) ? "2025년" : sliderVal + "년";
+				let sliderVal = document.getElementById('yearSlider').value;
+				let targetYear = (parseInt(sliderVal) >= 2026) ? "2025년" : sliderVal + "년";
 
-                // 🌟 있는 그대로 직관적으로 원본에서 뽑아옵니다.
-                const getSchoolArrayForChart = (schType, metric="학교수") => {
-                    let arr = [];
-                    regionsList.forEach(region => {
-                        let mappedR = COMMON_REGION_MAP[region] || region;
-                        if (schoolData[mappedR] && schoolData[mappedR][schType] && schoolData[mappedR][schType][targetYear]) {
-                            arr.push(schoolData[mappedR][schType][targetYear][metric] || 0);
-                        } else {
-                            arr.push(0);
-                        }
-                    });
-                    return arr;
-                };
+				const getSchoolArrayForChart = (schType, metric="학교수") => {
+					let arr = [];
+					regionsList.forEach(region => {
+						let mappedR = COMMON_REGION_MAP[region] || region;
+						if (schoolData[mappedR] && schoolData[mappedR][schType] && schoolData[mappedR][schType][targetYear]) {
+							arr.push(schoolData[mappedR][schType][targetYear][metric] || 0);
+						} else { arr.push(0); }
+					});
+					return arr;
+				};
 
-                if (isAllView) {
-                    types.forEach((type, idx) => {
-                        let typeDataArr = getSchoolArrayForChart(type, "학교수");
-                        datasets.push({ label: type, data: typeDataArr, backgroundColor: colors[idx], borderRadius: 0, barPercentage: 0.5 });
-                        typeDataArr.forEach((val, i) => totalDataArray[i] += val);
-                    });
-                } else {
-                    const idx = types.indexOf(title);
-                    let typeDataArr = getSchoolArrayForChart(title, "학교수");
-                    datasets = [{ label: title, data: typeDataArr, backgroundColor: colors[idx] || '#3b82f6', borderRadius: 0, barPercentage: 0.5 }];
-                    totalDataArray = [...typeDataArr];
+				if (isAllView) {
+					types.forEach((type, idx) => {
+						let typeDataArr = getSchoolArrayForChart(type, "학교수");
+						datasets.push({ label: type, data: typeDataArr, backgroundColor: colors[idx], borderRadius: 0, barPercentage: 0.5 });
+						typeDataArr.forEach((val, i) => totalDataArray[i] += val);
+					});
+				} else {
+					const idx = types.indexOf(title);
+					let typeDataArr = getSchoolArrayForChart(title, "학교수");
+					datasets = [{ label: title, data: typeDataArr, backgroundColor: colors[idx] || '#3b82f6', borderRadius: 0, barPercentage: 0.5 }];
+					totalDataArray = [...typeDataArr];
 
-                    tableHeaders = ['시도명', '기준 연도', '학교수 (개교)', '학생수 (명)'];
-                    let studentArr = getSchoolArrayForChart(title, "학생수");
-                    regionsList.forEach((r, i) => {
-                        tableRows.push([r, targetYear, typeDataArr[i].toLocaleString(), `<span class="text-brand-dark">${studentArr[i].toLocaleString()}</span>`]);
-                    });
-                }
-                mapDataExtracted = true;
+					tableHeaders = ['시도명', '기준 연도', '학교수 (개교)', '학생수 (명)'];
+					let studentArr = getSchoolArrayForChart(title, "학생수");
+					regionsList.forEach((r, i) => {
+						tableRows.push([r, targetYear, typeDataArr[i].toLocaleString(), `<span class="text-brand-dark">${studentArr[i].toLocaleString()}</span>`]);
+					});
+				}
+				mapDataExtracted = true;
 
-                comboChartInstance = new Chart(canvas.getContext('2d'), {
-                    type: 'bar', data: { labels: regionsList, datasets: datasets },
-                    options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 20 } }, scales: { x: { stacked: isAllView, ticks: { font: { size: 12, weight: 'bold', family: "'Pretendard', sans-serif" }, maxRotation: 45, minRotation: 45 }, grid: { display: false } }, y: { stacked: isAllView, beginAtZero: true, grid: { color: '#f1f5f9' }, border: { display: false } } }, plugins: { legend: { display: isAllView, position: 'bottom', labels: { boxWidth: 10, font: { size: 12, family: "'Pretendard', sans-serif" } } } } }
-                });
-            }
+				comboChartInstance = new Chart(canvas.getContext('2d'), {
+					type: 'bar', data: { labels: regionsList, datasets: datasets },
+					options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 20 } }, scales: { x: { stacked: isAllView, ticks: { font: { size: 12, weight: 'bold', family: "'Pretendard', sans-serif" }, maxRotation: 45, minRotation: 45 }, grid: { display: false } }, y: { stacked: isAllView, beginAtZero: true, grid: { color: '#f1f5f9' }, border: { display: false } } }, plugins: { legend: { display: isAllView, position: 'bottom', labels: { boxWidth: 10, font: { size: 12, family: "'Pretendard', sans-serif" } } } } }
+				});
+			}
 			
 			else if (activityItems.includes(title)) {
-                const isAllView = title === '청소년활동 전체보기';
-                const types = ['건강/스포츠', '모험개척', '역사탐방', '봉사협력', '교류', '과학정보', '진로탐구', '자기개발', '문화예술', '환경보존', '기타'];
-                const colors = ['#f43f5e', '#f97316', '#eab308', '#84cc16', '#22c55e', '#10b981', '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6', '#d946ef'];
+				const isAllView = title === '청소년활동 전체보기';
+				const types = ['건강/스포츠', '모험개척', '역사탐방', '봉사협력', '교류', '과학정보', '진로탐구', '자기개발', '문화예술', '환경보존', '기타'];
+				const colors = ['#f43f5e', '#f97316', '#eab308', '#84cc16', '#22c55e', '#10b981', '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6', '#d946ef'];
 
-                if (isAllView) {
-                    types.forEach((type, idx) => {
-                        let typeDataArr = getEyouthChartData(type); 
-                        datasets.push({ label: type, data: typeDataArr, backgroundColor: colors[idx], borderRadius: 0, barPercentage: 0.5 });
-                        typeDataArr.forEach((val, i) => totalDataArray[i] += val);
-                    });
-                } else {
-                    const idx = types.indexOf(title);
-                    let typeDataArr = getEyouthChartData(title); 
-                    datasets = [{ label: title, data: typeDataArr, backgroundColor: colors[idx] || '#3b82f6', borderRadius: 0, barPercentage: 0.5 }];
-                    totalDataArray = [...typeDataArr];
-                }
-                mapDataExtracted = true;
+				if (isAllView) {
+					types.forEach((type, idx) => {
+						let typeDataArr = getEyouthChartData(type); 
+						datasets.push({ label: type, data: typeDataArr, backgroundColor: colors[idx], borderRadius: 0, barPercentage: 0.5 });
+						typeDataArr.forEach((val, i) => totalDataArray[i] += val);
+					});
+				} else {
+					const idx = types.indexOf(title);
+					let typeDataArr = getEyouthChartData(title); 
+					datasets = [{ label: title, data: typeDataArr, backgroundColor: colors[idx] || '#3b82f6', borderRadius: 0, barPercentage: 0.5 }];
+					totalDataArray = [...typeDataArr];
+				}
+				mapDataExtracted = true;
 
-                comboChartInstance = new Chart(canvas.getContext('2d'), {
-                    type: 'bar', data: { labels: regionsList, datasets: datasets },
-                    options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 20 } }, scales: { x: { stacked: isAllView, ticks: { font: { size: 12, weight: 'bold', family: "'Pretendard', sans-serif" }, maxRotation: 45, minRotation: 45 }, grid: { display: false } }, y: { stacked: isAllView, beginAtZero: true, grid: { color: '#f1f5f9' }, border: { display: false } } }, plugins: { legend: { display: isAllView, position: 'bottom', labels: { boxWidth: 10, font: { size: 11, family: "'Pretendard', sans-serif" } } } } }
-                });
-            }
+				comboChartInstance = new Chart(canvas.getContext('2d'), {
+					type: 'bar', data: { labels: regionsList, datasets: datasets },
+					options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 20 } }, scales: { x: { stacked: isAllView, ticks: { font: { size: 12, weight: 'bold', family: "'Pretendard', sans-serif" }, maxRotation: 45, minRotation: 45 }, grid: { display: false } }, y: { stacked: isAllView, beginAtZero: true, grid: { color: '#f1f5f9' }, border: { display: false } } }, plugins: { legend: { display: isAllView, position: 'bottom', labels: { boxWidth: 10, font: { size: 11, family: "'Pretendard', sans-serif" } } } } }
+				});
+			}
 			
 			else if (policyItems.includes(title)) {
-                const isAllView = title === '청소년정책사업 전체보기';
-                const types = ['청소년방과후아카데미', '국제청소년성취포상제', '청소년자기도전포상제', '수련활동인증제', '수련활동신고제', '그룹활동'];
-                const colors = ['#f43f5e', '#f97316', '#84cc16', '#10b981', '#06b6d4', '#3b82f6'];
+				const isAllView = title === '청소년정책사업 전체보기';
+				const types = ['청소년방과후아카데미', '국제청소년성취포상제', '청소년자기도전포상제', '수련활동인증제', '수련활동신고제', '그룹활동'];
+				const colors = ['#f43f5e', '#f97316', '#84cc16', '#10b981', '#06b6d4', '#3b82f6'];
 
-                // 🌟 하드코딩된 그룹활동 데이터를 차트 X축(regionsList) 순서대로 배열로 만드는 함수
-                const getGroupDataArray = () => {
-                    return regionsList.map(region => {
-                        if (region === "전남광주통합특별시") {
-                            return (groupActivityDataStore["광주광역시"] || 0) + (groupActivityDataStore["전라남도"] || 0);
-                        }
-                        return groupActivityDataStore[region] || 0;
-                    });
-                };
+				const getGroupDataArray = () => {
+					return regionsList.map(region => {
+						if (region === "전남광주통합특별시") return (groupActivityDataStore["광주광역시"] || 0) + (groupActivityDataStore["전라남도"] || 0);
+						return groupActivityDataStore[region] || 0;
+					});
+				};
 
-                if (isAllView) {
-                    types.forEach((type, idx) => {
-                        // 🌟 타입이 '그룹활동'일 때는 하드코딩 배열을, 아니면 기존 getPoliChartData 함수를 사용
-                        let typeDataArr = type === '그룹활동' ? getGroupDataArray() : getPoliChartData(type); 
-                        
-                        datasets.push({ label: type, data: typeDataArr, backgroundColor: colors[idx], borderRadius: 0, barPercentage: 0.5 });
-                        typeDataArr.forEach((val, i) => totalDataArray[i] += val);
-                    });
-                } else {
-                    const idx = types.indexOf(title);
-                    
-                    // 🌟 타이틀이 '그룹활동'일 때는 하드코딩 배열을, 아니면 기존 getPoliChartData 함수를 사용
-                    let typeDataArr = title === '그룹활동' ? getGroupDataArray() : getPoliChartData(title); 
-                    
-                    datasets = [{ label: title, data: typeDataArr, backgroundColor: colors[idx] || '#3b82f6', borderRadius: 0, barPercentage: 0.5 }];
-                    totalDataArray = [...typeDataArr];
-                }
-                mapDataExtracted = true;
+				if (isAllView) {
+					types.forEach((type, idx) => {
+						let typeDataArr = type === '그룹활동' ? getGroupDataArray() : getPoliChartData(type); 
+						datasets.push({ label: type, data: typeDataArr, backgroundColor: colors[idx], borderRadius: 0, barPercentage: 0.5 });
+						typeDataArr.forEach((val, i) => totalDataArray[i] += val);
+					});
+				} else {
+					const idx = types.indexOf(title);
+					let typeDataArr = title === '그룹활동' ? getGroupDataArray() : getPoliChartData(title); 
+					datasets = [{ label: title, data: typeDataArr, backgroundColor: colors[idx] || '#3b82f6', borderRadius: 0, barPercentage: 0.5 }];
+					totalDataArray = [...typeDataArr];
+				}
+				mapDataExtracted = true;
 
-                comboChartInstance = new Chart(canvas.getContext('2d'), {
-                    type: 'bar', data: { labels: regionsList, datasets: datasets },
-                    options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 20 } }, scales: { x: { stacked: isAllView, ticks: { font: { size: 12, weight: 'bold', family: "'Pretendard', sans-serif" }, maxRotation: 45, minRotation: 45 }, grid: { display: false } }, y: { stacked: isAllView, beginAtZero: true, grid: { color: '#f1f5f9' }, border: { display: false } } }, plugins: { legend: { display: isAllView, position: 'bottom', labels: { boxWidth: 10, font: { size: 11, family: "'Pretendard', sans-serif" } } } } }
-                });
-            }
+				comboChartInstance = new Chart(canvas.getContext('2d'), {
+					type: 'bar', data: { labels: regionsList, datasets: datasets },
+					options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 20 } }, scales: { x: { stacked: isAllView, ticks: { font: { size: 12, weight: 'bold', family: "'Pretendard', sans-serif" }, maxRotation: 45, minRotation: 45 }, grid: { display: false } }, y: { stacked: isAllView, beginAtZero: true, grid: { color: '#f1f5f9' }, border: { display: false } } }, plugins: { legend: { display: isAllView, position: 'bottom', labels: { boxWidth: 10, font: { size: 11, family: "'Pretendard', sans-serif" } } } } }
+				});
+			}
+
+			// ==========================================
+			// [2] 통계 지도 (5분위 색상) 데이터 계산
+			// ==========================================
 			
-			// renderCharts 함수 내부의 mapDataExtracted = true; 이후 부분
 			if (mapDataExtracted) {
 				const mapDataObj = {};
 				const targetYearKey = "2026.06월"; 
@@ -2421,32 +2408,22 @@
 					let numerator = totalDataArray[i]; 
 					let calculatedRatio = 0;
 
-					// 🚨 1. 시설 데이터일 경우 면적(km²) 기준으로 계산
-					// 🚨 1. 시설 데이터일 경우 면적(km²) 기준으로 계산
 					if (facilityItems.includes(title)) {
+						// [시설] 면적(km²) 기준 밀집도
 						let rArea = 1;
 						let mappedR = COMMON_REGION_MAP[r] || r;
 						
-						// 전남광주통합특별시 예외 처리
-						if (r === "전남광주통합특별시" || mappedR === "전남광주통합특별시") {
-							let a1 = (areaData["광주광역시"] && areaData["광주광역시"]["소계"]) ? areaData["광주광역시"]["소계"] : 0;
-							let a2 = (areaData["전라남도"] && areaData["전라남도"]["소계"]) ? areaData["전라남도"]["소계"] : 0;
-							rArea = a1 + a2;
-						} else {
-							// 🌟 핵심: 이름이 옛날 방식이든 요즘 방식이든 무조건 매칭되도록 방어벽 추가
-							rArea = (areaData[r] && areaData[r]["소계"]) 
-								 || (areaData[mappedR] && areaData[mappedR]["소계"])
-								 || (areaData[r.replace("도", "특별자치도")] && areaData[r.replace("도", "특별자치도")]["소계"])
-								 || (areaData[r.replace("특별자치도", "도")] && areaData[r.replace("특별자치도", "도")]["소계"])
-								 || 1;
-						}
+						rArea = (areaData[r] && areaData[r]["소계"]) 
+							 || (areaData[mappedR] && areaData[mappedR]["소계"])
+							 || (areaData[r.replace("도", "특별자치도")] && areaData[r.replace("도", "특별자치도")]["소계"])
+							 || (areaData[r.replace("특별자치도", "도")] && areaData[r.replace("특별자치도", "도")]["소계"])
+							 || 1;
 
-						// m²를 km²로 변환하여 계산
 						let rAreaKm2 = rArea / 1000000;
 						calculatedRatio = (numerator / rAreaKm2) * 100;
-					}
-					// 🚨 2. 학교 데이터일 경우 기존처럼 청소년 인구 기준 유지
+					} 
 					else if (schoolItems.includes(title)) {
+						// [학교] 지역 청소년 인구 기준 비중
 						if (r === "전남광주통합특별시") {
 							let p1 = (popData["광주광역시"] && popData["광주광역시"]["소계"]) ? popData["광주광역시"]["소계"]["총인구수"][targetYearKey] || 0 : 0;
 							let p2 = (popData["전라남도"] && popData["전라남도"]["소계"]) ? popData["전라남도"]["소계"]["총인구수"][targetYearKey] || 0 : 0;
@@ -2457,54 +2434,57 @@
 							}
 						}
 						if (provPop === 0) provPop = 1; 
-
 						calculatedRatio = (numerator / provPop) * 100;
 					} 
-					// 🚨 3. 그 외 활동, 정책 데이터 등은 기존 방식 유지
 					else {
+						// [기타] 전국 청소년 인구 기준 비중
 						let totalNationPop = (popData["전국"] && popData["전국"]["전국"]) ? popData["전국"]["전국"]["총인구수"][targetYearKey] || 1 : 1;
 						calculatedRatio = (numerator / totalNationPop) * 100;
 					}
 
 					mapDataObj[r] = Number(calculatedRatio.toFixed(3));
-			   });
+				});
 
-				// 🚨 여기에 아래 두 줄을 복사해서 붙여넣어 주세요!
-				console.log("1. 원본 면적 데이터:", areaData);
-				console.log("2. 지도에 칠할 계산된 데이터:", mapDataObj);
-
-				updateTrendMapColors(mapDataObj, true); 
+				// 🌟 타이밍 문제 방지: 지도가 렌더링될 시간을 0.35초 벌어줌
+				setTimeout(() => {
+					updateTrendMapColors(mapDataObj, true); 
+				}, 350);
 			}
 
-            const tableContainer = document.getElementById('dataTableContainer');
-            const dataTable = document.getElementById('detailDataTable');
+			// ==========================================
+			// [3] 하단 상세 데이터 표 출력 처리
+			// ==========================================
+			
+			const tableContainer = document.getElementById('dataTableContainer');
+			const dataTable = document.getElementById('detailDataTable');
 
-            if (tableHeaders.length > 0 && tableContainer && dataTable) {
-			// 🌟 원래 표 제목으로 복구하는 코드 추가
-                const headerDiv = tableContainer.querySelector('div.p-4');
-                if (headerDiv) {
-                    headerDiv.innerHTML = `<h3 class="font-bold text-brand-dark text-sm"><i class="ph-bold ph-table mr-1"></i> 데이터 상세 표</h3>`;
-                }
+			if (tableHeaders.length > 0 && tableContainer && dataTable) {
+				// 표 헤더 생성
+				const headerDiv = tableContainer.querySelector('div.p-4');
+				if (headerDiv) {
+					headerDiv.innerHTML = `<h3 class="font-bold text-brand-dark text-sm"><i class="ph-bold ph-table mr-1"></i> 데이터 상세 표</h3>`;
+				}
 
-                
-                let thHtml = `<thead class="bg-brand-dark text-brand-yellow text-xs uppercase text-center border-b border-gray-700"><tr>`;
-                tableHeaders.forEach(th => thHtml += `<th class="py-3 px-4">${th}</th>`);
-                thHtml += `</tr></thead>`;
+				let thHtml = `<thead class="bg-brand-dark text-brand-yellow text-xs uppercase text-center border-b border-gray-700"><tr>`;
+				tableHeaders.forEach(th => thHtml += `<th class="py-3 px-4">${th}</th>`);
+				thHtml += `</tr></thead>`;
 
-                let tbHtml = `<tbody class="text-center bg-white divide-y divide-gray-100">`;
-                tableRows.forEach(row => {
-                    tbHtml += `<tr class="hover:bg-gray-50 transition-colors">`;
-                    row.forEach((cell, i) => tbHtml += `<td class="py-2.5 px-4 ${i===0?'font-bold text-brand-dark bg-gray-50':''}">${cell}</td>`);
-                    tbHtml += `</tr>`;
-                });
-                tbHtml += `</tbody>`;
+				// 표 바디 생성
+				let tbHtml = `<tbody class="text-center bg-white divide-y divide-gray-100">`;
+				tableRows.forEach(row => {
+					tbHtml += `<tr class="hover:bg-gray-50 transition-colors">`;
+					row.forEach((cell, i) => tbHtml += `<td class="py-2.5 px-4 ${i===0?'font-bold text-brand-dark bg-gray-50':''}">${cell}</td>`);
+					tbHtml += `</tr>`;
+				});
+				tbHtml += `</tbody>`;
 
-                dataTable.innerHTML = thHtml + tbHtml;
-                tableContainer.classList.remove('hidden');
-            } else if (tableContainer) {
-                tableContainer.classList.add('hidden'); 
-            }
-        }
+				dataTable.innerHTML = thHtml + tbHtml;
+				tableContainer.classList.remove('hidden');
+			} else if (tableContainer) {
+				// 테이블 데이터가 없으면 컨테이너 숨김
+				tableContainer.classList.add('hidden'); 
+			}
+		}
 
         function updateTrendMapColors(dataObj, isPercentage = false) {
 			if (!geojsonTrend) return;
