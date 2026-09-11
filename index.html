@@ -2422,30 +2422,29 @@
 					let calculatedRatio = 0;
 
 					// 🚨 1. 시설 데이터일 경우 면적(km²) 기준으로 계산
+					// 🚨 1. 시설 데이터일 경우 면적(km²) 기준으로 계산
 					if (facilityItems.includes(title)) {
 						let rArea = 1;
 						let mappedR = COMMON_REGION_MAP[r] || r;
 						
 						// 전남광주통합특별시 예외 처리
-						if (mappedR === "전남광주통합특별시") {
+						if (r === "전남광주통합특별시" || mappedR === "전남광주통합특별시") {
 							let a1 = (areaData["광주광역시"] && areaData["광주광역시"]["소계"]) ? areaData["광주광역시"]["소계"] : 0;
 							let a2 = (areaData["전라남도"] && areaData["전라남도"]["소계"]) ? areaData["전라남도"]["소계"] : 0;
 							rArea = a1 + a2;
-						} else if (areaData[mappedR] && areaData[mappedR]["소계"]) {
-							rArea = areaData[mappedR]["소계"] || (areaData[mappedR] && areaData[mappedR]["소계"])
-								|| (areaData[r.replace("도", "특별자치도")] && areaData[r.replace("도", "특별자치도")]["소계"])
-								|| (areaData[r.replace("특별자치도", "도")] && areaData[r.replace("특별자치도", "도")]["소계"])
-								|| 1;
-					}
-							
+						} else {
+							// 🌟 핵심: 이름이 옛날 방식이든 요즘 방식이든 무조건 매칭되도록 방어벽 추가
+							rArea = (areaData[r] && areaData[r]["소계"]) 
+								 || (areaData[mappedR] && areaData[mappedR]["소계"])
+								 || (areaData[r.replace("도", "특별자치도")] && areaData[r.replace("도", "특별자치도")]["소계"])
+								 || (areaData[r.replace("특별자치도", "도")] && areaData[r.replace("특별자치도", "도")]["소계"])
+								 || 1;
 						}
-						if (rArea === 0) rArea = 1;
 
 						// m²를 km²로 변환하여 계산
 						let rAreaKm2 = rArea / 1000000;
 						calculatedRatio = (numerator / rAreaKm2) * 100;
-						console.log(numerator,"/",rAreaKm2,") *100");
-					} 
+					}
 					// 🚨 2. 학교 데이터일 경우 기존처럼 청소년 인구 기준 유지
 					else if (schoolItems.includes(title)) {
 						if (r === "전남광주통합특별시") {
@@ -2468,7 +2467,11 @@
 					}
 
 					mapDataObj[r] = Number(calculatedRatio.toFixed(3));
-				});
+			   });
+
+				// 🚨 여기에 아래 두 줄을 복사해서 붙여넣어 주세요!
+				console.log("1. 원본 면적 데이터:", areaData);
+				console.log("2. 지도에 칠할 계산된 데이터:", mapDataObj);
 
 				updateTrendMapColors(mapDataObj, true); 
 			}
