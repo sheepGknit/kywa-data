@@ -125,7 +125,7 @@
                         <div class="py-3 px-2 flex justify-between border-b border-gray-700 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('연령별 청소년인구 (9~24세)')">
                             <span>연령별 청소년인구 (9~24세)</span><span class="font-bold text-white" id="statYouthPop">0명</span>
                         </div>
-                        <div class="py-3 px-2 flex justify-between pb-4 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('학교 전체보기')">
+                        <div class="py-3 px-2 flex justify-between pb-4 hover:bg-brand-light/80 cursor-pointer rounded transition-colors" onclick="showTrendView('학생 인구')">
                             <span>학생인구</span><span class="font-bold text-white" id="statStudents">0명</span>
                         </div>
                     </div>
@@ -1169,13 +1169,13 @@
 			});
 		});
 
-        function initMainMap() {
+		function initMainMap() {
 			mapMain = L.map('mainMap', { center: [36.0, 127.8], zoom: 6.5, zoomControl: false, dragging: false, scrollWheelZoom: true, doubleClickZoom: false, touchZoom: false });
+			
 			fetch(URL_PROVINCES).then(res => res.json()).then(data => {
 				provincesData = data;
 				document.getElementById('mainMapLoading').style.display = 'none';
 
-				// 🚨 1. name 대신 sidonm 사용
 				let gjFeature = data.features.find(f => (f.properties.sidonm || f.properties.name) === "광주광역시");
 				let jnFeature = data.features.find(f => (f.properties.sidonm || f.properties.name) === "전라남도");
 				if (gjFeature && jnFeature) {
@@ -1197,7 +1197,6 @@
 				geojsonMain = L.geoJson(data, {
 					style: () => ({ fillColor: '#E5E7EB', weight: 1.5, opacity: 1, color: '#ffffff', fillOpacity: 0.9, className: 'cursor-pointer transition-colors duration-300' }),
 					onEachFeature: (feature, layer) => {
-						// 🚨 2. name 대신 sidonm 속성 할당
 						const rName = feature.properties.sidonm || feature.properties.name;
 
 						layer.bindTooltip(rName, { className: 'bg-gray-800 border-none text-white font-bold text-sm rounded-lg shadow-xl px-3 py-1.5', sticky: true, direction: 'auto' });
@@ -1219,7 +1218,35 @@
 					}
 				}).addTo(mapMain);
 
-				setTimeout(() => { mapMain.invalidateSize(); mapMain.fitBounds(geojsonMain.getBounds(), { animate: false }); }, 100);
+				// 🚨 전국 지도 시·도 이름 라벨 텍스트 고정 🚨
+				// 글자가 바다나 다른 지역을 침범하지 않도록 특정 지역의 라벨 위치만 하드코딩으로 조정합니다.
+				const customOffsets = {
+					"경기도": [37.35, 127.3], // 서울과 겹치지 않게 남동쪽(용인/광주 방면)으로 이동
+					"인천광역시": [37.45, 126.7], // 섬 때문에 바다로 가는 것을 막고 육지 쪽으로 이동
+					"충청남도": [36.55, 126.8] // 살짝 내륙 쪽으로 이동
+				};
+
+				geojsonMain.eachLayer(layer => {
+					const rName = layer.feature.properties.sidonm || layer.feature.properties.name;
+					
+					// 커스텀 오프셋이 있으면 그 좌표를 사용하고, 없으면 폴리곤의 정중앙을 계산해서 사용
+					let center = customOffsets[rName] ? customOffsets[rName] : layer.getBounds().getCenter();
+					
+					L.marker(center, {
+						icon: L.divIcon({
+							className: 'bg-transparent text-gray-600 font-black text-[12px] whitespace-nowrap text-center pointer-events-none',
+							html: `<div style="text-shadow: -1.5px -1.5px 0 #fff, 1.5px -1.5px 0 #fff, -1.5px 1.5px 0 #fff, 1.5px 1.5px 0 #fff;">${rName}</div>`,
+							iconSize: [80, 20],
+							iconAnchor: [40, 10]
+						}),
+						interactive: false // 텍스트가 클릭(호버) 이벤트를 가로막지 않도록 무시
+					}).addTo(mapMain);
+				});
+
+				setTimeout(() => { 
+					mapMain.invalidateSize(); 
+					mapMain.fitBounds(geojsonMain.getBounds(), { animate: false }); 
+				}, 100);
 			});
 		}
 
@@ -2042,7 +2069,10 @@
                     formulaEl.innerHTML = `(지역 내 <b>프로그램 수</b> ÷ 전국 <b>총 청소년 인구</b>) × 100`;
                 } else if (leaderItems.includes(title)) {
                     formulaEl.innerHTML = `(지역 내 <b>지도자/상담사 수</b> ÷ 전국 <b>총 청소년 인구</b>) × 100`;
-                } else {
+                } else if (title === '학생 인구') {
+					// 🚨 새로 추가된 부분
+					formulaEl.innerHTML = `각 시·도 <b>학생 수</b> ÷ <b>전국 학생 수</b>) × 100`;
+				} else {
                     formulaEl.innerHTML = `(<b>각 시·도 인구</b> ÷ <b>전국 청소년 인구</b>) × 100`;
                 }
             }
@@ -2478,81 +2508,172 @@
 		}
 
         function slideYear(val) {
-            const buttons = document.querySelectorAll('.year-btn');
-            document.getElementById('yearSlider').value = val;
+			const buttons = document.querySelectorAll('.year-btn');
+			document.getElementById('yearSlider').value = val;
 
-            buttons.forEach(btn => {
-                if(btn.textContent == val) btn.className = "year-btn px-4 py-1 text-sm rounded font-bold shadow-[0_0_10px_rgba(253,186,26,0.4)] bg-brand-yellow text-brand-dark";
-                else btn.className = "year-btn px-3 py-1 text-sm rounded bg-gray-600 text-gray-300 hover:text-white transition-colors";
-            });
+			buttons.forEach(btn => {
+				if(btn.textContent == val) btn.className = "year-btn px-4 py-1 text-sm rounded font-bold shadow-[0_0_10px_rgba(253,186,26,0.4)] bg-brand-yellow text-brand-dark";
+				else btn.className = "year-btn px-3 py-1 text-sm rounded bg-gray-600 text-gray-300 hover:text-white transition-colors";
+			});
 
-            let currentMale = new Array(regionsList.length).fill(0);
-            let currentFemale = new Array(regionsList.length).fill(0);
+			const currentTitle = document.getElementById('trendViewTitle').textContent;
+			const targetYearKeyPop = (val == "2026") ? "2026.06월" : `${val}년`;
+			const targetYearKeySch = (parseInt(val) >= 2025) ? "2025년" : `${val}년`;
 
-            let totalMale = 0;
-            let totalFemale = 0;
+			const sumTotalEl = document.getElementById('summaryTotal');
+			const sumMaleEl = document.getElementById('summaryMale');
+			const sumFemaleEl = document.getElementById('summaryFemale');
 
-            const targetYearKey = (val == "2026") ? "2026.06월" : `${val}년`;
+			// 🌟 [추가] 1. '학생 인구' 모드일 때의 로직
+			if (currentTitle === '학생 인구') {
+				sumTotalEl.previousElementSibling.textContent = "총 학생수 (전국)";
+				sumMaleEl.previousElementSibling.textContent = "초·중·고등학생";
+				sumFemaleEl.previousElementSibling.textContent = "대학생 및 특수학교";
 
-            regionsList.forEach((region, i) => {
-                if (region === "전남광주통합특별시") {
-                    let m1=0, f1=0, m2=0, f2=0;
-                    if(popData["광주광역시"] && popData["광주광역시"]["소계"]) {
-                        m1 = popData["광주광역시"]["소계"]["남자인구수"][targetYearKey] || 0;
-                        f1 = popData["광주광역시"]["소계"]["여자인구수"][targetYearKey] || 0;
-                    }
-                    if(popData["전라남도"] && popData["전라남도"]["소계"]) {
-                        m2 = popData["전라남도"]["소계"]["남자인구수"][targetYearKey] || 0;
-                        f2 = popData["전라남도"]["소계"]["여자인구수"][targetYearKey] || 0;
-                    }
-                    currentMale[i] = m1 + m2;
-                    currentFemale[i] = f1 + f2;
-                } else {
-                    if(popData[region] && popData[region]["소계"]) {
-                        currentMale[i] = popData[region]["소계"]["남자인구수"][targetYearKey] || 0;
-                        currentFemale[i] = popData[region]["소계"]["여자인구수"][targetYearKey] || 0;
-                    }
-                }
-            });
+				const types = ['초등학교', '중학교', '고등학교', '대학교', '특수학교'];
+				const colors = ['#3b82f6', '#10b981', '#f97316', '#a855f7', '#ec4899'];
+				
+				let datasets = [];
+				let mapDataObj = {};
+				let totalNat = 0, totalK12 = 0, totalUnivSpec = 0;
+				
+				let typeDataArrays = {};
+				types.forEach(t => typeDataArrays[t] = new Array(regionsList.length).fill(0));
+				
+				regionsList.forEach((r, i) => {
+					let mappedR = COMMON_REGION_MAP[r] || r;
+					let regionTotal = 0;
+					
+					types.forEach(type => {
+						let count = 0;
+						if (schoolData[mappedR] && schoolData[mappedR][type] && schoolData[mappedR][type][targetYearKeySch]) {
+							count = parseNum(schoolData[mappedR][type][targetYearKeySch]["학생수"]);
+						}
+						typeDataArrays[type][i] = count;
+						regionTotal += count;
+						
+						totalNat += count;
+						if (['초등학교', '중학교', '고등학교'].includes(type)) totalK12 += count;
+						else totalUnivSpec += count;
+					});
+					mapDataObj[r] = regionTotal;
+				});
+				
+				types.forEach((type, idx) => {
+					datasets.push({
+						label: type, data: typeDataArrays[type], backgroundColor: colors[idx], borderRadius: 0, barPercentage: 0.5
+					});
+				});
 
-            if (popData["전국"] && popData["전국"]["전국"]) {
-                totalMale = popData["전국"]["전국"]["남자인구수"][targetYearKey] || 0;
-                totalFemale = popData["전국"]["전국"]["여자인구수"][targetYearKey] || 0;
-            }
+				sumTotalEl.textContent = totalNat.toLocaleString() + "명";
+				sumMaleEl.textContent = totalK12.toLocaleString() + "명";
+				document.getElementById('summaryMalePct').textContent = totalNat > 0 ? `(${Math.round((totalK12/totalNat)*100)}%)` : "(0%)";
+				sumFemaleEl.textContent = totalUnivSpec.toLocaleString() + "명";
+				document.getElementById('summaryFemalePct').textContent = totalNat > 0 ? `(${Math.round((totalUnivSpec/totalNat)*100)}%)` : "(0%)";
 
-            let totalPop = totalMale + totalFemale;
+				const canvas = document.getElementById('mainComboChart');
+				if(!canvas) return;
+				if (comboChartInstance) { comboChartInstance.destroy(); comboChartInstance = null; }
 
-            document.getElementById('summaryTotal').textContent = totalPop.toLocaleString() + "명";
-            document.getElementById('summaryMale').textContent = totalMale.toLocaleString() + "명";
-            document.getElementById('summaryFemale').textContent = totalFemale.toLocaleString() + "명";
+				comboChartInstance = new Chart(canvas.getContext('2d'), {
+					type: 'bar',
+					data: { labels: regionsList, datasets: datasets },
+					options: { 
+						indexAxis: 'x', // 교급별은 수직 막대가 비교하기 좋음
+						responsive: true, maintainAspectRatio: false, layout: { padding: { top: 20 } }, 
+						scales: { 
+							x: { stacked: true, ticks: { font: { size: 12, weight: 'bold', family: "'Pretendard', sans-serif" }, maxRotation: 45, minRotation: 45 }, grid: { display: false } }, 
+							y: { stacked: true, beginAtZero: true, grid: { color: '#f1f5f9' }, border: { display: false } } 
+						}, 
+						plugins: { legend: { display: true, position: 'bottom', labels: { boxWidth: 10, font: { size: 12, family: "'Pretendard', sans-serif" } } } } 
+					}
+				});
 
-            if(totalPop > 0) {
-                document.getElementById('summaryMalePct').textContent = `(${Math.round((totalMale/totalPop)*100)}%)`;
-                document.getElementById('summaryFemalePct').textContent = `(${Math.round((totalFemale/totalPop)*100)}%)`;
-            }
+				// '학생 인구' 모드 지도 퍼센트 변환
+				const densityMapObj = {};
+				regionsList.forEach(r => {
+					// (지역 학생수 / 전국 총 학생수) * 100
+					let percentage = totalNat > 0 ? (mapDataObj[r] / totalNat) * 100 : 0;
+					densityMapObj[r] = Number(percentage.toFixed(1)); 
+				});
 
-            const canvas = document.getElementById('mainComboChart');
-            if(!canvas) return;
+				// 두 번째 인자로 true를 전달하여 툴팁에 % 기호가 붙도록 처리
+				updateTrendMapColors(densityMapObj, true);
+				const tableContainer = document.getElementById('dataTableContainer');
+				if (tableContainer) tableContainer.classList.add('hidden');
+				
+				return; // 학생 인구 로직 끝
+			}
 
-            if (comboChartInstance) { comboChartInstance.destroy(); comboChartInstance = null; }
+			// 🌟 2. 원래 인구수(남/녀 성별) 모드 로직 복구
+			sumTotalEl.previousElementSibling.textContent = "총 청소년 인구";
+			sumMaleEl.previousElementSibling.textContent = "남성 청소년";
+			sumFemaleEl.previousElementSibling.textContent = "여성 청소년";
 
-            comboChartInstance = new Chart(canvas.getContext('2d'), {
-                type: 'bar',
-                data: { labels: regionsList, datasets: [ { label: '남성 청소년', data: currentMale, backgroundColor: '#1e293b', borderRadius: 0 }, { label: '여성 청소년', data: currentFemale, backgroundColor: '#FDBA1A', borderRadius: 0 } ] },
-                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, layout: { padding: { right: 20 } }, scales: { x: { stacked: true, ticks: { font: { size: 12, family: "'Pretendard', sans-serif" }, callback: v => (v/10000).toFixed(0) + '만' }, grid: { display: false } }, y: { stacked: true, ticks: { font: { size: 12, weight: 'bold', family: "'Pretendard', sans-serif" }, autoSkip: false }, grid: { display: false }, border: { display: false } } }, plugins: { legend: { display: true, position: 'bottom' } } }
-            });
+			let currentMale = new Array(regionsList.length).fill(0);
+			let currentFemale = new Array(regionsList.length).fill(0);
 
-            const mapDataObj = {};
-            regionsList.forEach((r, i) => { mapDataObj[r] = currentMale[i] + currentFemale[i]; });
-            updateTrendMapColors(mapDataObj);
+			let totalMale = 0;
+			let totalFemale = 0;
 
-            const currentTitle = document.getElementById('trendViewTitle').textContent;
-            const schoolItems = ['학교 전체보기', '초등학교', '중학교', '고등학교', '대학교', '특수학교'];
-            if (schoolItems.includes(currentTitle)) {
-                renderCharts(currentTitle);
-            }
+			regionsList.forEach((region, i) => {
+				if (region === "전남광주통합특별시") {
+					let m1=0, f1=0, m2=0, f2=0;
+					if(popData["광주광역시"] && popData["광주광역시"]["소계"]) {
+						m1 = popData["광주광역시"]["소계"]["남자인구수"][targetYearKeyPop] || 0;
+						f1 = popData["광주광역시"]["소계"]["여자인구수"][targetYearKeyPop] || 0;
+					}
+					if(popData["전라남도"] && popData["전라남도"]["소계"]) {
+						m2 = popData["전라남도"]["소계"]["남자인구수"][targetYearKeyPop] || 0;
+						f2 = popData["전라남도"]["소계"]["여자인구수"][targetYearKeyPop] || 0;
+					}
+					currentMale[i] = m1 + m2;
+					currentFemale[i] = f1 + f2;
+				} else {
+					if(popData[region] && popData[region]["소계"]) {
+						currentMale[i] = popData[region]["소계"]["남자인구수"][targetYearKeyPop] || 0;
+						currentFemale[i] = popData[region]["소계"]["여자인구수"][targetYearKeyPop] || 0;
+					}
+				}
+			});
 
-        }
+			if (popData["전국"] && popData["전국"]["전국"]) {
+				totalMale = popData["전국"]["전국"]["남자인구수"][targetYearKeyPop] || 0;
+				totalFemale = popData["전국"]["전국"]["여자인구수"][targetYearKeyPop] || 0;
+			}
+
+			let totalPop = totalMale + totalFemale;
+
+			document.getElementById('summaryTotal').textContent = totalPop.toLocaleString() + "명";
+			document.getElementById('summaryMale').textContent = totalMale.toLocaleString() + "명";
+			document.getElementById('summaryFemale').textContent = totalFemale.toLocaleString() + "명";
+
+			if(totalPop > 0) {
+				document.getElementById('summaryMalePct').textContent = `(${Math.round((totalMale/totalPop)*100)}%)`;
+				document.getElementById('summaryFemalePct').textContent = `(${Math.round((totalFemale/totalPop)*100)}%)`;
+			}
+
+			const canvas = document.getElementById('mainComboChart');
+			if(!canvas) return;
+
+			if (comboChartInstance) { comboChartInstance.destroy(); comboChartInstance = null; }
+
+			comboChartInstance = new Chart(canvas.getContext('2d'), {
+				type: 'bar',
+				data: { labels: regionsList, datasets: [ { label: '남성 청소년', data: currentMale, backgroundColor: '#1e293b', borderRadius: 0 }, { label: '여성 청소년', data: currentFemale, backgroundColor: '#FDBA1A', borderRadius: 0 } ] },
+				options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, layout: { padding: { right: 20 } }, scales: { x: { stacked: true, ticks: { font: { size: 12, family: "'Pretendard', sans-serif" }, callback: v => (v/10000).toFixed(0) + '만' }, grid: { display: false } }, y: { stacked: true, ticks: { font: { size: 12, weight: 'bold', family: "'Pretendard', sans-serif" }, autoSkip: false }, grid: { display: false }, border: { display: false } } }, plugins: { legend: { display: true, position: 'bottom' } } }
+			});
+
+			const mapDataObj = {};
+			regionsList.forEach((r, i) => { mapDataObj[r] = currentMale[i] + currentFemale[i]; });
+			updateTrendMapColors(mapDataObj);
+
+			const currentTitleForChart = document.getElementById('trendViewTitle').textContent;
+			const schoolItems = ['학교 전체보기', '초등학교', '중학교', '고등학교', '대학교', '특수학교'];
+			if (schoolItems.includes(currentTitleForChart)) {
+				renderCharts(currentTitleForChart);
+			}
+		}
 
         function toggleAiChat() { document.getElementById('aiChatWindow').classList.toggle('hidden'); }
         function openAiRecommenderModal() { document.getElementById('aiModal').classList.remove('hidden'); document.getElementById('aiModal').classList.add('flex'); }
