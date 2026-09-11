@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>청소년활동 데이터 플랫폼</title>
+    <title>청소년활동 데이터 플랫폼ver.0911</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
 	<!-- Google GenAI SDK -->
@@ -2355,7 +2355,7 @@
                     if (r === "전남광주통합특별시") {
                         let p1 = (popData["광주광역시"] && popData["광주광역시"]["소계"]) ? popData["광주광역시"]["소계"]["총인구수"][targetYearKey] || 0 : 0;
                         let p2 = (popData["전라남도"] && popData["전라남도"]["소계"]) ? popData["전라남도"]["소계"]["총인구수"][targetYearKey] || 0 : 0;
-                        provPop = p1 + p2;
+                        provPop = p1 + p2 ;
                     } else {
                         if (popData[r] && popData[r]["소계"]) {
                             provPop = popData[r]["소계"]["총인구수"][targetYearKey] || 0;
