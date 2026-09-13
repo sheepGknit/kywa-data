@@ -1482,22 +1482,13 @@
 			let polCount = localPolicies.length;
 
 			// 4. 🚨 면적 구하기 (km²)
-			let areaVal = 1;
-			if (province === "전남광주통합특별시") {
-				if (isAll) {
-					areaVal = (areaData["광주광역시"]?.["소계"] || 0) + (areaData["전라남도"]?.["소계"] || 0);
-				} else {
-					areaVal = areaData["광주광역시"]?.[municipality] || areaData["전라남도"]?.[municipality] || 1;
-				}
+			let areaVal = 0;
+			if (isAll) {
+				areaVal = areaData[mappedProv]?.["소계"] || areaData[province]?.["소계"] || 0;
 			} else {
-				if (isAll) {
-					areaVal = areaData[mappedProv]?.["소계"] || areaData[province]?.["소계"] || 1;
-				} else {
-					areaVal = areaData[mappedProv]?.[municipality] || areaData[province]?.[municipality] || 1;
-				}
+				areaVal = areaData[mappedProv]?.[municipality] || areaData[province]?.[municipality] || 0;
 			}
-			let areaKm2 = areaVal / 1000000;
-			if (areaKm2 === 0) areaKm2 = 1;
+			let areaKm2 = areaVal > 0 ? (areaVal / 1000000) : 1;
 
 			// 5. 🚨 새 격차지수(원시지수) 산출식 적용
 			let totalInfra = facCount + polCount;
@@ -1510,16 +1501,14 @@
 				regionsList.forEach(r => {
 					let mR = COMMON_REGION_MAP[r] || r;
 					
-					// 🚨 수정: "합계" 안의 청소년 인구수 사용
-					let tPop = popData[r]?.["합계"]?.["청소년"]?.["청소년전체"] || 0;
-					if (tPop === 0) tPop = 10000; // 결측치 방어
+					let tPop = popData[mR]?.["합계"]?.["청소년"]?.["청소년전체"] || 0;
+					if (tPop === 0) tPop = 10000; 
 
-					let tFac = sisulData.filter(i => (r === "전남광주통합특별시" ? (i.ctpvNm === "광주광역시" || i.ctpvNm === "전라남도") : i.ctpvNm === r)).length;
+					let tFac = sisulData.filter(i => (r === "전남광주통합특별시" ? (i.ctpvNm === "광주광역시" || i.ctpvNm === "전라남도" || i.ctpvNm === "전남광주통합특별시") : i.ctpvNm === r)).length;
 					let tPol = programsPoliData.filter(i => (r === "전남광주통합특별시" ? (i.sidoNm === "광주광역시" || i.sidoNm === "전라남도" || i.sidoNm === "전남광주통합특별시") : i.sidoNm === r)).length;
 					
+					// 🚨 수정: 불필요한 하드코딩 삭제, 있는 그대로 면적 가져오기
 					let tArea = areaData[mR]?.["소계"] || areaData[r]?.["소계"] || 0;
-					if (r === "전남광주통합특별시") tArea = (areaData["광주광역시"]?.["소계"]||0) + (areaData["전라남도"]?.["소계"]||0);
-					
 					let tAreaKm2 = tArea > 0 ? (tArea / 1000000) : 1; 
 
 					allIndices.push({ name: r, raw: ((tFac + tPol)/tPop) * ((tFac + tPol)/tAreaKm2) });
@@ -1529,26 +1518,26 @@
 				if (province === "전남광주통합특별시") districts = [...(districtData["광주광역시"]||[]), ...(districtData["전라남도"]||[])];
 
 				districts.forEach(d => {
-					// 🚨 수정: "시군구" 안의 청소년 인구수 사용
-					let sigunguObj = popData[province]?.["시군구"] || {};
+					let sigunguObj = popData[mappedProv]?.["시군구"] || {};
 					let tPop = sigunguObj[d]?.["청소년"]?.["청소년전체"] || 0;
 					
-					if (!sigunguObj[d]) {
+					if (tPop === 0) {
 						let foundKey = Object.keys(sigunguObj).find(k => k.replace(/\s/g, '') === d.replace(/\s/g, ''));
 						if (foundKey) tPop = sigunguObj[foundKey]?.["청소년"]?.["청소년전체"] || 0;
 					}
 					if (tPop === 0) tPop = 10000; 
 
-					let tFac = sisulData.filter(i => (i.ctpvNm === province || (province==="전남광주통합특별시" && (i.ctpvNm==="광주광역시"||i.ctpvNm==="전라남도"))) && (i.sggNm && i.sggNm.replace(/\s/g, '') === d.replace(/\s/g, ''))).length;
+					let tFac = sisulData.filter(i => (i.ctpvNm === province || (province==="전남광주통합특별시" && (i.ctpvNm==="광주광역시"||i.ctpvNm==="전라남도"||i.ctpvNm==="전남광주통합특별시"))) && (i.sggNm && i.sggNm.replace(/\s/g, '') === d.replace(/\s/g, ''))).length;
 					let tPol = programsPoliData.filter(i => (i.sidoNm === province || (province==="전남광주통합특별시" && (i.sidoNm==="광주광역시"||i.sidoNm==="전라남도"||i.sidoNm==="전남광주통합특별시"))) && (i.sggNm && i.sggNm.replace(/\s/g, '') === d.replace(/\s/g, ''))).length;
 					
+					// 🚨 수정: 불필요한 하드코딩 삭제, 있는 그대로 면적 가져오기
 					let tArea = areaData[mappedProv]?.[d] || areaData[province]?.[d] || 0;
 					let tAreaKm2 = tArea > 0 ? (tArea / 1000000) : 1; 
 
 					allIndices.push({ name: d, raw: ((tFac + tPol)/tPop) * ((tFac + tPol)/tAreaKm2) });
 				});
 			}
-
+		
 			// 7. 표준화 점수(전국/도내 평균=100) 및 상/중/하위 그룹 분류
 			let avgRaw = allIndices.reduce((sum, item) => sum + item.raw, 0) / allIndices.length;
 			if (avgRaw === 0) avgRaw = 1;
@@ -3506,15 +3495,12 @@
 				if (pop === 0) pop = 1;
 
 				// ④ 행정구역 면적(km²)
-				let area = (areaData[r] && areaData[r]["소계"]) 
-						 || (areaData[mappedR] && areaData[mappedR]["소계"])
-						 || (areaData[r.replace("도", "특별자치도")] && areaData[r.replace("도", "특별자치도")]["소계"])
-						 || (areaData[r.replace("특별자치도", "도")] && areaData[r.replace("특별자치도", "도")]["소계"])
-						 || 1;
-				let areaKm2 = area / 1000000;
-
+				let area = areaData[mappedR]?.["소계"] || areaData[r]?.["소계"] || 0;
+				let areaKm2 = area > 0 ? (area / 1000000) : 1;
+				
 				// ⑤ 원시지수 계산: (인프라/인구) * (인프라/면적)
 				let rawIndex = (totalInfra / pop) * (totalInfra / areaKm2);
+
 				
 				gapDataList.push({ region: r, rawIndex: rawIndex });
 				rawIndices.push(rawIndex);
