@@ -1683,8 +1683,25 @@
 			document.getElementById('detailStatFac').textContent = facCount + '개소'; 
 			document.getElementById('detailStatRatio').textContent = ratio;
 			document.getElementById('detailProgRatio').textContent = progRatio; // 활동 대신 정책사업 비율로 표시됨
+			
 
-			// 기존 탭 콘텐츠 렌더링
+			// 🌟 [수정됨] 화면을 그리기 전에 글로벌 객체(currentReportData)부터 최신화!
+			window.currentReportData = {
+				regionName: targetRegionName,
+				badgeText: badgeText.replace(/[^가-힣]/g, ''),
+				pop: regionalPop === 1 ? 0 : regionalPop,
+				fac: facCount,
+				ratio: ratio,
+				prog: polCount,
+				progRatio: progRatio,
+				areaKm2: areaKm2,
+				rawIndex: currentRawIndex,
+				stdScore: currentStdScore,
+				rank: rank,
+				totalRegions: allIndices.length
+			};
+
+			// 🌟 이제 최신화된 데이터를 바탕으로 기존 탭 콘텐츠 렌더링
 			renderTabContent(province, municipality, targetRegionName.length, uniqueFacilities);
 
 			// 9. 🚨 새로운 AI 분석 텍스트 출력
@@ -1699,24 +1716,6 @@
 					※ 해당 지표는 인구 밀집도와 행정구역 면적 대비 인프라 접근성을 복합 산출하여 0~100점 사이로 상대 평가한 점수입니다.
 				</p>
 			`;
-
-			// 글로벌 객체 업데이트 (필요 시 다른 곳에서 사용)
-			// 글로벌 객체 업데이트 (필요 시 다른 곳에서 사용)
-			window.currentReportData = {
-				regionName: targetRegionName,
-				badgeText: badgeText.replace(/[^가-힣]/g, ''),
-				pop: regionalPop === 1 ? 0 : regionalPop,
-				fac: facCount,
-				ratio: ratio,
-				prog: polCount,
-				progRatio: progRatio,
-				// 🌟 탭과 AI가 참고할 세부 지표 추가
-				areaKm2: areaKm2,
-				rawIndex: currentRawIndex,
-				stdScore: currentStdScore,
-				rank: rank,
-				totalRegions: allIndices.length
-			};
 		}
 
         function switchDetailTab(tabId) {
