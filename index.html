@@ -810,7 +810,8 @@
 
 				if (pType === '신고연계 프로그램') mappedType = '수련활동신고제';
 				else if (pType === '인증연계(실시) 프로그램' || pType === '인증연계 프로그램') mappedType = '수련활동인증제';
-				else if (pType === '유스내비 프로그램') mappedType = '그룹활동';
+				else if (pType === '국제청소년성취포상제') mappedType = '국제청소년성취포상제';
+				else if (pType === '청소년자기도전포상제') mappedType = '청소년자기도전포상제';
 				else if (pType === '방과후 아카데미') mappedType = '청소년방과후아카데미';
                 // 기타활동 등 다른 항목이 필요하다면 여기에 규칙을 추가합니다.
 
@@ -922,7 +923,8 @@
 					if (dataset === programsPoliData) {
 						if (pType === '신고연계 프로그램') mappedType = '수련활동신고제';
 						else if (pType === '인증연계(실시) 프로그램' || pType === '인증연계 프로그램') mappedType = '수련활동인증제';
-						else if (pType === '유스내비 프로그램') mappedType = '그룹활동';
+						else if (pType === '국제청소년성취포상제') mappedType = '국제청소년성취포상제';
+						else if (pType === '청소년자기도전포상제') mappedType = '청소년자기도전포상제';
 						else if (pType === '방과후 아카데미') mappedType = '청소년방과후아카데미';
 					}
 
@@ -1721,21 +1723,30 @@
         function switchDetailTab(tabId) {
             currentDetailTab = tabId;
             const tabs = ['facility', 'policy', 'activity', 'gap'];
-            tabs.forEach(t => {const btn = document.getElementById(`tab-btn-${t}`);
-                if(t === tabId) {
-                    btn.className = "flex-1 py-4 text-sm font-bold text-brand-dark border-b-2 border-brand-dark bg-white transition-colors";
-                } else {
-                    btn.className = "flex-1 py-4 text-sm font-bold text-gray-500 hover:text-gray-700 border-b-2 border-transparent transition-colors";
-                    if(t === 'activity') btn.className += " relative"; 
+            
+            // 1. 버튼 UI 스타일 변경 (에러 방지 안전장치 추가)
+            tabs.forEach(t => {
+                const btn = document.getElementById(`tab-btn-${t}`);
+                if (btn) { // 버튼이 존재할 때만 스타일을 바꾸도록 처리
+                    if (t === tabId) {
+                        btn.className = "flex-1 py-4 text-sm font-bold text-brand-dark border-b-2 border-brand-dark bg-white transition-colors";
+                    } else {
+                        btn.className = "flex-1 py-4 text-sm font-bold text-gray-500 hover:text-gray-700 border-b-2 border-transparent transition-colors";
+                        if (t === 'activity') btn.className += " relative"; 
+                    }
                 }
             });
 
+            // 2. 현재 선택된 지역에 맞게 시설(facility) 데이터 최신화 필터링
             const isAll = (currentMunicipality === '전체');
             let filteredFacilities = sisulData.filter(item => {
+                let ctpv = (item.ctpvNm || "").trim();
+                
+                // 🚨 누락되었던 전남광주통합특별시 필터링 조건 추가
                 if (currentProvince === "전남광주통합특별시") {
-                    return item.ctpvNm === "광주광역시" || item.ctpvNm === "전라남도";
+                    return ctpv === "광주광역시" || ctpv === "전라남도" || ctpv === "전남광주통합특별시";
                 }
-                return item.ctpvNm === currentProvince;
+                return ctpv === currentProvince;
             });
 
             if (!isAll) {
@@ -1744,14 +1755,15 @@
                 );
             }
 
-			const uniqueFacilities = Array.from(
-				new Map(filteredFacilities.map(fac => {
-					const name = fac.facilityName || fac.sisulNm || fac.fcltNm || '';
-					return [name, fac];
-				})).values()
-			);
+            const uniqueFacilities = Array.from(
+                new Map(filteredFacilities.map(fac => {
+                    const name = fac.facilityName || fac.sisulNm || fac.fcltNm || '';
+                    return [name, fac];
+                })).values()
+            );
 
-			renderTabContent(currentProvince, currentMunicipality, (currentMunicipality.length || 5), uniqueFacilities);
+            // 3. 필터링된 데이터를 바탕으로 화면 렌더링 호출
+            renderTabContent(currentProvince, currentMunicipality, (currentMunicipality.length || 5), uniqueFacilities);
         }
 
         function renderTabContent(province, municipality, seed, filteredFacilities = []) {
@@ -1856,7 +1868,6 @@
 				const mapProgramTypeToDashboard = (pType) => {
 					if (pType === '신고연계 프로그램') return '수련활동신고제';
 					if (pType === '인증연계(실시) 프로그램' || pType === '인증연계 프로그램') return '수련활동인증제';
-					if (pType === '유스내비 프로그램') return '그룹활동';
 					if (pType === '국제청소년성취포상제') return '국제청소년성취포상제';
 					if (pType === '청소년자기도전포상제') return '청소년자기도전포상제';
 					if (pType === '방과후 아카데미') return '청소년방과후아카데미';
@@ -2913,7 +2924,6 @@
 								else if (pType === '청소년자기도전포상제') mappedType = '청소년자기도전포상제';
 								else if (pType === '인증연계(실시) 프로그램' || pType === '인증연계 프로그램') mappedType = '활동인증제';
 								else if (pType === '신고연계 프로그램') mappedType = '활동신고제';
-								else if (pType === '유스내비 프로그램') mappedType = '그룹활동';
 
 								// 기관 이름이 있고 조건에 맞으면 Set에 추가하여 중복 방지
 								if (facName && (isAll || mappedType === targetType)) {
@@ -3751,7 +3761,6 @@
 				else if (pType === '청소년자기도전포상제') mappedType = '청소년자기도전포상제';
 				else if (pType === '인증연계(실시) 프로그램' || pType === '인증연계 프로그램') mappedType = '활동인증제';
 				else if (pType === '신고연계 프로그램') mappedType = '활동신고제';
-				else if (pType === '유스내비 프로그램') mappedType = '그룹활동';
 
 				// 정책 데이터에 있는 시설인데 기존 시설목록(sisulData)에 없었던 경우 추가
 				if (name && mappedType) {
