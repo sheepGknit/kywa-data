@@ -3016,6 +3016,51 @@
 				layer.bindTooltip(`${rName}: ${displayVal}`, { className: 'bg-white border border-gray-200 text-brand-dark font-bold text-xs rounded shadow px-2 py-1', sticky: true });
 			});
 		}
+		
+		
+		function getDynamicPopulationData(province, municipality, year) {
+			let mappedProv = COMMON_REGION_MAP[province] || province;
+			let isAll = (municipality === '전체');
+
+			// 1. 최신 연도(2026.06월, 2026년) -> population_result.json 사용
+			if (year === '2026.06월' || year === '2026년') {
+				if (isAll) return popData[mappedProv]?.["합계"]; 
+				else return popData[mappedProv]?.["시군구"]?.[municipality];
+			}
+
+			// 2. 과거 연도 -> pop_data.json 사용 (총인구수 = 청소년 인구)
+			let pastPopObj = isAll ? legacyPopData[mappedProv]?.["소계"] : legacyPopData[mappedProv]?.[municipality];
+			
+			if (!pastPopObj) return null;
+
+			let youthPop = pastPopObj["총인구수"]?.[year] || 0;
+			let youthMale = pastPopObj["남자인구수"]?.[year] || 0;
+			let youthFemale = pastPopObj["여자인구수"]?.[year] || 0;
+
+			// 3. '청소년' 지표에 해당 값을 매핑하고, 명시되지 않은 연령대는 0 처리
+			return {
+				"전체": {
+					"전체": youthPop, // 전체 인구 변수를 그대로 참조하는 로직을 위한 보완
+					"남자": youthMale,
+					"여자": youthFemale
+				},
+				"아동": {
+					"아동전체": 0,
+					"아동남자": 0,
+					"아동여자": 0
+				},
+				"청소년": {
+					"청소년전체": youthPop, 
+					"청소년남자": youthMale,
+					"청소년여자": youthFemale
+				},
+				"청년": {
+					"청년전체": 0,
+					"청년남자": 0,
+					"청년여자": 0
+				}
+			};
+		}
 
         function slideYear(val) {
 			const buttons = document.querySelectorAll('.year-btn');
@@ -3127,8 +3172,10 @@
 			let totalFemale = 0;
 
 			regionsList.forEach((region, i) => {
-				let mappedR = COMMON_REGION_MAP[region] || region;
-				let youthData = popData[mappedR]?.["합계"]?.["청소년"];
+				// 🚨 단일 데이터(popData) 하드코딩 대신 동적 연도 함수(getDynamicPopulationData) 호출!
+				// targetYearKeyPop 변수는 이미 슬라이더 상단에서 '2025년' 등으로 잘 만들어져 있습니다.
+				let dynamicData = getDynamicPopulationData(region, '전체', targetYearKeyPop);
+				let youthData = dynamicData ? dynamicData["청소년"] : null;
 				
 				if (youthData) {
 					currentMale[i] = youthData["청소년남자"] || 0;
