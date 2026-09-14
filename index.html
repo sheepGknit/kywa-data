@@ -1900,8 +1900,8 @@
             });
         }
         function filterActivity(type) {
-			document.getElementById('trendViewTitle').textContent = type;
-			updateActivityTabUI(type); renderCharts(type); }
+			showTrendView(type); 
+        }
 
 		function updatePolicyTabUI(activeTitle) {
 			document.querySelectorAll(".policy-tab").forEach(btn => {
