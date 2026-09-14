@@ -1705,7 +1705,7 @@
 			renderTabContent(province, municipality, targetRegionName.length, uniqueFacilities);
 
 			// 9. 🚨 새로운 AI 분석 텍스트 출력
-			let compareTarget = isAll ? "전국 17개 시·도" : "해당 도내 시·군·구";
+			let compareTarget = isAll ? "전국 16개 시·도" : "해당 도내 시·군·구";
 			insightEl.innerHTML = `
 				<p>현재 지역의 <strong>표준화 격차지수는 <span class="text-brand-yellow text-base">${currentStdScore.toFixed(1)}점</span></strong> 입니다. (최고 100점 기준)</p>
 				<p class="bg-brand-dark/50 px-3 py-1.5 rounded inline-block text-gray-300 font-mono text-[11px] my-1">
@@ -1984,7 +1984,7 @@
 							<div class="bg-blue-50 p-4 rounded-xl border border-blue-100 text-xs text-blue-800 leading-relaxed">
 								<p class="font-bold mb-1"><i class="ph-bold ph-info"></i> 지표 산출 방식 안내</p>
 								<p class="mb-1"><strong>원시 지수:</strong> (인프라 총합 ÷ 청소년 인구) × (인프라 총합 ÷ 지역 면적)</p>
-								<p><strong>표준화 점수:</strong> 해당 비교 그룹(전국 17개 시·도 또는 지역 내 시·군·구)의 최댓값과 최솟값을 기준으로 0~100점 사이로 스케일링(Min-Max 정규화)하여 나타낸 상대적 인프라 수준입니다.</p>
+								<p><strong>표준화 점수:</strong> 해당 비교 그룹(전국 16개 시·도 또는 지역 내 시·군·구)의 최댓값과 최솟값을 기준으로 0~100점 사이로 스케일링(Min-Max 정규화)하여 나타낸 상대적 인프라 수준입니다.</p>
 							</div>
 						</div>
 					`;
@@ -3295,7 +3295,7 @@
             // 3. 비교 모드에 따른 개별 지역 지표 추출
 			if (mode === 'province') {
 				if (regionName === '전체') {
-					pop = natPop / 17; facCount = natFac / 17; schoolCount = natSchool / 17;
+					pop = natPop / 16; facCount = natFac / 16; schoolCount = natSchool / 16;
 				} else {
                     let mappedReg = COMMON_REGION_MAP[regionName] || regionName;
                     pop = popData[mappedReg]?.["합계"]?.["청소년"]?.["청소년전체"] || 0;
@@ -3889,7 +3889,7 @@
 			gapDataList.sort((a, b) => b.stdScore - a.stdScore);
 
 			// 4. 그룹 분류 (상위 25% / 중위 50% / 하위 25%)
-			// 17개 시도 기준: 상위 4곳(양호), 하위 4곳(우선), 나머지 9곳(관심)
+			// 16개 시도 기준: 상위 4곳(양호), 하위 4곳(우선), 나머지 9곳(관심)
 			gapDataList.forEach((d, i) => {
 				if (i < 4) {
 					d.grade = "양호지역";
