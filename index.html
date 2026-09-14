@@ -3310,149 +3310,118 @@
         }
 
 		function generateMockIndicators(regionName, mode) {
+			const targetYear = "2025년";
+
 			if (!mode) {
 				const provModeUI = document.getElementById('compProvModeUI');
 				mode = (provModeUI && !provModeUI.classList.contains('hidden')) ? 'province' : 'district';
 			}
 
 			let currentProv = document.getElementById('compDistProv') ? document.getElementById('compDistProv').value : "서울특별시";
-			let mappedProv = COMMON_REGION_MAP[currentProv] || currentProv;
-			let isUnified = (currentProv === "전남광주통합특별시");
+            let mappedProv = COMMON_REGION_MAP[currentProv] || currentProv;
 
-			// [헬퍼] 선택된 지역 필터링 함수
-			function isMatch(i, rName) {
-				if (mode === 'province') {
-					if (rName === '전체') return true;
-					let mR = COMMON_REGION_MAP[rName] || rName;
-					if (rName === "전남광주통합특별시") return (i.ctpvNm === "광주광역시" || i.ctpvNm === "전라남도" || i.ctpvNm === "전남광주통합특별시");
-					return i.ctpvNm === rName || i.ctpvNm === mR;
-				} else {
-					if (rName === '전체') {
-						return isUnified ? (i.ctpvNm === "광주광역시" || i.ctpvNm === "전라남도" || i.ctpvNm === "전남광주통합특별시") : i.ctpvNm === currentProv;
-					}
-					let provMatch = isUnified ? (i.ctpvNm === "광주광역시" || i.ctpvNm === "전라남도" || i.ctpvNm === "전남광주통합특별시") : i.ctpvNm === currentProv;
-					let distMatch = i.sggNm && i.sggNm.replace(/\s/g, '') === rName.replace(/\s/g, '');
-					return provMatch && distMatch;
+            // 1. 전국 청소년 총인구 합산
+			let natPop = 0;
+            Object.keys(popData).forEach(r => {
+                if (popData[r]?.["합계"]) {
+                    natPop += popData[r]["합계"]["청소년"]["청소년전체"] || 0;
+                }
+            });
+            if (natPop === 0) natPop = 10000000;
+
+			let natFac = sisulData.length || 1;
+			let natSchool = 11750;
+
+			let provPop = 0, provFac = 0, provSchool = 0;
+
+            // 2. 현재 선택된 도/광역시 기준 인프라 산출
+            provPop = popData[mappedProv]?.["합계"]?.["청소년"]?.["청소년전체"] || 100000;
+
+			if (currentProv === "전남광주통합특별시") {
+				provFac = sisulData.filter(i => i.ctpvNm === "광주광역시" || i.ctpvNm === "전라남도" || i.ctpvNm === "전남광주통합특별시").length;
+				if(schoolData["전남광주통합특별시"]) {
+                    Object.keys(schoolData["전남광주통합특별시"]).forEach(t => provSchool += schoolData["전남광주통합특별시"][t]?.[targetYear]?.["학교수"] || 0);
+                }
+			} else {
+				provFac = sisulData.filter(i => i.ctpvNm === currentProv).length || 1;
+				if(schoolData[currentProv]) {
+					Object.keys(schoolData[currentProv]).forEach(t => provSchool += schoolData[currentProv][t]?.[targetYear]?.["학교수"] || 0);
 				}
 			}
+			if(provSchool === 0) provSchool = 1000;
 
-			// 1. 전국/도내 '전체 청소년 인구' 기준값 (분모)
-			let basePop = 0;
+			let pop = 0, facCount = 0, schoolCount = 0;
+
+            // 3. 비교 모드에 따른 개별 지역 지표 추출
 			if (mode === 'province') {
-				Object.keys(popData).forEach(r => { if (popData[r]?.["합계"]) basePop += popData[r]["합계"]["청소년"]["청소년전체"] || 0; });
-			} else {
-				basePop = popData[mappedProv]?.["합계"]?.["청소년"]?.["청소년전체"] || 0;
-			}
-			if (basePop === 0) basePop = 1;
-
-			// 2. 해당 지역 청소년 인구 (분자)
-			let pop = 0;
-			if (mode === 'province' && regionName === '전체') pop = basePop / 16;
-			else if (mode === 'province') pop = popData[COMMON_REGION_MAP[regionName] || regionName]?.["합계"]?.["청소년"]?.["청소년전체"] || 0;
-			else if (mode === 'district' && regionName === '전체') {
-				let distCount = districtData[currentProv] ? districtData[currentProv].length : 1;
-				pop = basePop / distCount;
-			} else {
-				let sigunguObj = popData[mappedProv]?.["시군구"] || {};
-				pop = sigunguObj[regionName]?.["청소년"]?.["청소년전체"] || 0;
-				if (pop === 0) {
-					let foundKey = Object.keys(sigunguObj).find(k => k.replace(/\s/g, '') === regionName.replace(/\s/g, ''));
-					if (foundKey) pop = sigunguObj[foundKey]?.["청소년"]?.["청소년전체"] || 0;
-				}
-			}
-			if (pop === 0) pop = 1;
-
-			// 3. 면적 (km²) 산출
-			let areaKm2 = 0;
-			if (mode === 'province' && regionName === '전체') areaKm2 = 100431 / 16; // 대한민국 대략적 총면적
-			else if (mode === 'province') {
-				if (regionName === "전남광주통합특별시") areaKm2 = ((areaData["광주광역시"]?.["소계"] || 0) + (areaData["전라남도"]?.["소계"] || 0)) / 1000000;
-				else areaKm2 = (areaData[COMMON_REGION_MAP[regionName] || regionName]?.["소계"] || 0) / 1000000;
-			} else if (mode === 'district' && regionName === '전체') {
-				let distCount = districtData[currentProv] ? districtData[currentProv].length : 1;
-				let tArea = isUnified ? ((areaData["광주광역시"]?.["소계"] || 0) + (areaData["전라남도"]?.["소계"] || 0)) : (areaData[mappedProv]?.["소계"] || 0);
-				areaKm2 = (tArea / 1000000) / distCount;
-			} else {
-				let rawArea = isUnified ? (areaData["광주광역시"]?.[regionName] || areaData["전라남도"]?.[regionName] || 0) : (areaData[mappedProv]?.[regionName] || areaData[currentProv]?.[regionName] || 0);
-				areaKm2 = rawArea / 1000000;
-			}
-			if (areaKm2 <= 0) areaKm2 = 1;
-
-			// 4. 수련시설 리스트 및 종사자 수
-			let facList = [];
-			let isVirtual = false;
-			if (regionName === '전체') {
-				facList = (mode === 'province') ? sisulData : sisulData.filter(i => isMatch(i, currentProv));
-				isVirtual = true;
-			} else {
-				facList = sisulData.filter(i => isMatch(i, regionName));
-			}
-
-			let facCount = facList.length;
-			let div = 1;
-			if (isVirtual) {
-				div = (mode === 'province') ? 16 : (districtData[currentProv] ? districtData[currentProv].length : 1);
-				facCount = facCount / div;
-			}
-			if (facCount === 0) facCount = 0.1; // 0으로 나누기 방지용 안전장치
-
-			// 5. 인프라 가동율 (O 표시가 하나라도 있는 시설 수)
-			let poliFacCount = 0;
-			let oCount = 0;
-			facList.forEach(fac => {
-				// OX 데이터가 sisulData에 있다면 그것을 활용
-				let hasO = (fac.operComm === 'O' || fac.partComm === 'O' || fac.youthClub === 'O' || fac.youthVol === 'O' || fac.youthAct === 'O');
-				if (hasO) oCount++;
-			});
-			poliFacCount = isVirtual ? (oCount / div) : oCount;
-
-			// 만약 OX 데이터가 빈칸이라 0이 나왔다면, programsPoliData를 활용해 보완(Fallback)
-			if (poliFacCount === 0 && programsPoliData) {
-				let poliList = isVirtual ? programsPoliData : programsPoliData.filter(i => isMatch(i, regionName));
-				let uniqueFacs = new Set(poliList.map(i => i.facilityName || i.fcltNm || i.sisulNm)).size;
-				poliFacCount = isVirtual ? (uniqueFacs / div) : uniqueFacs;
-				if (poliFacCount > facCount) poliFacCount = facCount; // 가동율 100% 초과 방지
-			}
-
-			// 6. 시설 활성화정도 (e-youth 프로그램 수)
-			let eyouthCount = 0;
-			if (typeof programsEyouthData !== 'undefined') {
-				if (isVirtual) {
-					let totalProg = (mode === 'province') ? programsEyouthData.length : programsEyouthData.filter(i => isMatch(i, currentProv)).length;
-					eyouthCount = totalProg / div;
+				if (regionName === '전체') {
+					pop = natPop / 16; facCount = natFac / 16; schoolCount = natSchool / 16;
 				} else {
-					eyouthCount = programsEyouthData.filter(i => isMatch(i, regionName)).length;
+                    let mappedReg = COMMON_REGION_MAP[regionName] || regionName;
+                    pop = popData[mappedReg]?.["합계"]?.["청소년"]?.["청소년전체"] || 0;
+
+					if (regionName === "전남광주통합특별시") {
+						facCount = provFac; schoolCount = provSchool;
+					} else {
+						facCount = sisulData.filter(i => i.ctpvNm === regionName).length;
+						if(schoolData[regionName]) {
+							Object.keys(schoolData[regionName]).forEach(t => schoolCount += schoolData[regionName][t]?.[targetYear]?.["학교수"] || 0);
+						}
+					}
+				}
+			} else {
+				let distCount = districtData[currentProv] ? districtData[currentProv].length : 1;
+				if (regionName === '전체') {
+					pop = provPop / distCount; facCount = provFac / distCount; schoolCount = provSchool / distCount;
+				} else {
+                    // 시군구 청소년 인구 추출
+                    let sigunguObj = popData[mappedProv]?.["시군구"] || {};
+                    pop = sigunguObj[regionName]?.["청소년"]?.["청소년전체"] || 0;
+                    
+                    if (pop === 0) {
+                        let foundKey = Object.keys(sigunguObj).find(k => k.replace(/\s/g, '') === regionName.replace(/\s/g, ''));
+                        if (foundKey) pop = sigunguObj[foundKey]?.["청소년"]?.["청소년전체"] || 0;
+                    }
+
+					if (currentProv === "전남광주통합특별시") {
+						facCount = sisulData.filter(i => (i.ctpvNm === "광주광역시" || i.ctpvNm === "전라남도" || i.ctpvNm === "전남광주통합특별시") && i.sggNm && i.sggNm.replace(/\s/g, '') === regionName.replace(/\s/g, '')).length;
+					} else {
+						facCount = sisulData.filter(i => i.ctpvNm === currentProv && i.sggNm && i.sggNm.replace(/\s/g, '') === regionName.replace(/\s/g, '')).length;
+					}
+					schoolCount = Math.floor(facCount * (provSchool / provFac)) || 1;
 				}
 			}
 
-			// 7. 종사자 수
-			let workerCount = facList.reduce((sum, i) => sum + (Number(i.prmpieNmpr) || Number(i.workerCnt) || Number(i.employeeCnt) || 0), 0);
-			workerCount = isVirtual ? (workerCount / div) : workerCount;
-			if (workerCount === 0) workerCount = facCount * 3; // 종사자수 데이터 결측 시 임의의 디폴트(시설당 3명)
+			let scorePop = 0, scoreFac = 0, scoreSchool = 0;
 
-			// 🌟 최종 5가지 지표 계산식 적용
-			let val1 = (pop / basePop) * 100;                 // 1. 청소년 인구비율 (%)
-			let val2 = (facCount / areaKm2) * 100;            // 2. 물리적 접근성 (개/100km²)
-			let val3 = (poliFacCount / facCount) * 100;       // 3. 인프라 가동율 (%)
-			let val4 = eyouthCount / facCount;                // 4. 시설 활성화정도 (개/기관)
-			let val5 = pop / workerCount;                     // 5. 인원대비 종사자수 (명/1인)
+			if (mode === 'province') {
+				scorePop = natPop > 0 ? (pop / natPop) * 100 : 0;
+				scoreFac = natFac > 0 ? (facCount / natFac) * 100 : 0;
+				scoreSchool = natSchool > 0 ? (schoolCount / natSchool) * 100 : 0;
+			} else {
+				scorePop = provPop > 0 ? (pop / provPop) * 100 : 0;
+				scoreFac = provFac > 0 ? (facCount / provFac) * 100 : 0;
+				scoreSchool = provSchool > 0 ? (schoolCount / provSchool) * 100 : 0;
+			}
 
-			return {
-				values: [val1, val2, val3, val4, val5],
-				rawHtml: [
-					val1.toFixed(1) + '%',
-					val2.toFixed(1) + '개',
-					val3.toFixed(1) + '%',
-					val4.toFixed(1) + '건',
-					val5.toFixed(0) + '명'
-				]
-			};
+			return [
+				Number(scorePop.toFixed(1)), 
+				Number(scoreFac.toFixed(1)), 
+				Number(scoreSchool.toFixed(1))
+			];
 		}
 
 		async function runComparison() {
 			const mode = currentCompareMode;
-			let nameA = mode === 'province' ? document.getElementById('compProvA').value : document.getElementById('compDistA').value;
-			let nameB = mode === 'province' ? document.getElementById('compProvB').value : document.getElementById('compDistB').value;
+
+			let nameA, nameB;
+			if(mode === 'province') {
+				nameA = document.getElementById('compProvA').value;
+				nameB = document.getElementById('compProvB').value;
+			} else {
+				nameA = document.getElementById('compDistA').value;
+				nameB = document.getElementById('compDistB').value;
+			}
 
 			if(nameA === nameB) {
 				document.getElementById('compareResultArea').classList.remove('hidden');
@@ -3465,76 +3434,36 @@
 			document.getElementById('compareResultArea').classList.remove('hidden');
 			document.getElementById('compareResultArea').classList.add('flex');
 
-			// 🌟 1. 데이터 가져오기 (배열이 아닌 객체로 리턴됨)
 			const dataA = generateMockIndicators(nameA, mode);
 			const dataB = generateMockIndicators(nameB, mode);
 
-			// 🌟 2. 레이더 차트에 맞게 점수 스케일링 (찌그러짐 방지)
-			let chartDataA = [];
-			let chartDataB = [];
-			
-			for(let i=0; i<5; i++) {
-				if (i === 4) {
-					// 5번(종사자당 인원)은 숫자가 적을수록 우수함! (최솟값이 기준)
-					let minVal = Math.min(dataA.values[i], dataB.values[i]) || 1;
-					chartDataA.push((minVal / (dataA.values[i] || 1)) * 100);
-					chartDataB.push((minVal / (dataB.values[i] || 1)) * 100);
-				} else {
-					// 나머지는 숫자가 높을수록 우수함! (최댓값이 기준)
-					let maxVal = Math.max(dataA.values[i], dataB.values[i]) || 1;
-					chartDataA.push((dataA.values[i] / maxVal) * 100);
-					chartDataB.push((dataB.values[i] / maxVal) * 100);
-				}
-			}
-
-			// 🌟 3. 레이더 차트 그리기 (5각형)
 			const canvas = document.getElementById('radarChartCanvas');
 			if(radarChartInstance) radarChartInstance.destroy();
-
-			const radarLabels = ['청소년 인구비율', '물리적 접근성', '인프라 가동율', '시설 활성화정도', '지도자 1인당 담당인원\n(적을수록 우수)'];
 
 			radarChartInstance = new Chart(canvas.getContext('2d'), {
 				type: 'radar',
 				data: {
-					labels: radarLabels,
+					labels: ['청소년 인구(수요)', '수련시설(인프라)', '정책사업(프로그램)'],
 					datasets: [
-						{ label: nameA + ' (기준)', data: chartDataA, backgroundColor: 'rgba(253, 186, 26, 0.5)', borderColor: '#FDBA1A', borderWidth: 2, pointBackgroundColor: '#FDBA1A', fill: true },
-						{ label: nameB, data: chartDataB, backgroundColor: 'rgba(59, 130, 246, 0.4)', borderColor: '#3b82f6', borderWidth: 2, pointBackgroundColor: '#3b82f6', fill: true }
+						{ label: nameA + ' (기준)', data: dataA, backgroundColor: 'rgba(253, 186, 26, 0.5)', borderColor: '#FDBA1A', borderWidth: 2, pointBackgroundColor: '#FDBA1A', fill: true },
+						{ label: nameB, data: dataB, backgroundColor: 'rgba(59, 130, 246, 0.4)', borderColor: '#3b82f6', borderWidth: 2, pointBackgroundColor: '#3b82f6', fill: true }
 					]
 				},
-				options: { responsive: true, maintainAspectRatio: false, scales: { r: { angleLines: { color: '#e2e8f0' }, grid: { color: '#e2e8f0' }, pointLabels: { font: { size: 10, family: "'Pretendard', sans-serif", weight: 'bold' }, color: '#475569' }, ticks: { display: false, min: 0, max: 105 } } }, plugins: { legend: { position: 'bottom', labels: { font: { size: 11, family: "'Pretendard', sans-serif" } } } } }
+				options: { responsive: true, maintainAspectRatio: false, scales: { r: { angleLines: { color: '#e2e8f0' }, grid: { color: '#e2e8f0' }, pointLabels: { font: { size: 11, family: "'Pretendard', sans-serif", weight: 'bold' }, color: '#475569' }, ticks: { display: false, min: 0 } } }, plugins: { legend: { position: 'bottom', labels: { font: { size: 12, family: "'Pretendard', sans-serif" } } } } }
 			});
 
-			// 🌟 4. 데이터 표 렌더링
 			document.getElementById('thNameA').textContent = nameA;
 			document.getElementById('thNameB').textContent = nameB;
-			
+			const labels = ['청소년 인구(수요)', '수련시설(인프라)', '정책사업(프로그램)'];
 			let trHtml = '';
-			const tableLabels = [
-				'청소년 인구비율', 
-				'물리적 접근성<br><span class="text-[10px] text-gray-400 font-normal">(100km²당 시설 수)</span>', 
-				'인프라 가동율<br><span class="text-[10px] text-gray-400 font-normal">(정책사업 운영 시설 비율)</span>', 
-				'시설 활성화정도<br><span class="text-[10px] text-gray-400 font-normal">(1개소당 프로그램 수)</span>', 
-				'종사자 업무부담<br><span class="text-[10px] text-gray-400 font-normal">(1인당 청소년 수)</span>'
-			];
-			
-			for(let i=0; i<5; i++) {
-				let diff = Number((dataA.values[i] - dataB.values[i]).toFixed(1));
-				
-				// 종사자당 인원(인덱스 4번)은 마이너스가 좋은 것(파란색)
-				let isGood = (i === 4) ? (diff < 0) : (diff > 0);
-				let diffHtml = '';
-				
-				if(diff === 0) diffHtml = '-';
-				else if(isGood) diffHtml = `<span class="text-blue-500 font-bold">(${diff > 0 ? '+'+diff : diff})</span>`;
-				else diffHtml = `<span class="text-red-500 font-bold">(${diff > 0 ? '+'+diff : diff})</span>`;
-
-				trHtml += `<tr class="border-b border-gray-100"><td class="py-2 px-2 font-bold bg-white text-[11px] break-keep">${tableLabels[i]}</td><td class="py-2 px-2 text-[12px] text-center">${dataA.rawHtml[i]} <br>${diffHtml}</td><td class="py-2 px-2 bg-gray-50 text-[12px] text-center">${dataB.rawHtml[i]}</td></tr>`;
-			}
+			dataA.forEach((val, i) => {
+				let diff = Number((val - dataB[i]).toFixed(1));
+				let diffHtml = diff > 0 ? `<span class="text-blue-500 font-bold">(+${diff}%)</span>` : (diff < 0 ? `<span class="text-red-500 font-bold">(${diff}%)</span>` : '-');
+				trHtml += `<tr class="border-b border-gray-100"><td class="py-2 px-2 font-bold bg-white">${labels[i]}</td><td class="py-2 px-2">${val}% ${diffHtml}</td><td class="py-2 px-2 bg-gray-50">${dataB[i]}%</td></tr>`;
+			});
 			document.getElementById('compareTableBody').innerHTML = trHtml;
 
-			// 🌟 5. AI 인사이트 프롬프트 (5개 지표 전달)
-			let insightHtml = `<i class="ph ph-spinner animate-spin"></i> AI가 <span class="text-brand-yellow font-bold">${nameA}</span>와 <span class="text-brand-yellow font-bold">${nameB}</span>의 5대 지표를 실시간으로 비교 분석 중입니다...`;
+			let insightHtml = `<i class="ph ph-spinner animate-spin"></i> AI가 <span class="text-brand-yellow font-bold">${nameA}</span>와 <span class="text-brand-yellow font-bold">${nameB}</span>의 지표를 실시간으로 비교 분석 중입니다...`;
 			document.getElementById('compareInsightText').innerHTML = insightHtml;
 
 			try {
@@ -3549,17 +3478,15 @@
 
 				const prompt = `
 					너는 대한민국 청소년 정책 및 인프라 비교 분석 전문가야.
-					아래 두 지역의 평가 지표 데이터를 비교하여, 주요 격차 원인과 정책적 제언을 3문장 이내로 핵심만 요약해줘.
+					아래 두 지역의 평가 지표 데이터를 비교하여, 주요 격차 원인과 정책적 제언을 2~3문장 이내로 핵심만 요약해줘.
 
 					- 비교 모드: ${mode === 'province' ? '시·도 간 비교' : '시·군·구 간 비교'}
-					- 기준 지역 (A): ${nameA} [청소년 인구비율: ${dataA.rawHtml[0]}, 물리적 접근성: ${dataA.rawHtml[1]}, 인프라 가동율: ${dataA.rawHtml[2]}, 시설 활성화: ${dataA.rawHtml[3]}, 지도자 1인당 담당인원: ${dataA.rawHtml[4]}]
-					- 비교 대상 (B): ${nameB} [청소년 인구비율: ${dataB.rawHtml[0]}, 물리적 접근성: ${dataB.rawHtml[1]}, 인프라 가동율: ${dataB.rawHtml[2]}, 시설 활성화: ${dataB.rawHtml[3]}, 지도자 1인당 담당인원: ${dataB.rawHtml[4]}]
+					- 기준 지역 (A): ${nameA} [청소년인구 비중: ${dataA[0]}%, 수련시설 비중: ${dataA[1]}%, 정책사업 비중: ${dataA[2]}%]
+					- 비교 대상 (B): ${nameB} [청소년인구 비중: ${dataB[0]}%, 수련시설 비중: ${dataB[1]}%, 정책사업 비중: ${dataB[2]}%]
 
 					[요구사항]
-					- 물리적 접근성(100km²당 시설 수)이 높은데 가동율이나 활성화가 낮다면 운영 내실화가 필요하다고 지적할 것.
-					- 1인당 담당인원이 너무 높다면 지도자 처우 및 인력 충원 문제점을 꼬집어 줄 것.
 					- 마크다운 서식 없이 순수 텍스트로 작성할 것.
-					- 강조가 필요한 지역명이나 핵심 단어는 <span class="text-brand-yellow font-bold">단어</span> 태그를 사용할 것.
+					- 강조가 필요한 지역명이나 핵심 단어는 <span class="text-brand-yellow font-bold">지역명</span> 태그를 사용할 것.
 				`;
 
 				const response = await ai.models.generateContent({
@@ -3574,9 +3501,27 @@
 				}
 
 			} catch (error) {
-				console.warn("AI API 호출 실패 또는 에러 발생:", error);
+				console.warn("AI API 호출 실패 또는 에러 발생, 수치 기반 크기 비교 로직으로 대체합니다:", error);
+
+				let diffPop = Number((dataA[0] - dataB[0]).toFixed(1));
+				let diffFac = Number((dataA[1] - dataB[1]).toFixed(1));
+				let diffProg = Number((dataA[2] - dataB[2]).toFixed(1));
+
+				let popCmp = diffPop > 0 ? `<span class="text-brand-yellow font-bold">${nameA}</span>가 청소년 인구 비중이 ${diffPop}% 높고` : (diffPop < 0 ? `<span class="text-brand-yellow font-bold">${nameB}</span>가 청소년 인구 비중이 ${Math.abs(diffPop)}% 높고` : '두 지역의 청소년 인구 비중이 유사하며');
+
+				let facCmp = diffFac > 0 ? `수련시설 인프라는 <span class="text-brand-yellow font-bold">${nameA}</span>가 ${diffFac}% 우세합니다.` : (diffFac < 0 ? `수련시설 인프라는 <span class="text-brand-yellow font-bold">${nameB}</span>가 ${Math.abs(diffFac)}% 우세합니다.` : '수련시설 인프라는 유사한 수준입니다.');
+
+				let suggestion = "";
+				if (diffFac < 0 && diffPop > 0) {
+					suggestion = `<span class="text-brand-yellow font-bold">${nameA}</span> 지역은 청소년 수요 대비 수련시설 확충 및 정책 프로그램 보완이 시급합니다.`;
+				} else if (diffFac > 0) {
+					suggestion = `<span class="text-brand-yellow font-bold">${nameA}</span> 지역은 탄탄한 인프라를 바탕으로 특화 프로그램 운영을 강화할 필요가 있습니다.`;
+				} else {
+					suggestion = `두 지역 간의 균형 있는 청소년활동 지원과 상호 벤치마킹이 권장됩니다.`;
+				}
+
 				document.getElementById('compareInsightText').innerHTML = `
-					[수치 기반 비교 분석] <span class="text-brand-yellow font-bold">${nameA}</span> 지역은 청소년 1인당 인프라 환경과 실질적 가동률 측면에서 <span class="text-brand-yellow font-bold">${nameB}</span>와 차이를 보입니다. 구체적인 수치 격차를 바탕으로, 시설 확충 또는 운영 내실화(지도자 충원 등)의 맞춤형 정책 수립이 필요합니다.
+					[수치 기반 비교 분석] <span class="text-brand-yellow font-bold">${nameA}</span>와 <span class="text-brand-yellow font-bold">${nameB}</span>를 비교한 결과, ${popCmp} ${facCmp} ${suggestion}
 				`;
 			}
 		}
