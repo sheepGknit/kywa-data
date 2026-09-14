@@ -290,6 +290,14 @@
                         <p class="text-xs text-gray-500 font-bold mb-1"><i class="ph-fill ph-cursor-click"></i> 시군구 선택</p>
                         <p class="text-[10px] text-gray-400">지도를 클릭하여 상세 데이터를 확인하세요</p>
                     </div>
+					
+					<!-- 🌟 새로 추가된 범례 박스 -->
+                    <div class="absolute bottom-4 left-4 z-30 bg-white/90 backdrop-blur px-3 py-2 rounded-lg shadow-sm border border-gray-200 text-[10px] font-bold flex flex-col gap-1.5">
+                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-[#bfdbfe]"></span><span>양호지역 (상위 25%)</span></div>
+                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-[#fed7aa]"></span><span>관심지역 (중위 50%)</span></div>
+                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-[#fecdd3]"></span><span class="text-seoul-red">우선지원지역 (하위 25%)</span></div>
+                    </div>
+					
                     <div id="detailMap" class="absolute inset-0 z-10 w-full h-full"></div>
                 </div>
             </div>
@@ -1301,8 +1309,7 @@
                 }
             });
 
-            // initDetailMap 함수 내부에 있는 renderMap 함수 전체 교체
-			const renderMap = (data) => {
+            const renderMap = (data) => {
 				
 				let targetFeatures = data.features.filter(f => {
 					let sName = f.properties.sidonm || f.properties.name || ""; 
@@ -1319,14 +1326,70 @@
 
 				if (targetFeatures.length === 0) targetFeatures = data.features;
 
-				// 🚨 1. 시군구별 정중앙 좌표를 계산하기 위한 객체 생성
+                // 🚨 1. 지도 색칠을 위한 시군구별 격차지수 사전 계산
+                let mappedProv = COMMON_REGION_MAP[regionName] || regionName;
+                let districts = districtData[regionName] || [];
+                if (regionName === "전남광주통합특별시") districts = [...(districtData["광주광역시"]||[]), ...(districtData["전라남도"]||[])];
+
+                let allIndices = [];
+                districts.forEach(d => {
+                    let sigunguObj = popData[mappedProv]?.["시군구"] || {};
+                    let tPop = sigunguObj[d]?.["청소년"]?.["청소년전체"] || 0;
+                    
+                    if (tPop === 0) {
+                        let foundKey = Object.keys(sigunguObj).find(k => k.replace(/\s/g, '') === d.replace(/\s/g, ''));
+                        if (foundKey) tPop = sigunguObj[foundKey]?.["청소년"]?.["청소년전체"] || 0;
+                    }
+                    if (tPop === 0) tPop = 10000; 
+
+                    let tFac = sisulData.filter(i => (i.ctpvNm === regionName || (regionName==="전남광주통합특별시" && (i.ctpvNm==="광주광역시"||i.ctpvNm==="전라남도"||i.ctpvNm==="전남광주통합특별시"))) && (i.sggNm && i.sggNm.replace(/\s/g, '') === d.replace(/\s/g, ''))).length;
+                    let tPol = programsPoliData.filter(i => (i.sidoNm === regionName || (regionName==="전남광주통합특별시" && (i.sidoNm==="광주광역시"||i.sidoNm==="전라남도"||i.sidoNm==="전남광주통합특별시"))) && (i.sggNm && i.sggNm.replace(/\s/g, '') === d.replace(/\s/g, ''))).length;
+                    
+                    let tArea = 0;
+                    if (regionName === "전남광주통합특별시") {
+                        tArea = areaData["광주광역시"]?.[d] || areaData["전라남도"]?.[d] || 0;
+                    } else {
+                        tArea = areaData[mappedProv]?.[d] || areaData[regionName]?.[d] || 0;
+                    }
+                    let tAreaKm2 = tArea > 0 ? (tArea / 1000000) : 1; 
+
+                    allIndices.push({ name: d, raw: ((tFac + tPol)/tPop) * ((tFac + tPol)/tAreaKm2) });
+                });
+
+                // Min-Max 정규화 및 정렬
+                let minRaw = Math.min(...allIndices.map(item => item.raw));
+                let maxRaw = Math.max(...allIndices.map(item => item.raw));
+
+                allIndices.forEach(item => {
+                    if (maxRaw === minRaw) item.stdScore = 100;
+                    else item.stdScore = ((item.raw - minRaw) / (maxRaw - minRaw)) * 100;
+                });
+                allIndices.sort((a, b) => b.stdScore - a.stdScore);
+                
+                // 그룹 분할 및 색상 매핑
+                let top25Cutoff = Math.ceil(allIndices.length * 0.25);
+                let bottom25Cutoff = Math.floor(allIndices.length * 0.75);
+
+                let distColorMap = {};
+                allIndices.forEach((d, index) => {
+                    let cleanName = d.name.replace(/\s/g, '');
+                    if (index < top25Cutoff) distColorMap[cleanName] = '#bfdbfe'; // 양호 (파랑)
+                    else if (index >= bottom25Cutoff) distColorMap[cleanName] = '#fecdd3'; // 우선지원 (빨강)
+                    else distColorMap[cleanName] = '#fed7aa'; // 관심 (주황)
+                });
+
+				// 🚨 2. 시군구별 정중앙 좌표를 계산하기 위한 객체 생성
 				const sggBounds = {};
 				geojsonDetail = L.geoJson({ type: "FeatureCollection", features: targetFeatures }, {
-					style: () => ({ fillColor: '#f8fafc', weight: 1.5, color: '#cbd5e1', fillOpacity: 1, className: 'cursor-pointer transition-all duration-300' }),
+					// 🌟 3. 미리 만든 색상표(distColorMap)를 적용하여 그리기
+                    style: (feature) => {
+                        const sggName = feature.properties.sggnm || "이름없음";
+                        const bgColor = distColorMap[sggName.replace(/\s/g, '')] || '#f8fafc';
+                        return { fillColor: bgColor, weight: 1.5, color: '#ffffff', fillOpacity: 0.85, className: 'cursor-pointer transition-all duration-300' };
+                    },
 					onEachFeature: (feature, layer) => {
 						const sggName = feature.properties.sggnm || "이름없음";
 
-						// 🚨 2. 해당 시군구의 영역(Bounds)을 누적해서 합침
 						if (!sggBounds[sggName]) {
 							sggBounds[sggName] = L.latLngBounds(layer.getBounds());
 						} else {
@@ -1338,7 +1401,9 @@
 						layer.on({
 							mouseover: e => {
 								if(currentMunicipality !== sggName) {
-									e.target.setStyle({ fillColor: '#e2e8f0' }); e.target.bringToFront();
+                                    // 🌟 마우스 올렸을 때 기존 색상을 유지하면서 진하게 강조
+									e.target.setStyle({ fillOpacity: 1, weight: 2, color: '#64748b' }); 
+                                    e.target.bringToFront();
 								}
 							},
 							mouseout: e => {
@@ -1353,7 +1418,8 @@
 								} else {
 									geojsonDetail.eachLayer(l => {
 										if (l.feature.properties.sggnm === sggName) {
-											l.setStyle({ fillColor: '#FDBA1A', color: '#b45309', weight: 2 });
+                                            // 🌟 선택된 지역은 노란색으로 강조
+											l.setStyle({ fillColor: '#FDBA1A', color: '#b45309', weight: 2, fillOpacity: 1 });
 											l.bringToFront();
 										} else {
 											geojsonDetail.resetStyle(l);
@@ -1374,14 +1440,12 @@
 					const center = sggBounds[sggName].getCenter();
 					L.marker(center, {
 						icon: L.divIcon({
-							// Tailwind 클래스를 이용해 배경 투명화, 글자색 설정 및 클릭 방해 방지(pointer-events-none)
-							className: 'bg-transparent text-gray-600 font-black text-[11px] whitespace-nowrap text-center pointer-events-none',
-							// 글자가 경계선에 묻히지 않도록 하얀색 테두리(text-shadow) 효과 추가
+							className: 'bg-transparent text-gray-700 font-black text-[11px] whitespace-nowrap text-center pointer-events-none',
 							html: `<div style="text-shadow: -1.5px -1.5px 0 #fff, 1.5px -1.5px 0 #fff, -1.5px 1.5px 0 #fff, 1.5px 1.5px 0 #fff;">${sggName}</div>`,
 							iconSize: [60, 20],
 							iconAnchor: [30, 10]
 						}),
-						interactive: false // 마우스 이벤트 무시 (클릭 방해 금지)
+						interactive: false 
 					}).addTo(mapDetail);
 				});
 
@@ -1637,6 +1701,7 @@
 			`;
 
 			// 글로벌 객체 업데이트 (필요 시 다른 곳에서 사용)
+			// 글로벌 객체 업데이트 (필요 시 다른 곳에서 사용)
 			window.currentReportData = {
 				regionName: targetRegionName,
 				badgeText: badgeText.replace(/[^가-힣]/g, ''),
@@ -1644,13 +1709,19 @@
 				fac: facCount,
 				ratio: ratio,
 				prog: polCount,
-				progRatio: progRatio
+				progRatio: progRatio,
+				// 🌟 탭과 AI가 참고할 세부 지표 추가
+				areaKm2: areaKm2,
+				rawIndex: currentRawIndex,
+				stdScore: currentStdScore,
+				rank: rank,
+				totalRegions: allIndices.length
 			};
 		}
 
         function switchDetailTab(tabId) {
             currentDetailTab = tabId;
-            const tabs = ['facility', 'policy', 'activity'];
+            const tabs = ['facility', 'policy', 'activity', 'gap'];
             tabs.forEach(t => {const btn = document.getElementById(`tab-btn-${t}`);
                 if(t === tabId) {
                     btn.className = "flex-1 py-4 text-sm font-bold text-brand-dark border-b-2 border-brand-dark bg-white transition-colors";
@@ -1867,10 +1938,62 @@
 						`;
 					});
 				}
+			}} else if (currentDetailTab === 'gap') {
+				// 🌟 격차지수 탭을 위한 화면 렌더링
+				const d = window.currentReportData;
+				
+				if (!d) {
+					html = `<div class="p-8 text-center text-gray-400 font-bold mt-10">데이터를 불러오는 중입니다...</div>`;
+				} else {
+					html = `
+						<div class="bg-white p-6 border border-gray-200 rounded-xl mb-3 shadow-sm fade-in">
+							<h3 class="font-black text-brand-dark text-lg mb-4"><i class="ph-fill ph-chart-line-up text-brand-yellow"></i> 지역 격차지수 상세 분석</h3>
+							
+							<div class="grid grid-cols-2 gap-4 mb-6">
+								<div class="bg-gray-50 p-4 rounded-xl border border-gray-100 flex flex-col justify-center items-center text-center">
+									<span class="text-xs font-bold text-gray-500 mb-1">표준화 점수 (0~100점)</span>
+									<span class="text-3xl font-black text-brand-dark">${d.stdScore.toFixed(1)}<span class="text-sm font-bold text-gray-500 ml-1">점</span></span>
+								</div>
+								<div class="bg-gray-50 p-4 rounded-xl border border-gray-100 flex flex-col justify-center items-center text-center">
+									<span class="text-xs font-bold text-gray-500 mb-1">비교 그룹 내 순위</span>
+									<span class="text-3xl font-black text-blue-600">${d.rank}<span class="text-sm font-bold text-gray-500 ml-1">위 / ${d.totalRegions}곳</span></span>
+								</div>
+							</div>
+
+							<h4 class="font-bold text-sm text-gray-700 mb-2">산출 기초 데이터</h4>
+							<div class="overflow-x-auto rounded-lg border border-gray-200 mb-4">
+								<table class="w-full text-sm text-center text-gray-600">
+									<thead class="bg-gray-100 text-gray-500 border-b border-gray-200">
+										<tr>
+											<th class="py-2 px-3">청소년 인구</th>
+											<th class="py-2 px-3">인프라 총합</th>
+											<th class="py-2 px-3">면적 (km²)</th>
+											<th class="py-2 px-3">원시 지수</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr class="bg-white">
+											<td class="py-3 px-3 font-bold">${d.pop.toLocaleString()}명</td>
+											<td class="py-3 px-3 font-bold">${d.fac + d.prog}개</td>
+											<td class="py-3 px-3 font-bold">${d.areaKm2.toFixed(2)}</td>
+											<td class="py-3 px-3 font-bold text-brand-yellow">${d.rawIndex.toFixed(6)}</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+							
+							<div class="bg-blue-50 p-4 rounded-xl border border-blue-100 text-xs text-blue-800 leading-relaxed">
+								<p class="font-bold mb-1"><i class="ph-bold ph-info"></i> 지표 산출 방식 안내</p>
+								<p class="mb-1"><strong>원시 지수:</strong> (인프라 총합 ÷ 청소년 인구) × (인프라 총합 ÷ 지역 면적)</p>
+								<p><strong>표준화 점수:</strong> 해당 비교 그룹(전국 17개 시·도 또는 지역 내 시·군·구)의 최댓값과 최솟값을 기준으로 0~100점 사이로 스케일링(Min-Max 정규화)하여 나타낸 상대적 인프라 수준입니다.</p>
+							</div>
+						</div>
+					`;
+				}
 			}
 
 			container.innerHTML = html;
-		}
+		} // <- renderTabContent 함수 끝 괄호
 
 
         function updateFacilityTabUI(activeTitle) {
@@ -3847,6 +3970,7 @@
 
 					- 지역명: ${d.regionName}
 					- 수요-공급 판단: ${d.badgeText}
+					- 표준화 점수(0~100점 만점): ${d.stdScore.toFixed(1)}점 (전체 ${d.totalRegions}곳 중 ${d.rank}위)
 					- 청소년 인구(수요): ${d.pop.toLocaleString()}명
 					- 청소년수련시설 수(공급): ${d.fac}개소 (1만명당 시설수: ${d.ratio})
 					- 운영 프로그램 수(공급): ${d.prog}개 (1만명당 활동수: ${d.progRatio})
@@ -3856,10 +3980,10 @@
 
 					<div class="space-y-4 text-[14px] leading-relaxed text-gray-700">
 						<p><strong><span class="text-brand-yellow text-lg">1. 핵심진단:</span></strong><br> [이 지역이 왜 우선지원/관심/양호인지 종합 진단 1문장]</p>
-						<p><strong><span class="text-brand-yellow text-lg">2. 근거수치:</span></strong><br> [위 제공된 1만명당 공급 지표 등 수치 설명 1문장]</p>
-						<p><strong><span class="text-brand-yellow text-lg">3. 비교해석:</span></strong><br> [단순 건수가 아닌 수요(인구) 대비 공급(시설/프로그램)의 불균형 해석 1문장]</p>
+						<p><strong><span class="text-brand-yellow text-lg">2. 랭킹 분석:</span></strong><br> [0~100점 환산 점수와 순위를 바탕으로 타 지역 대비 인프라 수준을 평가하는 1문장]</p>
+						<p><strong><span class="text-brand-yellow text-lg">3. 지표 해석:</span></strong><br> [단순 건수가 아닌 수요(인구) 대비 공급(시설/프로그램)의 불균형 해석 1문장]</p>
 						<p><strong><span class="text-brand-yellow text-lg">4. 정책대안:</span></strong><br> [이 지역에 시설을 늘려야 할지, 프로그램을 보완해야 할지 등 구체적 처방 1문장]</p>
-						<p><strong><span class="text-brand-yellow text-lg">5. 유의사항:</span></strong><br> [해당 지표 활용 시 주의할 점 1문장]</p>
+						<p><strong><span class="text-brand-yellow text-lg">5. 기대효과:</span></strong><br> [제언한 정책대안이 실현되었을 때 청소년들에게 미칠 긍정적 효과 1문장]</p>
 					</div>
 				`;
 
