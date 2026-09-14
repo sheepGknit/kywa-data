@@ -1947,6 +1947,178 @@
             showTrendView(type); 
         }
 		
+		let activityDoughnutChartInstance = null;
+		let activityBarChartInstance = null;
+
+		function renderActivityTrendView(title) {
+			const container = document.getElementById('activityTrendContent');
+			const isAll = (title === '청소년활동 전체보기');
+			const actTypes = ['건강/스포츠', '모험개척', '역사탐방', '봉사협력', '교류', '과학정보', '진로탐구', '자기개발', '문화예술', '환경보존', '기타'];
+			const actColors = ['#f43f5e', '#f97316', '#eab308', '#84cc16', '#22c55e', '#10b981', '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6', '#d946ef'];
+
+			// 1. 레이아웃 HTML (전체보기일 땐 도넛+막대, 개별 탭일 땐 막대만)
+			let html = `
+				<div class="grid grid-cols-1 ${isAll ? 'lg:grid-cols-3' : 'lg:grid-cols-1'} gap-6 mb-6">
+					${isAll ? `
+					<div class="lg:col-span-1 bg-white p-6 rounded-2xl shadow-sm border border-gray-200 relative flex flex-col">
+						<h4 class="text-base font-bold text-gray-700 text-center mb-2">전국 영역별 활동 비율</h4>
+						<div class="flex-1 relative w-full min-h-[250px] flex items-center justify-center">
+							<canvas id="actDoughnutCanvas"></canvas>
+						</div>
+					</div>` : ''}
+					
+					<div class="${isAll ? 'lg:col-span-2' : 'lg:col-span-1'} bg-white p-6 rounded-2xl shadow-sm border border-gray-200 relative flex flex-col">
+						<div class="flex justify-between items-center mb-2">
+							<h4 class="text-base font-bold text-gray-700">${isAll ? '지역별 청소년활동 전체 현황' : `지역별 '${title}' 현황`}</h4>
+							<span class="text-xs text-gray-400 animate-pulse"><i class="ph-fill ph-cursor-click"></i> 막대를 클릭하면 지역 리스트가 나옵니다</span>
+						</div>
+						<div class="flex-1 relative w-full min-h-[250px]">
+							<canvas id="actBarCanvas"></canvas>
+						</div>
+					</div>
+				</div>
+
+				<!-- 막대 클릭 시 나타날 프로그램 리스트 컨테이너 -->
+				<div id="actProgramListContainer" class="hidden bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex-col">
+					<div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
+						<h3 id="actProgramListTitle" class="font-bold text-brand-dark text-sm"><i class="ph-bold ph-list-bullets mr-1"></i> 프로그램 리스트</h3>
+						<button onclick="document.getElementById('actProgramListContainer').classList.add('hidden')" class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded-md transition-colors font-bold">닫기</button>
+					</div>
+					<div class="p-4 bg-gray-50 flex-1 overflow-y-auto custom-scroll max-h-[500px]" id="actProgramListBody">
+						<!-- 리스트가 생성될 곳 -->
+					</div>
+				</div>
+			`;
+			container.innerHTML = html;
+
+			// 2. 데이터 가공 및 차트 파기
+			if (activityDoughnutChartInstance) activityDoughnutChartInstance.destroy();
+			if (activityBarChartInstance) activityBarChartInstance.destroy();
+
+			let barDatasets = [];
+			
+			// 전체보기일 경우
+			if (isAll) {
+				// 도넛 차트 데이터 집계 (전국 기준)
+				let nationalTotals = actTypes.map(type => getEyouthChartData(type).reduce((a, b) => a + b, 0));
+				
+				const ctxDoughnut = document.getElementById('actDoughnutCanvas').getContext('2d');
+				activityDoughnutChartInstance = new Chart(ctxDoughnut, {
+					type: 'doughnut',
+					data: { labels: actTypes, datasets: [{ data: nationalTotals, backgroundColor: actColors, borderWidth: 2 }] },
+					options: { responsive: true, maintainAspectRatio: false, cutout: '50%', plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => ` ${ctx.label}: ${ctx.raw.toLocaleString()}개` } } } }
+				});
+
+				// 막대 차트 데이터 집계 (스택형)
+				actTypes.forEach((type, idx) => {
+					barDatasets.push({ label: type, data: getEyouthChartData(type), backgroundColor: actColors[idx], barPercentage: 0.5 });
+				});
+			} 
+			// 개별 탭일 경우
+			else {
+				const typeIdx = actTypes.indexOf(title);
+				barDatasets = [{ label: title, data: getEyouthChartData(title), backgroundColor: actColors[typeIdx] || '#3b82f6', barPercentage: 0.5 }];
+			}
+
+			// 3. 막대 차트 생성 및 클릭 이벤트 바인딩
+			const ctxBar = document.getElementById('actBarCanvas').getContext('2d');
+			activityBarChartInstance = new Chart(ctxBar, {
+				type: 'bar',
+				data: { labels: regionsList, datasets: barDatasets },
+				options: {
+					responsive: true, maintainAspectRatio: false,
+					scales: { 
+						x: { stacked: isAll, ticks: { font: { size: 11, family: "'Pretendard', sans-serif" }, maxRotation: 45, minRotation: 45 }, grid: { display: false } }, 
+						y: { stacked: isAll, beginAtZero: true, grid: { color: '#f1f5f9' }, border: { display: false } } 
+					},
+					plugins: { legend: { display: isAll, position: 'bottom', labels: { boxWidth: 8, font: { size: 10, family: "'Pretendard', sans-serif" } } } },
+					
+					// 🚨 막대 클릭 이벤트!
+					onClick: (event, elements, chart) => {
+						if (elements.length > 0) {
+							const elementIndex = elements[0].index;
+							const clickedRegion = chart.data.labels[elementIndex];
+							const clickedType = isAll ? '전체' : title;
+							
+							// 하단에 리스트 그려주는 함수 호출
+							showActivityProgramList(clickedRegion, clickedType);
+						}
+					}
+				}
+			});
+		}
+		function showActivityProgramList(region, type) {
+			const container = document.getElementById('actProgramListContainer');
+			const titleEl = document.getElementById('actProgramListTitle');
+			const bodyEl = document.getElementById('actProgramListBody');
+
+			titleEl.innerHTML = `<i class="ph-bold ph-list-bullets mr-1"></i> [${region}] ${type === '전체' ? '전체 활동' : type} 프로그램 목록`;
+
+			// 1. 해당 지역 및 타입에 맞는 프로그램 필터링
+			let filtered = programsEyouthData.filter(p => {
+				let sNm = p.sidoNm || "";
+				let isRegionMatch = (region === "전남광주통합특별시") ? (sNm.includes('광주') || sNm.includes('전남') || sNm === "전남광주통합특별시") : (sNm === region);
+				let isTypeMatch = (type === '전체') ? true : ((p.programType || "").trim() === type);
+				return isRegionMatch && isTypeMatch;
+			});
+
+			// 2. 리스트 HTML 생성
+			let html = '';
+			if (filtered.length === 0) {
+				html = `<div class="py-10 text-center text-gray-400 font-bold">등록된 프로그램이 없습니다.</div>`;
+			} else {
+				html = `<div class="grid grid-cols-1 md:grid-cols-2 gap-4">`;
+				
+				filtered.forEach(prog => {
+					let statusText = prog.recruitmentStatus || '접수중';
+					let facility = prog.facilityName || '운영기관 미상';
+					let dateStr = prog.activityDate || '일정 미정';
+					let pType = prog.programType || '기타';
+
+					// 링크 파라미터 조합
+					let detailUrl = '#';
+					if (prog.linkParams && prog.linkParams.length >= 9) {
+						const queryParams = new URLSearchParams({
+							kFcltySn: prog.linkParams[0], kCrtfcSn: prog.linkParams[1], kSnOne: prog.linkParams[2], kProgrmseCode: prog.linkParams[3], kSnTwo: prog.linkParams[4], kCrtfcAt: prog.linkParams[5], kSttemntAt: prog.linkParams[6], kSttemntNo: prog.linkParams[7], kExclnccrtfcAtchmnflId: prog.linkParams[8], kSttemntManageNo: prog.linkParams[2], kSttemntSn: prog.linkParams[4]        
+						});
+						detailUrl = `https://www.youth.go.kr/youth/act/actSearch/actSearchDtl.yt?${queryParams.toString()}`;
+					}
+
+					html += `
+						<div class="bg-white p-4 border border-gray-200 rounded-xl relative overflow-hidden hover:border-brand-yellow transition-colors shadow-sm flex flex-col justify-between">
+							<div class="absolute left-0 top-0 w-1 h-full bg-brand-yellow"></div>
+							<div>
+								<div class="flex justify-between items-start mb-2 pl-2">
+									<div class="flex items-start gap-2">
+										<span class="px-2 py-0.5 bg-gray-100 text-gray-600 text-[10px] font-bold rounded shrink-0">${pType}</span>
+										<h3 class="font-bold text-brand-dark text-[14px] leading-tight break-keep">${prog.activityName}</h3>
+									</div>
+									<span class="px-2 py-1 bg-red-50 text-seoul-red text-[10px] font-black rounded border border-red-100 shrink-0">${statusText}</span>
+								</div>
+								<p class="text-[12px] text-gray-500 pl-2 mb-3 flex items-center gap-1 font-medium">
+									<i class="ph-fill ph-buildings text-gray-400"></i> ${facility} (${prog.sggNm || ''})
+								</p>
+							</div>
+							<div class="flex justify-between items-center pl-2 pt-3 border-t border-gray-100 mt-auto">
+								<span class="text-[11px] text-gray-400 font-bold"><i class="ph-bold ph-calendar-blank"></i> ${dateStr}</span>
+								<a href="${detailUrl}" target="_blank" class="text-[11px] font-bold text-white bg-brand-dark hover:bg-slate-700 px-3 py-1.5 rounded-lg transition-colors cursor-pointer whitespace-nowrap shadow-sm">
+									신청하러 가기 &rarr;
+								</a>
+							</div>
+						</div>
+					`;
+				});
+				html += `</div>`;
+			}
+
+			bodyEl.innerHTML = html;
+			
+			// 3. UI 띄우기 및 스크롤 자동 이동
+			container.classList.remove('hidden');
+			container.classList.add('flex');
+			container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+		}
+		
 		function renderLeaderTrendView(title = '청소년지도자 전체보기') {
             const container = document.getElementById('leaderTrendContent');
             const isAll = title === '청소년지도자 전체보기';
@@ -2221,11 +2393,11 @@
                 } 
                 else if (activityItems.includes(title)) {
                     const container = document.getElementById('activityTrendContent');
-                    container.appendChild(commonLayout); 
                     container.classList.remove('hidden'); container.classList.add('flex');
-                    commonLayout.classList.remove('hidden'); commonLayout.classList.add('flex');
-                    renderCharts(title);
-                } 
+                    
+                    // 공통 레이아웃(지도)을 쓰지 않고 전용 함수 호출
+                    renderActivityTrendView(title); 
+                }
                 else if (policyItems.includes(title)) {
                     const container = document.getElementById('policyTrendContent');
                     container.appendChild(commonLayout); 
