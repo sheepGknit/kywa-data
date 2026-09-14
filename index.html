@@ -1538,12 +1538,17 @@
 				});
 			}
 		
-			// 7. 표준화 점수(전국/도내 평균=100) 및 상/중/하위 그룹 분류
-			let avgRaw = allIndices.reduce((sum, item) => sum + item.raw, 0) / allIndices.length;
-			if (avgRaw === 0) avgRaw = 1;
+			// 7. 표준화 점수 (0~100점 스케일링: Min-Max 정규화)
+			let minRaw = Math.min(...allIndices.map(item => item.raw));
+			let maxRaw = Math.max(...allIndices.map(item => item.raw));
 
 			allIndices.forEach(item => {
-				item.stdScore = (item.raw / avgRaw) * 100;
+				// 예외 처리: 모든 지역의 원시지수가 동일할 경우 (분모 0 방지)
+				if (maxRaw === minRaw) {
+					item.stdScore = 100;
+				} else {
+					item.stdScore = ((item.raw - minRaw) / (maxRaw - minRaw)) * 100;
+				}
 			});
 
 			// 점수 내림차순 정렬 (높을수록 인프라 양호)
@@ -1619,13 +1624,13 @@
 			// 9. 🚨 새로운 AI 분석 텍스트 출력
 			let compareTarget = isAll ? "전국 17개 시·도" : "해당 도내 시·군·구";
 			insightEl.innerHTML = `
-				<p>현재 지역의 <strong>표준화 격차지수는 <span class="text-brand-yellow text-base">${currentStdScore.toFixed(1)}점</span></strong> 입니다. (평균 100점)</p>
+				<p>현재 지역의 <strong>표준화 격차지수는 <span class="text-brand-yellow text-base">${currentStdScore.toFixed(1)}점</span></strong> 입니다. (최고 100점 기준)</p>
 				<p class="bg-brand-dark/50 px-3 py-1.5 rounded inline-block text-gray-300 font-mono text-[11px] my-1">
 					원시지수 산출식: (시설수+정책수 / 지역 청소년수) × (시설수+정책수 / 행정구역 면적)
 				</p>
 				<p>종합 분석 결과 <span class="px-1.5 py-0.5 rounded text-[11px] font-bold text-white ml-0.5 mr-0.5" style="background-color: ${insightColor}">${badgeText.replace(/[^가-힣]/g, '')}</span>에 해당하며, ${compareTarget} 중 <strong>${rank}위</strong>(상위 ${Math.round((rank/allIndices.length)*100)}%)를 기록했습니다.</p>
 				<p class="text-[11px] text-gray-400 mt-2 border-t border-gray-600/50 pt-2">
-					※ 해당 지표는 인구 밀집도 대비 접근성과 물리적 거리(면적) 대비 접근성을 복합적으로 고려하여 산출되었습니다.
+					※ 해당 지표는 인구 밀집도와 행정구역 면적 대비 인프라 접근성을 복합 산출하여 0~100점 사이로 상대 평가한 점수입니다.
 				</p>
 			`;
 
