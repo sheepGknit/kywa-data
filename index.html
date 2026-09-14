@@ -729,6 +729,7 @@
         const URL_MUNICIPALITIES = 'data/sggdata.geojson';
         let provincesData = null;
         let municipalitiesData = null;
+		let legacyPopData = null;
 
         function createIslandPolygon(lng, lat, rx, ry, segments = 16) {
             let coords = [];
@@ -1030,11 +1031,13 @@
 				fetch('data/programs_eyouth.json').then(res => res.json()),
 				fetch('data/programs_poli.json').then(res => res.json()),
 				fetch('data/area.json').then(res => res.json())
-				
+				fetch('data/pop_data.json').then(res => res.json()) // 🌟 1. 파일 불러오기 추가
 			])
-			.then(([munData, sisul, jidoja, pop, school, eyouth, poli, area]) => {
+			.then(([munData, sisul, jidoja, pop, school, eyouth, poli, area, legacyPop]) => {
 				
 				areaData = area;
+				legacyPopData = legacyPop; // 🌟 3. 전역 변수에 데이터 담기!
+				
 				// 🌟 [세탁 3] 지도(GeoJSON) 데이터 세탁: 광주의 다각형 좌표를 전남 안에 쏟아붓고 이름을 바꿉니다.
 				if (munData && munData.features) {
 					const gwangjuIdx = munData.features.findIndex(f => f.properties.name === '광주광역시');
