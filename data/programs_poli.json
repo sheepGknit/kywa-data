@@ -188558,6 +188558,15 @@
         "address": "(54647) 전라남도 해남군 공룡박물관길 46 황산 청소년 문화의 집 3층 희망나눔지역아동센터",
         "contact": "0638521261",
         "homepage": "http://cafe.daum.net/shainrourhope"
-    }
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "디지털 가좌실록",
+        "sidoNm": "인천광역시",
+        "sggNm": "서구",
+        "facilityName": "가좌청소년센터",
+        "field": "AI·디지털",
+		"year":2026
+    },
 	
 ]
