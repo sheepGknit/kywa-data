@@ -861,7 +861,7 @@
             fac1: 0, fac2: 0, fac3: 0, fac4: 0, fac5: 0, fac6: 0,
             sch1: 0, sch2: 0, sch3: 0,
             act1: 0, act2: 0, act3: 0, act4: 0, act5: 0, act6: 0, act7: 0, act8: 0, act9: 0, act10: 0, act11: 0,
-            pol1: 0, pol2: 0, pol3: 0, pol4: 0, pol5: 0, pol6: 0,
+            pol1: 0, pol2: 0, pol3: 0, pol4: 0, pol5: 0, pol6: 0, pol7: 0,
             lead1: 0, lead2: 0
         };
 
@@ -976,7 +976,8 @@
 				pol3: getCountByRegion('청소년자기도전포상제', programsPoliData),
 				pol4: getCountByRegion('수련활동인증제', programsPoliData),
 				pol5: getCountByRegion('수련활동신고제', programsPoliData),
-				pol6: getGroupActivityCount(),
+				pol6: getCountByRegion('우수프로그램', programsPoliData),
+				pol7: getGroupActivityCount(),
 
 				lead1: lead1_val, lead2: lead2_val
 			};
