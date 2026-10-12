@@ -1842,6 +1842,33 @@
                     }
                     return true;
                 });
+				
+				// 원하는 노출 순서대로 정의
+				const customOrder = [
+					'우수프로그램',
+					'청소년방과후아카데미',
+					'국제청소년성취포상제',
+					'청소년자기도전포상제',
+					'수련활동인증제',
+					'수련활동신고제'
+				];
+				
+				filteredPolicies.sort((a, b) => {
+					let indexA = customOrder.indexOf(a.programType);
+					let indexB = customOrder.indexOf(b.programType);
+
+					// 정의한 배열에 없는 항목은 맨 뒤로 배치
+					if (indexA === -1) indexA = 999;
+					if (indexB === -1) indexB = 999;
+
+					// 우선순위가 다르면 지정된 순서대로 정렬
+					if (indexA !== indexB) {
+						return indexA - indexB;
+					}
+
+					// 같은 유형 내에서는 프로그램명 가나다순으로 정렬
+					return (a.activityName || '').localeCompare(b.activityName || '', 'ko');
+				});
 
 				if (filteredPolicies.length === 0) {
 					html = `<div class="p-8 text-center text-gray-400 font-bold mt-10">해당 지역에 등록된 운영 정책사업 데이터가 없습니다.</div>`;
