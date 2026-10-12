@@ -188567,6 +188567,33 @@
         "facilityName": "가좌청소년센터",
         "field": "AI·디지털",
 		"year":2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "청소년 AI밸런스 '날-고리즘'(날 위한, 날것의 알고리즘)",
+        "sidoNm": "서울특별시",
+        "sggNm": "은평구",
+        "facilityName": "갈현청소년문화의집",
+        "field": "AI·디지털",
+		"year":2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "꿈도시 제작소",
+        "sidoNm": "경기도",
+        "sggNm": "파주시",
+        "facilityName": "교하청소년문화의집",
+        "field": "AI·디지털",
+		"year":2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "디지털 방탈출 메이커 : 지역사회 안전 미션 해결하기",
+        "sidoNm": "경기도",
+        "sggNm": "군포시",
+        "facilityName": "군포시청소년수련관",
+        "field": "AI·디지털",
+		"year":2026
     }
 	
 ]
