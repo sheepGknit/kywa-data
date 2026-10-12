@@ -3854,6 +3854,16 @@
 			
 			// 5. O/X 매트릭스 표 HTML 생성
 			let html = `
+				<colgroup>
+					<col class="w-1/4"> <!-- 시설명: 25% -->
+					<col class="w-[10.7%]"> <!-- 나머지 7개 열 균등 배분 (75% / 7 ≈ 10.7%) -->
+					<col class="w-[10.7%]">
+					<col class="w-[10.7%]">
+					<col class="w-[10.7%]">
+					<col class="w-[10.7%]">
+					<col class="w-[10.7%]">
+					<col class="w-[10.7%]">
+				</colgroup>
 				<thead class="bg-brand-dark text-brand-yellow text-[11px] uppercase text-center border-b border-gray-700">
 					<tr>
 						<th class="py-3 px-2 w-1/4">시설명</th>
