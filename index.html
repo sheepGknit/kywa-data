@@ -2059,7 +2059,7 @@
 				else if(st==='청소년자기도전포상제') st='청소년자기도전포상제'; 
 				else if(st==='수련활동인증제') st='활동인증제'; 
 				else if(st==='수련활동신고제') st='활동신고제'; 
-				else if(st==='우수 청소년활동 프로그램 지원사업') st='우수 청소년활동 프로그램 지원사업';
+				else if(st==='우수 청소년활동 프로그램 지원사업') st='우수프로그램';
 				else if(st==='그룹활동') st='그룹활동';
 				
 				if (btn.textContent.trim() === st || activeTitle === btn.textContent.trim()) btn.className = "policy-tab px-3 py-1.5 text-[13px] rounded-lg transition-colors bg-brand-yellow text-brand-dark font-black shadow-[0_0_10px_rgba(253,186,26,0.4)]";
@@ -2817,7 +2817,7 @@
 			
 			else if (policyItems.includes(title)) {
 				const isAllView = title === '청소년정책사업 전체보기';
-				const types = ['청소년방과후아카데미', '국제청소년성취포상제', '청소년자기도전포상제', '수련활동인증제', '수련활동신고제', '우수 청소년활동 프로그램 지원사업', '그룹활동'];
+				const types = ['청소년방과후아카데미', '국제청소년성취포상제', '청소년자기도전포상제', '수련활동인증제', '수련활동신고제', '우수프로그램', '그룹활동'];
 				const colors = ['#f43f5e', '#f97316', '#84cc16', '#10b981', '#06b6d4', '#3b82f6'];
 
 				const getGroupDataArray = () => {
