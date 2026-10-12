@@ -14448,7 +14448,7 @@
         "recruitmentStatus": "개별문의",
         "capacity": "8",
         "sidoNm": "인천광역시",
-        "sggNm": "서구",
+        "sggNm": "서해구",
         "fee": "무료",
         "age": "초",
         "facilityName": "행복나눔플러스",
@@ -145605,7 +145605,7 @@
         "recruitmentStatus": "상시모집",
         "capacity": "15",
         "sidoNm": "인천광역시",
-        "sggNm": "서구",
+        "sggNm": "서해구",
         "fee": "",
         "age": "",
         "facilityName": "가좌청소년센터",
@@ -165555,7 +165555,7 @@
         "recruitmentStatus": "2026-07-20 ~ 08-06",
         "capacity": "10",
         "sidoNm": "인천광역시",
-        "sggNm": "서구",
+        "sggNm": "서해구",
         "fee": "무료",
         "age": "초",
         "facilityName": "가좌청소년센터",
@@ -182491,7 +182491,7 @@
         "programType": "국제청소년성취포상제",
         "activityName": "국제성취포상제",
         "sidoNm": "인천광역시",
-        "sggNm": "서구",
+        "sggNm": "서해구",
         "facilityType": "청소년문화의집",
         "facilityName": "가좌청소년센터",
         "Org": "인천광역시청소년활동진흥센터",
@@ -185731,18 +185731,6 @@
         "programType": "청소년자기도전포상제",
         "activityName": "",
         "sidoNm": "부산광역시",
-        "sggNm": "서대문구",
-        "facilityType": "청소년단체",
-        "facilityName": "테스트",
-        "Org": "부산광역시청소년활동진흥센터",
-        "address": "(03665) 서울특별시 서대문구 거북골로 47 (남가좌동) 111",
-        "contact": "023302877",
-        "homepage": ""
-    },
-    {
-        "programType": "청소년자기도전포상제",
-        "activityName": "",
-        "sidoNm": "부산광역시",
         "sggNm": "영도구",
         "facilityType": "청소년수련관",
         "facilityName": "함지골청소년수련관",
@@ -186547,7 +186535,7 @@
         "programType": "청소년자기도전포상제",
         "activityName": "",
         "sidoNm": "인천광역시",
-        "sggNm": "서구",
+        "sggNm": "서해구",
         "facilityType": "종교기관 및 단체",
         "facilityName": "기독교대한감리회 예일교회",
         "Org": "사)아름다운청소년들",
@@ -186595,7 +186583,7 @@
         "programType": "청소년자기도전포상제",
         "activityName": "",
         "sidoNm": "인천광역시",
-        "sggNm": "서구",
+        "sggNm": "서해구",
         "facilityType": "청소년수련관",
         "facilityName": "가좌청소년센터",
         "Org": "인천광역시청소년활동진흥센터",
@@ -186967,18 +186955,6 @@
         "programType": "청소년자기도전포상제",
         "activityName": "",
         "sidoNm": "전남광주통합특별시",
-        "sggNm": "서대문구",
-        "facilityType": "청소년단체",
-        "facilityName": "테스트2",
-        "Org": "전남광주통합특별시광주청소년활동진흥센터",
-        "address": "(03665) 서울특별시 서대문구 거북골로 47 (남가좌동) 111",
-        "contact": "023302877",
-        "homepage": ""
-    },
-    {
-        "programType": "청소년자기도전포상제",
-        "activityName": "",
-        "sidoNm": "전남광주통합특별시",
         "sggNm": "서구",
         "facilityType": "청소년문화의집",
         "facilityName": "화정청소년문화의집",
@@ -187345,18 +187321,6 @@
         "Org": "전라남도청소년미래재단",
         "address": "(58616) 전남광주통합특별시 목포시 텃골로13번길 40 (석현동, 근화네오빌아파트) 103동101호",
         "contact": "07081980691",
-        "homepage": ""
-    },
-    {
-        "programType": "청소년자기도전포상제",
-        "activityName": "",
-        "sidoNm": "전남광주통합특별시",
-        "sggNm": "서대문구",
-        "facilityType": "학교 밖 지원센터(꿈드림)",
-        "facilityName": "국제자기도전복지기관",
-        "Org": "테스트센터",
-        "address": "(03675) 서울특별시 서대문구 가좌로 123 (홍은동, 금호빌라) 234",
-        "contact": "010-0000-0000",
         "homepage": ""
     },
     {
@@ -188562,38 +188526,595 @@
     {
         "programType": "우수프로그램",
         "activityName": "디지털 가좌실록",
-        "sidoNm": "인천광역시",
-        "sggNm": "서구",
+        "sidoNm": "인천",
+        "sggNm": "서해구",
         "facilityName": "가좌청소년센터",
         "field": "AI·디지털",
-		"year":2026
+        "year": 2026
     },
     {
         "programType": "우수프로그램",
-        "activityName": "청소년 AI밸런스 '날-고리즘'(날 위한, 날것의 알고리즘)",
-        "sidoNm": "서울특별시",
+        "activityName": "청소년 AI밸런스 ‘날-고리즘’(날 위한, 날것의 알고리즘)",
+        "sidoNm": "서울",
         "sggNm": "은평구",
         "facilityName": "갈현청소년문화의집",
         "field": "AI·디지털",
-		"year":2026
+        "year": 2026
     },
     {
         "programType": "우수프로그램",
         "activityName": "꿈도시 제작소",
-        "sidoNm": "경기도",
+        "sidoNm": "경기",
         "sggNm": "파주시",
         "facilityName": "교하청소년문화의집",
         "field": "AI·디지털",
-		"year":2026
+        "year": 2026
     },
     {
         "programType": "우수프로그램",
         "activityName": "디지털 방탈출 메이커 : 지역사회 안전 미션 해결하기",
-        "sidoNm": "경기도",
+        "sidoNm": "경기",
         "sggNm": "군포시",
         "facilityName": "군포시청소년수련관",
         "field": "AI·디지털",
-		"year":2026
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "2026년 디지털 윤리교육“우리들의 디지털 이야기” ",
+        "sidoNm": "경기",
+        "sggNm": "파주시",
+        "facilityName": "금촌청소년문화의집",
+        "field": "AI·디지털",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "AI와 함께 미래를 심다! (^ㅁ^프로젝트)",
+        "sidoNm": "경기",
+        "sggNm": "김포시",
+        "facilityName": "김포시청소년수련원",
+        "field": "AI·디지털",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "“Smart City Makers”(인공지능융합기술을 활용한 AIoT 도시 메이킹프로젝트)",
+        "sidoNm": "경기",
+        "sggNm": "광명시",
+        "facilityName": "나름청소년활동센터",
+        "field": "AI·디지털",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "[AI와 함께쓰는 우리들의 이야기]多가치, 동화로 꽃피는 나의 꿈 ",
+        "sidoNm": "경기",
+        "sggNm": "군포시",
+        "facilityName": "군포시청소년재단 당동청소년문화의집",
+        "field": "AI·디지털",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "마음(Soul)을 읽고 관계의 해법(Solution)을 찾다\"SOL-MATE\"",
+        "sidoNm": "서울",
+        "sggNm": "마포구",
+        "facilityName": "마포청소년문화의집",
+        "field": "AI·디지털",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "Y(Yangsan) 메타프로젝트 : Y(Youth) AI아트디렉터",
+        "sidoNm": "경남",
+        "sggNm": "양산시",
+        "facilityName": "물금청소년문화의집",
+        "field": "AI·디지털",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "데이터로 지키는 탄소중립 “Eco-AI 메이커스”",
+        "sidoNm": "경기",
+        "sggNm": "이천시",
+        "facilityName": "부발청소년센터",
+        "field": "AI·디지털",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "디지털 윤리 디지털로 플레이하자! “디플+”",
+        "sidoNm": "서울",
+        "sggNm": "서초구",
+        "facilityName": "서초유스센터",
+        "field": "AI·디지털",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "「생활을 바꾸는 코드」 나만의 피지컬AI & 멀티모달 스마트 홈 나눔 프로젝트",
+        "sidoNm": "경기",
+        "sggNm": "이천시",
+        "facilityName": "이천시청소년재단 서희청소년센터",
+        "field": "AI·디지털",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "프롬프트 엔지니어링 기반 우리 학교 참여 프로젝트 : ACT! (AI-Driven Change Together)",
+        "sidoNm": "경기",
+        "sggNm": "부천시 소사구",
+        "facilityName": "소사청소년센터",
+        "field": "AI·디지털",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "YOUTH AI BAND : AI로 심은 가능성, 로봇 밴드 디지털 창작 프로젝트 ",
+        "sidoNm": "전북",
+        "sggNm": "전주시 덕진구",
+        "facilityName": "솔내청소년센터",
+        "field": "AI·디지털",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "학교를 바꾸는 10대들의 AI 스타트업,「AI 스쿨 업(School-Up)!」",
+        "sidoNm": "서울",
+        "sggNm": "노원구",
+        "facilityName": "시립노원청소년 미래진로센터",
+        "field": "AI·디지털",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "모두를 위한 디지털 포용 「ALL포용 프로젝트」",
+        "sidoNm": "서울",
+        "sggNm": "중랑구",
+        "facilityName": "시립망우청소년센터",
+        "field": "AI·디지털",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "로봇 랩소디(Lab-soDy) : 청소년 로봇 창작 탐구 프로그램",
+        "sidoNm": "서울",
+        "sggNm": "도봉구",
+        "facilityName": "시립창동청소년센터",
+        "field": "AI·디지털",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "하늘을 코딩하다, 청소년 드론쇼 프로젝트 'THE GREAT SKYMAN'",
+        "sidoNm": "경기",
+        "sggNm": "안성시",
+        "facilityName": "안성시청소년수련관",
+        "field": "AI·디지털",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "마을 먀(AI)케터가 소개하는 우리학교 또 갈. ZIP",
+        "sidoNm": "경기",
+        "sggNm": "안양시 만안구",
+        "facilityName": "안양시만안청소년수련관",
+        "field": "AI·디지털",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "인문학으로 여는 AI시대 – ‘I & AI 사용 설명서’",
+        "sidoNm": "경기",
+        "sggNm": "안양시 만안구",
+        "facilityName": "안양시박달청소년문화의집",
+        "field": "AI·디지털",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "AI 팩트체크 스쿨 ‘AI 바이브 코딩을 이용한 동화 제작’",
+        "sidoNm": "경기",
+        "sggNm": "수원시 영통구",
+        "facilityName": "영통청소년청년센터",
+        "field": "AI·디지털",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "<RE:WEAR AI>  AI로 재해석한 패션, 룩북에 새긴 런웨이",
+        "sidoNm": "경기",
+        "sggNm": "의왕시",
+        "facilityName": "의왕시청소년수련관",
+        "field": "AI·디지털",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "우리동네 AI 팩트 체커(Fact-Checker)",
+        "sidoNm": "충남",
+        "sggNm": "천안시 서북구",
+        "facilityName": "천안시청소년복합커뮤니티센터",
+        "field": "AI·디지털",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "AI 꿈틀: AI로 세상의 틀을 깨고 나만의 꿈을 설계하다!",
+        "sidoNm": "충남",
+        "sggNm": "천안시 동남구",
+        "facilityName": "천안시청소년수련관",
+        "field": "AI·디지털",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "AI플레이메이커스 : 청소년이 만드는 우리 동네 안전지대 게임",
+        "sidoNm": "경기",
+        "sggNm": "화성시",
+        "facilityName": "화성시봉담청소년문화의집",
+        "field": "AI·디지털",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "데뷔 ON(On Next) : 예비 지도자 실전 데뷔 프로젝트",
+        "sidoNm": "인천",
+        "sggNm": "검단구",
+        "facilityName": "검단청소년센터",
+        "field": "진로 ",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "3-S[Sense(감각),Social(가치),Share(확산)] : 리틀CEO의 창업 실험실",
+        "sidoNm": "서울",
+        "sggNm": "송파구",
+        "facilityName": "마천청소년센터",
+        "field": "진로",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "마을에서 찾고 AI로 설계하는 진로 브랜딩 마을에 온 아이(AI)",
+        "sidoNm": "서울",
+        "sggNm": "노원구",
+        "facilityName": "시립노원청소년센터",
+        "field": "진로 ",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "그린액션! 국제연대! 진로탐색! ‘동티모르 청소년과 함께’ ",
+        "sidoNm": "서울",
+        "sggNm": "은평구",
+        "facilityName": "시립은평청소년센터",
+        "field": "진로",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "정답 말고 기준 ",
+        "sidoNm": "경기",
+        "sggNm": "안양시 만안구",
+        "facilityName": "안양시석수청소년문화의집",
+        "field": "진로",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "마을ON : 성장-UP 프로젝트",
+        "sidoNm": "울산",
+        "sggNm": "북구",
+        "facilityName": "울산북구청소년문화의집",
+        "field": "진로 ",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "워크 인 완도 ",
+        "sidoNm": "전남",
+        "sggNm": "완도군",
+        "facilityName": "전라남도청소년수련원",
+        "field": "진로 ",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "건강 레벨 업 - 청소년 웰니스 리더 챌린지",
+        "sidoNm": "경기",
+        "sggNm": "수원시 영통구",
+        "facilityName": "광교청소년청년센터",
+        "field": "건강",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "셀프챌린저스: 청소년의 건강한 생활습관 형성 프로그램",
+        "sidoNm": "서울",
+        "sggNm": "도봉구",
+        "facilityName": "도봉동청소년문화의집",
+        "field": "건강",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "유소년축구단 원팀(ONE TEAM) – 축구로 배우는 협동과 성장",
+        "sidoNm": "강원",
+        "sggNm": "정선군",
+        "facilityName": "사북청소년장학센터",
+        "field": "건강",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "우리동네 안전지킴이! 꾸러기 수비대",
+        "sidoNm": "전북",
+        "sggNm": "익산시",
+        "facilityName": "익산시청소년문화의집",
+        "field": "건강",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "청소년 활력 충전소: 헬시(Healthy)메이트",
+        "sidoNm": "인천",
+        "sggNm": "서해구",
+        "facilityName": "서해구청소년센터",
+        "field": "건강",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "지구를 생각하는 한 끼",
+        "sidoNm": "대구",
+        "sggNm": "수성구",
+        "facilityName": "수성구청소년수련관",
+        "field": "건강",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "나를 행복하게 하는  T‧M‧I(Trekking ‧Mind ‧Insight)",
+        "sidoNm": "서울",
+        "sggNm": "양천구",
+        "facilityName": "신월청소년문화센터",
+        "field": "건강 ",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "청소년 실패 이력서[실패를 다시 쓰는 힘]",
+        "sidoNm": "서울",
+        "sggNm": "구로구",
+        "facilityName": "궁동청소년문화의집",
+        "field": "사회정서",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "너와 나의 연결고리, i & you:niverse",
+        "sidoNm": "전북",
+        "sggNm": "전주시 덕진구",
+        "facilityName": "덕진청소년센터",
+        "field": "사회정서",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "세대통합 마을 살리기 프로젝트- 온(溫)동네 한 바퀴",
+        "sidoNm": "경남",
+        "sggNm": "밀양시",
+        "facilityName": "밀양시청소년수련관",
+        "field": "사회정서",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "청소년 사회정서 성장 프로그램 ‘사이 프로젝트 : 사람으로 마음을 이어가다’",
+        "sidoNm": "경기",
+        "sggNm": "부천시 소사구",
+        "facilityName": "송내청소년센터",
+        "field": "사회정서",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "시끌(SEE-CL) In스타그램(일상을 보며, 기록하며, 커가는 우리)",
+        "sidoNm": "서울",
+        "sggNm": "광진구",
+        "facilityName": "시립광진청소년센터",
+        "field": "사회정서",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "온점(溫點) 프로젝트",
+        "sidoNm": "서울",
+        "sggNm": "구로구",
+        "facilityName": "시립구로청소년센터",
+        "field": "사회정서",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "마음을 읽다, 마음을 잇다 <청소년 생태 정서치유 프로그램>",
+        "sidoNm": "서울",
+        "sggNm": "영등포구",
+        "facilityName": "시립문래청소년센터",
+        "field": "사회정서",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "AI 도구 활용 청소년 사연 전달 프로젝트'사운드 딜리버리'",
+        "sidoNm": "서울",
+        "sggNm": "양천구",
+        "facilityName": "시립청소년음악센터",
+        "field": "사회정서",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "‘우리 친해지는 거다? 테테테(컬러테라피, 음악테라피, 공예테라피)'",
+        "sidoNm": "경기",
+        "sggNm": "안양시 동안구",
+        "facilityName": "안양시관양청소년문화의집",
+        "field": "사회정서",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "청소년의 일상을 FIT(맞추는) 브레인 라이프 프로그램(Brain Fit Life:브레인 핏 라이프)",
+        "sidoNm": "인천",
+        "sggNm": "서해구",
+        "facilityName": "인천서구시설관리공단 연희청소년센터",
+        "field": "사회정서",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "S.E.L.F. (Smart, Emotional, Life-skill, Fitness) 가디언즈",
+        "sidoNm": "서울",
+        "sggNm": "도봉구",
+        "facilityName": "창동청소년문화의집",
+        "field": "사회정서",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "청소년 정서 성장 연극 제작 프로젝트, ‘공감 Feelm(Feel+Film)’",
+        "sidoNm": "서울",
+        "sggNm": "강동구",
+        "facilityName": "천호청소년문화의집",
+        "field": "사회정서",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "청소년이 연출하는 황혼의 로맨스'청혼’",
+        "sidoNm": "경기",
+        "sggNm": "이천시",
+        "facilityName": "청미청소년센터",
+        "field": "사회정서",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "외교의 재발견 : 고양시 청소년의 K-외교",
+        "sidoNm": "경기",
+        "sggNm": "고양시 일산동구",
+        "facilityName": "마두청소년수련관",
+        "field": "자유",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "「질문하는 미술」: ‘당연한 것을 의심하고, 나만의 답을 그리는 시간’ ",
+        "sidoNm": "경기",
+        "sggNm": "시흥시",
+        "facilityName": "배곧1청소년문화의집",
+        "field": "자유",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "교실 사운드 메이커스(Classroom Sound Makers)",
+        "sidoNm": "경기",
+        "sggNm": "의왕시",
+        "facilityName": "부곡동청소년문화의집",
+        "field": "자유",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "청소년 음악 창작 프로그램 [유플리(Youth Playlist)]",
+        "sidoNm": "부산",
+        "sggNm": "금정구",
+        "facilityName": "부산광역시 금정청소년수련관",
+        "field": "자유",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "청소년 사회참여 프로젝트  [청.참.길.(청소년 참여로 변화되길)]",
+        "sidoNm": "서울",
+        "sggNm": "동작구",
+        "facilityName": "사당청소년센터",
+        "field": "자유",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "책으로 읽는 지구의 미래:  SDGs 청소년 지역 참여 프로젝트",
+        "sidoNm": "경기",
+        "sggNm": "안산시 상록구",
+        "facilityName": "상록청소년수련관",
+        "field": "자유",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "“하이 스토리”(Hi :Story)  초등 고학년 대상 체험형 한국전쟁·독립 이야기 프로그램 ",
+        "sidoNm": "서울",
+        "sggNm": "동대문구",
+        "facilityName": "시립동대문청소년센터",
+        "field": "자유",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "청소년 영화 비평 및 미디어 활동 ‘시네마인드'",
+        "sidoNm": "서울",
+        "sggNm": "용산구",
+        "facilityName": "시립청소년미디어센터",
+        "field": "자유",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "다다전통 (다른 우리가 다채로운 선율로 전하여 통하는 우리 가락)",
+        "sidoNm": "경기",
+        "sggNm": "안양시 만안구",
+        "facilityName": "안양시만안 청소년문화의집",
+        "field": "자유",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "다시 쓰는 흙의 기록, [Re-Ceramic] 프로젝트]",
+        "sidoNm": "경기",
+        "sggNm": "성남시 분당구",
+        "facilityName": "야탑유스센터",
+        "field": "자유",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "Y-IDEA  국제개발협력 교육 프로그램",
+        "sidoNm": "인천",
+        "sggNm": "연수구",
+        "facilityName": "연수구청소년센터",
+        "field": "자유",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "청소년 참여형 지역문제 해결 프로젝트‘나랑 Talk’",
+        "sidoNm": "경기",
+        "sggNm": "이천시",
+        "facilityName": "창전청소년센터",
+        "field": "자유",
+        "year": 2026
+    },
+    {
+        "programType": "우수프로그램",
+        "activityName": "청소년의 안전한 경제생활 똑똑e",
+        "sidoNm": "경기",
+        "sggNm": "안양시 동안구",
+        "facilityName": "호계청소년문화의집",
+        "field": "자유",
+        "year": 2026
     }
-	
 ]
