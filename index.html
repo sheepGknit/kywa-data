@@ -2930,7 +2930,7 @@
 								else if (pType === '청소년자기도전포상제') mappedType = '청소년자기도전포상제';
 								else if (pType === '인증연계(실시) 프로그램' || pType === '인증연계 프로그램') mappedType = '활동인증제';
 								else if (pType === '신고연계 프로그램') mappedType = '활동신고제';
-								else if (pType === '우수 청소년활동 프로그램 지원사업') mappedType = '우수 청소년활동 프로그램 지원사업';
+								else if (pType === '우수프로그램') mappedType = '우수 청소년활동 프로그램 지원사업';
 
 								// 기관 이름이 있고 조건에 맞으면 Set에 추가하여 중복 방지
 								if (facName && (isAll || mappedType === targetType)) {
@@ -3815,7 +3815,7 @@
 				else if (pType === '청소년자기도전포상제') mappedType = '청소년자기도전포상제';
 				else if (pType === '인증연계(실시) 프로그램' || pType === '인증연계 프로그램') mappedType = '활동인증제';
 				else if (pType === '신고연계 프로그램') mappedType = '활동신고제';
-				else if (pType === '우수 청소년활동 프로그램 지원사업') mappedType = '우수 청소년활동 프로그램 지원사업';
+				else if (pType === '우수프로그램') mappedType = '우수 청소년활동 프로그램 지원사업';
 
 				// 정책 데이터에 있는 시설인데 기존 시설목록(sisulData)에 없었던 경우 추가
 				if (name && mappedType) {
